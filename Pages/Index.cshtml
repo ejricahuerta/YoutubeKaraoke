@@ -1,0 +1,28 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+    var agent = Request.Headers["User-Agent"].ToString();
+}
+
+
+
+@if(agent.Contains("iPhone") || agent.Contains("Android")) {
+    <div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">Add Songs to the Queue</h1>
+    <p class="lead">Start searching below...</p>
+  </div>
+</div>
+
+}
+else {
+
+    <div id="video"  class="vh-100 vw-100"></div>
+}
+
+
+
+
+
+
