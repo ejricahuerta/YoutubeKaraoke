@@ -5,13 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Karaoke.Pages
-{
-    public class IndexModel : PageModel
-    {
-        public void OnGet()
-        {
-
+namespace Karaoke.Pages {
+    public class IndexModel : PageModel {
+        public string URL { get; set; }
+        public void OnGet () {
+            URL = "http://localhost:5000";
         }
     }
 }

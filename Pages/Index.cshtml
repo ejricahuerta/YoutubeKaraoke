@@ -5,20 +5,69 @@
     var agent = Request.Headers["User-Agent"].ToString();
 }
 
+<style>
+  body {
 
+    background:black;
+
+  }
+  .bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.bg-video #player {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100vw;
+  height: calc( 100vh - 20px);
+  z-index: -2;
+}
+
+.bg-video .overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+.message {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+}
+</style>
 
 @if(agent.Contains("iPhone") || agent.Contains("Android")) {
-    <div class="jumbotron jumbotron-fluid">
-  <div class="container">
-    <h1 class="display-4">Add Songs to the Queue</h1>
-    <p class="lead">Start searching below...</p>
-  </div>
-</div>
-
+<partial name="_Search" />
 }
 else {
 
-    <div id="video"  class="vh-100 vw-100"></div>
+<div class="bg-video">
+  <div class="overlay ">
+    <div class="text-white my2 text-center bg-dark p-2">
+
+    <small>Open your web browser and type this url to add songs: </small>
+    <h3 class="">@Model.URL</h3>
+
+  </div>
+  </div>
+  <div id="player"></div>
+    <div class="message d-flex text-white"> 
+      <div class="m-auto text-center">
+        <h1 class="display-1 ">Add Songs using your phone.</h1>
+        <p class="leader">Enter the link above.</p>
+      </div>
+    </div>
+</div>
 }
 
 
