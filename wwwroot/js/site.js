@@ -33,7 +33,7 @@ function onYouTubePlayerAPIReady() {
     } else {
         clearTimeout(randomPlayer);
         player = new YT.Player('player', {
-            videoId: songList[songList.length - 1],
+            videoId: songList.pop(),
             events: {
                 'onReady': onPlayerReady,
                 'onStateChange': onPlayerStateChange
@@ -59,3 +59,17 @@ function onPlayerStateChange(event) {
         }
     }
 }
+
+let connection = new signalR.HubConnectionBuilder().withUrl("/hub").build();
+
+connection.on("ReceiveMessage", function (user, message) {
+    songList
+});
+
+connection.start().then(function(){
+    console.log("connection started!");
+}).catch(function (err) {
+    return console.error(err.toString());
+});
+
+

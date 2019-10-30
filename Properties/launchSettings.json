@@ -18,7 +18,7 @@
     "Karaoke": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:5000;http://192.168.2.166:5000",
+      "applicationUrl": "http://localhost:5000;http://192.168.0.23:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

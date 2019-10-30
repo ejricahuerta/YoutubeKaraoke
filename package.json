@@ -1,0 +1,23 @@
+{
+  "name": "Karaoke",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ejricahuerta/YoutubeKaraoke.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ejricahuerta/YoutubeKaraoke/issues"
+  },
+  "homepage": "https://github.com/ejricahuerta/YoutubeKaraoke#readme",
+  "dependencies": {
+    "@aspnet/signalr": "^1.1.4"
+  }
+}
