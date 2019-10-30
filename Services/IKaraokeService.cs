@@ -1,12 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Karaoke.Entities;
 
-namespace Karaoke.Services
-{
-    public interface IKaraokeService
-    {
-        IEnumerable<Song>  FindSongs(string keyword);
-        bool AddSong(string songId);
-        bool RemoveSong(string songId);
+namespace Karaoke.Services {
+    public interface IKaraokeService {
+        Task<IEnumerable<Song>> FindSongs (string keyword);
+        Task<bool> AddSong (string songId);
+        Task<bool> RemoveSong (string songId);
     }
 }

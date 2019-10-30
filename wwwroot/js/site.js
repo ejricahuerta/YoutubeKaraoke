@@ -54,7 +54,7 @@ function onPlayerStateChange(event) {
         if (songList === undefined || songList.length == 0) {
             $("#message").removeClass("d-none")
         } else {
-            var videoId = songList[songList.length - 1];
+            var videoId = songList.pop();
             player.loadVideoById(videoId)
         }
     }
@@ -62,14 +62,12 @@ function onPlayerStateChange(event) {
 
 let connection = new signalR.HubConnectionBuilder().withUrl("/hub").build();
 
-connection.on("ReceiveMessage", function (user, message) {
-    songList
+connection.on("UpdateSong", function (user, song) {
+    songList.push(song);
 });
 
-connection.start().then(function(){
+connection.start().then(function () {
     console.log("connection started!");
 }).catch(function (err) {
     return console.error(err.toString());
 });
-
-
