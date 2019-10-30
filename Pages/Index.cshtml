@@ -1,4 +1,4 @@
-﻿@page
+﻿@page "{Search?}"
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
@@ -47,7 +47,26 @@
 </style>
 
 @if(agent.Contains("iPhone") || agent.Contains("Android")) {
-<partial name="_Search" />
+
+  <div class="jumbotron jumbotron-fluid my-0">
+  <div class="container">
+    <h1 class="display-4">Add Songs to the Queue</h1>
+    <p class="lead">Start searching below...</p>
+  </div>
+  <form class="p-2" >
+  <div class="form-group d-flex">
+    <input type="text" class="form-control" asp-for="Search"  placeholder="Song, Artist...">
+      <button type="submit" class="btn btn-sm btn-dark">GO</button>
+  </div>
+</form>
+
+
+@foreach (var song in Model.Songs)
+{
+    <a class="btn btn-link" href="@(string.Concat("/?SongId=",@song.SongId))">@song.Title </a>
+}
+</div>
+
 }
 else {
 
