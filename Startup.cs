@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,7 +28,9 @@ namespace Karaoke {
             services.AddSingleton<YoutubeService> ();
             services.AddTransient<IKaraokeService, KaraokeService> ();
             services.AddSingleton<YoutubeHub> ();
-            services.AddDbContext<KaraokeContext> ();
+            services.AddDbContext<KaraokeContext> (opt=> {
+                opt.UseSqlite ("Data Source=karaoke.db");
+            });
 
             services.Configure<CookiePolicyOptions> (options => {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -39,14 +42,14 @@ namespace Karaoke {
             services.AddCors (options => options.AddPolicy ("CorsPolicy",
                 builder => {
                     builder.AllowAnyMethod ().AllowAnyHeader ()
-                        .WithOrigins ("http://localhost:5000", "http://192.168.2.166:5000")
+                        .WithOrigins ("http://localhost:5000", "http://192.168.2.166:5000","192.168.0.23:5000")
                         .AllowCredentials ();
                 }));
             services.AddSignalR ();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure (IApplicationBuilder app, IHostingEnvironment env) {
+        public void Configure (IApplicationBuilder app, IHostingEnvironment env, KaraokeContext context) {
             if (env.IsDevelopment ()) {
                 app.UseDeveloperExceptionPage ();
             } else {
@@ -60,6 +63,7 @@ namespace Karaoke {
             app.UseSignalR (routes => {
                 routes.MapHub<YoutubeHub> ("/hub");
             });
+            context.Database.EnsureCreated();
             app.UseMvc ();
         }
     }

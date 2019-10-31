@@ -10,8 +10,10 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Karaoke.Models {
-    class KaraokeContext : DbContext {
+    public class KaraokeContext : DbContext {
         public DbSet<Song> Songs { get; set; }
+
+        public DbSet<Song> SearchedSongs { get; set; }
         public KaraokeContext () {
 
         }
@@ -21,7 +23,7 @@ namespace Karaoke.Models {
         }
 
         protected override void OnConfiguring (DbContextOptionsBuilder options) {
-            options.UseSqlite ("Data Source=blogging.db");
+            options.UseSqlite ("Data Source=karaoke.db");
 
         }
 

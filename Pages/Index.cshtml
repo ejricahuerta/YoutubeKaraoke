@@ -23,21 +23,19 @@
 
 .bg-video #player {
   position: absolute;
-  top: 20px;
   left: 0;
-  width: 100vw;
-  height: calc( 100vh - 20px);
+  width: calc( 100vw - 280px);
+  height: calc( 100vh );
   z-index: -2;
 }
-
-.bg-video .overlay {
+.sidebar {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1;
+   height: calc( 100vh );
+  right: 0;
+  width: 280px;
+  background-color: white;
 }
+
 .message {
   position: absolute;
   width: 100vw;
@@ -69,16 +67,7 @@
 
 }
 else {
-
 <div class="bg-video">
-  <div class="overlay ">
-    <div class="text-white my2 text-center bg-dark p-1">
-
-    <small>Open your web browser and type this url to add songs: </small>
-    <h4 class="">@Model.URL</h4>
-
-  </div>
-  </div>
   <div id="player"></div>
     <div class="message d-flex text-white"> 
       <div class="m-auto text-center">
@@ -87,10 +76,24 @@ else {
       </div>
     </div>
 </div>
+<div class="sidebar bg-light p-2">
+<div class="text-center bg-dark p-1 text-white "><h3>YouTube Karaoke</h3>
+  <p>localhost:5000</p>
+</div>
+
+  <div class="next-song card m-1 shadow-lg d-none">
+    <div class="card-header text-white  bg-primary text-uppercase p-1">Next Song</div>
+    <div class="card-body">
+     <h4 class="song-title text-wrap "></h4>
+    </div>
+  </div>
+  <hr>
+  <div class="list card m-1 shadow d-none">
+    <div class="card-header  text-uppercase p-1">Queue</div>
+    <div class="card-body">
+    <ul class="list-group list-group-flush">
+    </ul>
+    </div>
+  </div>
+</div>
 }
-
-
-
-
-
-
