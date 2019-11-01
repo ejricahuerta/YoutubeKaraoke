@@ -27,19 +27,23 @@ namespace Karaoke.Pages {
 
         public bool HasAdded { get; set; } = false;
         public async Task<IActionResult> OnGet (string SongId = null) {
-            if (!string.IsNullOrEmpty (Search)) {
-                var songs = await karaokeService.FindSongs (Search);
-                Songs = songs.ToList ();
-                foreach (var song in Songs) {
-                    System.Console.WriteLine ($"Song ID: {song.SongId}");
-                }
-            } else if (!string.IsNullOrEmpty (SongId)) {
-                System.Console.WriteLine ($"Song ID: {SongId}");
-                var result = await karaokeService.AddSong (SongId);
-                if (result) {
-                    HasAdded = true;
-                }
-            }
+
+            
+            var init = karaokeService.InitializeData();
+
+            // if (!string.IsNullOrEmpty (Search)) {
+            //     var songs = await karaokeService.FindSongs (Search);
+            //     Songs = songs.ToList ();
+            //     foreach (var song in Songs) {
+            //         System.Console.WriteLine ($"Song ID: {song.SongId}");
+            //     }
+            // } else if (!string.IsNullOrEmpty (SongId)) {
+            //     System.Console.WriteLine ($"Song ID: {SongId}");
+            //     var result = await karaokeService.AddSong (SongId);
+            //     if (result) {
+            //         HasAdded = true;
+            //     }
+            // }
 
             return Page ();
         }

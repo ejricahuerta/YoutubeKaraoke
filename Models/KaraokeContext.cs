@@ -12,8 +12,6 @@ using Microsoft.EntityFrameworkCore.Metadata;
 namespace Karaoke.Models {
     public class KaraokeContext : DbContext {
         public DbSet<Song> Songs { get; set; }
-
-        public DbSet<Song> SearchedSongs { get; set; }
         public KaraokeContext () {
 
         }

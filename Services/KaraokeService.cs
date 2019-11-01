@@ -10,10 +10,10 @@ namespace Karaoke.Services
     class KaraokeService : IKaraokeService
     {
         private readonly KaraokeContext context;
-        public readonly YoutubeService youtubeService;
+        public readonly IYoutubeService youtubeService;
         private readonly YoutubeHub hub;
 
-        public KaraokeService(KaraokeContext context, YoutubeService youtubeService, YoutubeHub hub)
+        public KaraokeService(KaraokeContext context, IYoutubeService youtubeService, YoutubeHub hub)
         {
             this.context = context;
             this.youtubeService = youtubeService;
@@ -23,7 +23,7 @@ namespace Karaoke.Services
         public async Task<bool> AddSong(string songId)
         {
             System.Console.WriteLine($"Song ID: {songId} from Karaoke Service");
-            var song = context.SearchedSongs.FirstOrDefault(p => p.SongId == songId);
+            var song = context.Songs.FirstOrDefault(p => p.SongId == songId);
             if (song != null)
             {
                 System.Console.WriteLine($"Searched song is: {song.Title}");
@@ -42,7 +42,7 @@ namespace Karaoke.Services
             {
                 try
                 {
-                    context.SearchedSongs.AddRange(songs);
+                    context.Songs.AddRange(songs);
                 }
                 catch (System.Exception)
                 {
@@ -59,6 +59,27 @@ namespace Karaoke.Services
         public Task<bool> RemoveSong(string songId)
         {
             throw new System.NotImplementedException();
+        }
+
+        public  bool InitializeData()
+        {
+                var result =   youtubeService.GetAllVideos();
+            try
+            {
+                var songsToAdd = result;
+                if(songsToAdd.Any()) {
+                    context.Songs.AddRange(songsToAdd);
+                    context.SaveChanges();
+                }
+            }
+            catch (System.Exception e)
+            {
+                System.Console.WriteLine("Unable to add songs..");
+                System.Console.WriteLine($"ERROR: {e.Message}");
+                return false;
+            }
+          
+            return true;
         }
     }
 }

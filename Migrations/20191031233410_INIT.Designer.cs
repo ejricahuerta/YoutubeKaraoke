@@ -8,14 +8,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karaoke.Migrations
 {
     [DbContext(typeof(KaraokeContext))]
-    [Migration("20191030024408_init")]
-    partial class init
+    [Migration("20191031233410_INIT")]
+    partial class INIT
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.2-servicing-10034");
+                .HasAnnotation("ProductVersion", "2.2.6-servicing-10079");
 
             modelBuilder.Entity("Karaoke.Entities.Song", b =>
                 {

@@ -4,6 +4,7 @@ using Karaoke.Entities;
 
 namespace Karaoke.Services {
     public interface IKaraokeService {
+        bool InitializeData();
         Task<IEnumerable<Song>> FindSongs (string keyword);
         Task<bool> AddSong (string songId);
         Task<bool> RemoveSong (string songId);
