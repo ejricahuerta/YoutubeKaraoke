@@ -1,0 +1,1935 @@
+[
+    {
+        "kind": "youtube#searchListResponse",
+        "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/mmAkVBFIdhoEPX9JyCjkx8MfTf0\"",
+        "nextPageToken": "CDIQAA",
+        "regionCode": "CA",
+        "pageInfo": {
+         "totalResults": 58,
+         "resultsPerPage": 50
+        },
+        "items": [
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/uGEYwAz4RllPMqtpA0g1mNL25rU\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "kzlOGYmTnfs"
+          },
+          "snippet": {
+           "publishedAt": "2015-07-23T16:26:44.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;Imagination&quot; - Shawn Mendes Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Shawn Mendes Imagination Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Backing Track with Lyrics. Give it a thumbs up if you liked it and want ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/kzlOGYmTnfs/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/kzlOGYmTnfs/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/kzlOGYmTnfs/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/ssZXkKprzrfN0niYZZouO6vCaU4\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "9VaF8TiaYYA"
+          },
+          "snippet": {
+           "publishedAt": "2015-09-02T16:42:01.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Dark Times - The Weeknd, Ed Sheeran | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Dark Times Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. Artist - The Weeknd ft. Ed Sheeran Give it a thumbs ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/9VaF8TiaYYA/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/9VaF8TiaYYA/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/9VaF8TiaYYA/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/dFK2hk4xdRoILGslmbD5WcjNTNU\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "D36onxugVVE"
+          },
+          "snippet": {
+           "publishedAt": "2015-09-08T14:00:00.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Jet Black Heart - 5SOS | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Jet Black Heart 5SOS Karaoke Lyrics (Guitar). Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. Artist - 5 Seconds of Summer Give it a ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/D36onxugVVE/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/D36onxugVVE/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/D36onxugVVE/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/UJ0puUGf-rfDM_y8Ddxx9B--My4\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "-_6Cg0gwna0"
+          },
+          "snippet": {
+           "publishedAt": "2015-12-31T15:17:25.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Broken Home - 5SOS | Karaoke Lyrics (Acoustic Guitar Instrumental)",
+           "description": "Broken Home Karaoke with Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track. △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/-_6Cg0gwna0/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/-_6Cg0gwna0/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/-_6Cg0gwna0/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/SdtoRpFRCQSXS00alxkl6MDWwUo\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "A5aDOoGGCXQ"
+          },
+          "snippet": {
+           "publishedAt": "2015-04-04T11:36:31.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;I&#39;m Not the Only One&quot; - Sam Smith KARAOKE LYRICS (Guitar Instrumental) - Backing Track",
+           "description": "Sam Smith I'm Not the Only One KARAOKE LYRICS Instrumental (Acoustic Guitar Karaoke) Give it a thumbs up if you liked it and want more :) Request songs.",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/A5aDOoGGCXQ/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/A5aDOoGGCXQ/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/A5aDOoGGCXQ/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/LwPMOGfQoFakXTk4J6r8Zdtoj3Y\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "5zXYlw2dYCM"
+          },
+          "snippet": {
+           "publishedAt": "2015-05-05T23:43:21.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;Photograph&quot; - Ed Sheeran Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Ed Sheeran Photograph KARAOKE LYRICS. Also serves as Guitar Instrumental or Backing Track with Lyrics. Give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/5zXYlw2dYCM/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/5zXYlw2dYCM/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/5zXYlw2dYCM/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/Obx5VtOpV1D4-FzdcoeTqfjY0KM\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "rdUZcp4dUSE"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-17T09:49:06.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;Home To Mama&quot; Justin Bieber ft. Cody Simpson KARAOKE LYRICS (Guitar Instrumental) - Backing Track",
+           "description": "Home to Mama KARAOKE Lyrics. Justin Bieber ft. Cody Simpson. This is a guitar Instrumental backing Track. Give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/rdUZcp4dUSE/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/rdUZcp4dUSE/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/rdUZcp4dUSE/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/AO3e4K3pSYaHRio_pN49ytHZJTU\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "QYevLKKofc4"
+          },
+          "snippet": {
+           "publishedAt": "2015-12-26T20:17:31.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Winter Things - Ariana Grande | Karaoke Lyrics (Acoustic Guitar Instrumental)",
+           "description": "Winter Things Karaoke with Lyrics by Ariana Grande. Also used as Guitar Instrumental or Acoustic Backing Track! △ Please give it a thumbs up if you liked it and ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/QYevLKKofc4/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/QYevLKKofc4/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/QYevLKKofc4/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/JjRari96ADJuxXlppNLmPgXyeGQ\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "RYrjqNq2eCs"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-13T17:55:23.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;Once in a Lifetime&quot; - One Direction KARAOKE LYRICS (Guitar Instrumental) Backing Track",
+           "description": "One Direction Once in a Lifetime Karaoke with Lyrics. Also works as guitar Instrumental or a Backing Track. Give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/RYrjqNq2eCs/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/RYrjqNq2eCs/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/RYrjqNq2eCs/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/E2ma5n_FkYRHjvqLNufEJAHVQKU\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "FtsHs2NTlHw"
+          },
+          "snippet": {
+           "publishedAt": "2015-12-25T17:32:26.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "I Want To Write You A Song | Karaoke Lyrics One Direction (Acoustic Guitar Instrumental)",
+           "description": "I Want To Write You A Song Karaoke with Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track! △ Please give it a thumbs up if you liked it and ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/FtsHs2NTlHw/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/FtsHs2NTlHw/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/FtsHs2NTlHw/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/X2cqYBCDm5gAVPhEFrRgzREYU9I\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "iLFut7SJwA8"
+          },
+          "snippet": {
+           "publishedAt": "2016-01-10T17:11:58.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "One Call Away - Charlie Puth | Karaoke Lyrics (Acoustic Guitar Instrumental)",
+           "description": "One Call Away Karaoke with Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track. △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/iLFut7SJwA8/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/iLFut7SJwA8/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/iLFut7SJwA8/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/WRSACUsDld8APAnrt4TSQX0WDeI\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "hSj4N1_IAnw"
+          },
+          "snippet": {
+           "publishedAt": "2015-02-23T22:00:59.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;WILDEST DREAMS&quot; | Taylor Swift KARAOKE LYRICS (Guitar Instrumental) - Backing Track (1989)",
+           "description": "Taylor Swift Wildest Dreams KARAOKE LYRICS. This is an Acoustic guitar Karaoke that also works as an Instrumental Backing Track. Give it a thumbs up if you ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/hSj4N1_IAnw/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/hSj4N1_IAnw/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/hSj4N1_IAnw/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/mLA_o9Itk3K8qsdiMmIAAkhgAtc\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "HnMDhAfzzQI"
+          },
+          "snippet": {
+           "publishedAt": "2015-11-15T13:14:29.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Love Yourself - Justin Bieber | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Love Yourself Karaoke Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/HnMDhAfzzQI/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/HnMDhAfzzQI/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/HnMDhAfzzQI/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/kNn1apvdmioDX6gFIxj4ypnRF9Y\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "E1OElFYM71k"
+          },
+          "snippet": {
+           "publishedAt": "2016-05-17T15:28:23.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "7 Years - Lukas Graham | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "7 Years Karaoke with Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track. △ Please give it a thumbs up if you liked it and want more :) △ Artist ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/E1OElFYM71k/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/E1OElFYM71k/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/E1OElFYM71k/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/HLMCbAfVkN2EhRFSjuJv6jFJsWE\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "zBYUIvPSF_Q"
+          },
+          "snippet": {
+           "publishedAt": "2015-08-22T12:08:29.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Stitches - Shawn Mendes | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Shawn Mendes Stitches Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. Give it a thumbs up if you liked it and ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/zBYUIvPSF_Q/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/zBYUIvPSF_Q/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/zBYUIvPSF_Q/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/dSPwHwmkIbC5AZsbdFpkBll0q1A\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "jiNn0H0ezK4"
+          },
+          "snippet": {
+           "publishedAt": "2015-08-31T03:48:52.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "What Do You Mean - Justin Bieber | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "What Do You Mean Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. Artist - Justin Bieber △△ Give it a thumbs ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/jiNn0H0ezK4/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/jiNn0H0ezK4/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/jiNn0H0ezK4/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/gBM8j__90TIETFJ8Wq6dF8VKUes\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "azBfX_kf6Ug"
+          },
+          "snippet": {
+           "publishedAt": "2015-10-07T14:33:49.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Cheerleader - OMI | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Cheerleader by OMI Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. △△ Please give it a thumbs up if you ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/azBfX_kf6Ug/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/azBfX_kf6Ug/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/azBfX_kf6Ug/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/nLZGoUgCQeono7kdYaLuVj3fDUg\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "dqptPzknGV0"
+          },
+          "snippet": {
+           "publishedAt": "2015-10-12T16:14:16.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Love Me Like You - Little Mix | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Love Me Like You Karaoke Lyrics (Guitar). Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you liked it ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/dqptPzknGV0/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/dqptPzknGV0/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/dqptPzknGV0/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/S7FTYVivmCwcjhwc0g_kwX5d4Hk\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "oFr5aQMgtxE"
+          },
+          "snippet": {
+           "publishedAt": "2015-01-24T05:33:20.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;FOOL&#39;S GOLD&quot; - One Direction KARAOKE LYRICS (Guitar Karaoke) - Backing Track",
+           "description": "One Direction Fools gold KARAOKE Lyrics. Also serves as a Guitar Instrumental and a backing Track. Give it a thumbs up if you liked it and want more :) Request ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/oFr5aQMgtxE/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/oFr5aQMgtxE/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/oFr5aQMgtxE/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/VYj-r2kAk1CXb6arVhu90_1FJXE\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "6ob1itH7WWE"
+          },
+          "snippet": {
+           "publishedAt": "2015-09-14T18:33:25.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Same Old Love - Selena Gomez | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Selena Gomez Same Old Love Karaoke Lyrics (Guitar). Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. Give it a thumbs up if you liked it ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/6ob1itH7WWE/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/6ob1itH7WWE/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/6ob1itH7WWE/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/iYtQEz9HGYEA55qIIW1IDZgQlFE\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "XfIAASp1OOs"
+          },
+          "snippet": {
+           "publishedAt": "2015-11-19T15:42:08.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Love Yourself - Justin Bieber | Karaoke Higher Key (Acoustic Guitar) Instrumental",
+           "description": "Love Yourself by Justin Bieber Karaoke. Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you liked it and ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/XfIAASp1OOs/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/XfIAASp1OOs/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/XfIAASp1OOs/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/6xuEikClVZ4q8xfwa_M66Em-QRM\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "aR9azGFm7ho"
+          },
+          "snippet": {
+           "publishedAt": "2015-11-19T15:41:53.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Love Yourself - Justin Bieber | Karaoke Lower Key (Acoustic Guitar) Instrumental",
+           "description": "Love Yourself by Justin Bieber Karaoke. Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you liked it and ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/aR9azGFm7ho/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/aR9azGFm7ho/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/aR9azGFm7ho/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/2ctQgUKgzFhdxfr9mgOTr96dwIo\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "N_UfwObXaZM"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-13T02:38:10.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;18 (Eighteen)&quot;- One Direction KARAOKE LYRICS (Guitar Instrumental) Backing Track",
+           "description": "One Direction 18 KARAOKE LYRICS. This is a Guitar Instrumental Backing Track with Lyrics Give it a thumbs up if you liked it and want more :) Request songs.",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/N_UfwObXaZM/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/N_UfwObXaZM/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/N_UfwObXaZM/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/eksCD_e9U1hEQkRb16qviM5zOus\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "fZi4W97qcrI"
+          },
+          "snippet": {
+           "publishedAt": "2015-10-10T17:08:41.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Like I&#39;m Gonna Lose You | Karaoke (Lower Key) (Acoustic Guitar Instrumental) - Meghan Trainor",
+           "description": "Like I'm Gonna Lose You Acoustic Karaoke (Guitar). Can be used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/fZi4W97qcrI/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/fZi4W97qcrI/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/fZi4W97qcrI/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/xecAB_JmRAa5LcVHp-yRE3-JOqs\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "5k_ooQZjNsw"
+          },
+          "snippet": {
+           "publishedAt": "2015-11-23T06:24:44.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "A.M. - One Direction | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "AM One Direction Karaoke Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track! △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/5k_ooQZjNsw/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/5k_ooQZjNsw/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/5k_ooQZjNsw/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/ve024BEoMDU47FZLpYphYbKp5zg\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "BIHqed4LdqA"
+          },
+          "snippet": {
+           "publishedAt": "2015-12-21T14:31:14.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Sorry - Justin Bieber | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Sorry Karaoke by Justin Bieber Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track. △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/BIHqed4LdqA/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/BIHqed4LdqA/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/BIHqed4LdqA/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/H85gl8KNy6GbO7dBsYjyRmB1DkM\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "na2NHzux8fE"
+          },
+          "snippet": {
+           "publishedAt": "2015-08-11T18:19:35.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "One Direction - &quot;Drag Me Down&quot; Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Drag Me Down One Direction Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. Give it a thumbs up if you liked it ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/na2NHzux8fE/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/na2NHzux8fE/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/na2NHzux8fE/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/zSbP4Z__774gd-WeyLej5eEKsZA\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "U3nsb4cAesw"
+          },
+          "snippet": {
+           "publishedAt": "2015-02-09T16:12:42.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;FOUR FIVE SECONDS&quot; KARAOKE LYRICS - Rihanna, Kanye West, Paul McCartney (Guitar Karaoke)",
+           "description": "Four Five seconds Karaoke Lyrics. Sung by Rihanna Kanye Paul. Also serves as Guitar Karaoke Instrumental. Give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/U3nsb4cAesw/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/U3nsb4cAesw/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/U3nsb4cAesw/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/7GZpo5PkpQKAB51gD2s3YEqY14Q\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "51LofhLDuvQ"
+          },
+          "snippet": {
+           "publishedAt": "2015-11-23T06:25:45.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "If I Could Fly - One Direction Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "If I Could Fly Karaoke Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track! △ Please give it a thumbs up if you liked it and want more :) △ Artist ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/51LofhLDuvQ/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/51LofhLDuvQ/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/51LofhLDuvQ/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/m82RFMNc5LeUibWOPddWBdqwhZc\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "aHi18-i49rs"
+          },
+          "snippet": {
+           "publishedAt": "2015-04-07T11:16:52.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;Thinking Out Loud&quot; - Ed Sheeran  KARAOKE LYRICS (Guitar Instrumental) - Backing Track",
+           "description": "Ed Sheeran Thinking Out Loud KARAOKE LYRICS. Also serves as Guitar Instrumental Backing Track with Lyrics. Check out \"PHOTOGRAPH\" KARAOKE ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/aHi18-i49rs/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/aHi18-i49rs/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/aHi18-i49rs/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/qmwRdX1y_SE6DlN0_zYGPwPDv9s\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "PD-OEcCVIic"
+          },
+          "snippet": {
+           "publishedAt": "2015-12-15T14:18:13.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Million Years Ago - Adele | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Million Years Ago Karaoke with Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track. △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/PD-OEcCVIic/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/PD-OEcCVIic/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/PD-OEcCVIic/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/WzefiO-YQQLqpkFirI2UodmBZsY\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "VDkRDfnDOgg"
+          },
+          "snippet": {
+           "publishedAt": "2016-06-07T14:27:32.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Shawn Mendes - Treat You Better | Karaoke Lyrics (Acoustic Guitar) Instrumental",
+           "description": "Treat You Better Karaoke with Lyrics. Used as Guitar Instrumental or Acoustic Backing Track. Shawn Mendes has performed this song. △ Please give it a ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/VDkRDfnDOgg/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/VDkRDfnDOgg/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/VDkRDfnDOgg/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/AzaLdA07L27VlZSUHxunxOVdOLQ\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "1_vGlslNx1I"
+          },
+          "snippet": {
+           "publishedAt": "2015-08-25T07:41:39.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Locked Away - R City ft. Adam Levine | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Locked Away Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. Artist - Rock City ft. Adam Levine Give it a thumbs ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/1_vGlslNx1I/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/1_vGlslNx1I/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/1_vGlslNx1I/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/fKM5qC0ruaN-S0ikKfviMf0L5QY\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "zWQ3K53Kt3M"
+          },
+          "snippet": {
+           "publishedAt": "2015-09-09T15:37:17.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Marvin Gaye - Charlie Puth ft. Meghan Trainor | Karaoke (Acoustic Guitar Karaoke)",
+           "description": "Marvin Gaye Karaoke Lyrics (Guitar). Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. Artist - Charlie Puth ft. Meghan Trainor Give it a ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/zWQ3K53Kt3M/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/zWQ3K53Kt3M/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/zWQ3K53Kt3M/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/43szsR_kVPAk0W4eDW4mufWwf_Q\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "UdmyPRLz1ug"
+          },
+          "snippet": {
+           "publishedAt": "2016-01-08T16:53:25.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "I Know What You Did Last Summer | Karaoke Lyrics (Acoustic Guitar Instrumental)",
+           "description": "I Know What You Did Last Summer Karaoke Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track. Artist - Shawn Mendes & Camila Cabello ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/UdmyPRLz1ug/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/UdmyPRLz1ug/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/UdmyPRLz1ug/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/xX69CPfJAR3bSPuNpgkjIRhit08\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "1nLRNT1qqZs"
+          },
+          "snippet": {
+           "publishedAt": "2016-05-27T21:13:01.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "The Chainsmokers - Don&#39;t Let Me Down | Karaoke Lyrics (Acoustic Guitar) Instrumental",
+           "description": "Don't Let Me Down Karaoke with Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track. △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/1nLRNT1qqZs/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/1nLRNT1qqZs/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/1nLRNT1qqZs/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/Uj-6lIMsJLZa21Fm6WkbCls_MqM\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "DOM5JRLJjsU"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-29T17:02:04.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;How You Get the Girl&quot; - Taylor Swift KARAOKE LYRICS (Guitar Instrumental) - Backing Track (1989)",
+           "description": "Taylor Swift How You Get the Girl KARAOKE Lyrics Instrumental (Acoustic Guitar Karaoke) Give it a thumbs up if you liked it and want more :) Request songs.",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/DOM5JRLJjsU/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/DOM5JRLJjsU/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/DOM5JRLJjsU/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/aaxZVRWVAgbFb-39nmq-HB0-8nU\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "FWEd9WKuo2g"
+          },
+          "snippet": {
+           "publishedAt": "2015-10-09T14:30:00.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Can&#39;t Feel My Face - The Weeknd | Acoustic Karaoke Lyrics (Acoustic Guitar) Instrumental",
+           "description": "Can't Feel My Face Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. △△ Please give it a thumbs up if you liked ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/FWEd9WKuo2g/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/FWEd9WKuo2g/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/FWEd9WKuo2g/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/ERDSu689t0mhPGe0N6qKu4uFwnU\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "uLvrvUnApoQ"
+          },
+          "snippet": {
+           "publishedAt": "2015-09-05T14:29:19.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Flashlight - Jessie J | Karaoke (Acoustic Guitar Karaoke Lyrics) | Instrumental",
+           "description": "Flashlight Jessie J Karaoke on Acoustic (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. Give it a thumbs up if you liked it and ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/uLvrvUnApoQ/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/uLvrvUnApoQ/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/uLvrvUnApoQ/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/XOjvhnTVBBHWVXhdkgcF9lXDzhQ\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "nyP4-py_unY"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-31T15:15:38.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;STYLE&quot; - Taylor Swift KARAOKE LYRICS (Guitar Instrumental) - Backing Track (1989)",
+           "description": "Taylor Swift STYLE KARAOKE LYRICS Instrumental (Acoustic Guitar Karaoke Track) Give it a thumbs up if you liked it and want more :) Request songs. * Guitar ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/nyP4-py_unY/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/nyP4-py_unY/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/nyP4-py_unY/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/zDy5dslXnyCNWhsfbkKHDUD9Qs4\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "NiyQxdDZuPw"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-22T13:15:29.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;BLANK SPACE&quot; - Taylor Swift KARAOKE LYRICS (Guitar Instrumental) - Backing Track",
+           "description": "Taylor Swift Blank Space KARAOKE Lyrics. A Guitar Instrumental (Guitar Backing Track) with Lyrics on screen. Give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/NiyQxdDZuPw/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/NiyQxdDZuPw/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/NiyQxdDZuPw/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/AoOHQ8gPsBXR65VyImA34dvbVgo\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "g8L2tNaoCXU"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-24T14:37:59.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;Ready To Run&quot; - One Direction KARAOKE LYRICS (Guitar Instrumental) - Backing Track",
+           "description": "One Direction Ready To Run KARAOKE Lyrics Guitar Instrumental Give it a thumbs up if you liked it and want more :) Request songs. * Guitar Tutorial Here ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/g8L2tNaoCXU/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/g8L2tNaoCXU/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/g8L2tNaoCXU/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/8Wy1MBIF3J2FVjxEot6rjxr-XjU\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "DB-AadWrSzo"
+          },
+          "snippet": {
+           "publishedAt": "2014-11-25T05:40:45.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;Night Changes&quot; - One Direction KARAOKE (Guitar Instrumental) w/ Lyrics &amp; Backing Track",
+           "description": "One Direction Night Changes Karaoke with Guitar Instrumental. Lyrics are included. Can be used as a Backing Track. * Guitar Tutorial ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/DB-AadWrSzo/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/DB-AadWrSzo/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/DB-AadWrSzo/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/_nas_cVIjSm9YBkwaOhmCRYZxZM\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "Ip8_asAdER0"
+          },
+          "snippet": {
+           "publishedAt": "2015-12-03T15:59:40.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Invisible - 5SOS | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Invisible 5SOS Karaoke Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/Ip8_asAdER0/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/Ip8_asAdER0/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/Ip8_asAdER0/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/f55Iui21lIvqB4wDlmVCirdiMig\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "lVycjZYtGhY"
+          },
+          "snippet": {
+           "publishedAt": "2015-01-08T19:19:08.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;Girl Almighty&quot; - One Direction KARAOKE LYRICS (Guitar Instrumental) - Backing Track",
+           "description": "One Direction Girl Almighty Karaoke with Lyrics. Also used as Guitar karaoke/instrumental. Enjoy! Give it a thumbs up if you liked it and want more :) Request ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/lVycjZYtGhY/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/lVycjZYtGhY/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/lVycjZYtGhY/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/SwmehrNNnc4LyO8yp1wzlVBBetE\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "iaZ_FKdLHvk"
+          },
+          "snippet": {
+           "publishedAt": "2015-11-26T14:00:04.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Hello - Adele | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Adele Hello Karaoke Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/iaZ_FKdLHvk/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/iaZ_FKdLHvk/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/iaZ_FKdLHvk/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/qsNi3ImP2nfCGRHdN7vfnTdgEEY\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "rQq9M2UEqIA"
+          },
+          "snippet": {
+           "publishedAt": "2015-10-05T20:31:43.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Fly Away - 5SOS | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Fly Away Karaoke Lyrics (Guitar). Also serves as Guitar Instrumental or Acoustic Backing Track with Lyrics. Artist - 5 Seconds of Summer (5SOS) Give it a thumbs ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/rQq9M2UEqIA/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/rQq9M2UEqIA/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/rQq9M2UEqIA/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/v2yKOr8ARfvVcDz43B4jWSvC95c\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "X1lvSru-1c4"
+          },
+          "snippet": {
+           "publishedAt": "2015-01-18T07:46:52.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;BAD BLOOD&quot; - Taylor Swift Karaoke (Acoustic Guitar Instrumental) - Backing Track",
+           "description": "Taylor Swift Bad Blood Karaoke with Lyrics. Instrumental Backing Track. Enjoy! Give it a thumbs up if you liked it and want more :) Request songs. ** MORE ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/X1lvSru-1c4/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/X1lvSru-1c4/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/X1lvSru-1c4/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/eSmW13_ISVa1vrDmChszdLbYudk\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "GSISTQSyHgU"
+          },
+          "snippet": {
+           "publishedAt": "2015-02-20T06:24:22.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Where Do Broken Hearts Go - One Direction KARAOKE LYRICS (Guitar Karaoke) - Backing Track",
+           "description": "One Direction - Where Do Broken Hearts Go KARAOKE Lyrics (Guitar Instrumental) Give it a thumbs up if you liked it and want more :) Request songs. * Guitar ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/GSISTQSyHgU/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/GSISTQSyHgU/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/GSISTQSyHgU/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/gRiFm8RNGkvKInaZ-k3ugV2WdP8\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "lfqrEsDNyrA"
+          },
+          "snippet": {
+           "publishedAt": "2015-10-10T17:06:52.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Like I&#39;m Gonna Lose You - Meghan Trainor | Karaoke Lyrics (Acoustic Guitar Karaoke) Instrumental",
+           "description": "Like I'm Gonna Lose You Guitar Karaoke with Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/lfqrEsDNyrA/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/lfqrEsDNyrA/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/lfqrEsDNyrA/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         }
+        ]
+       }
+       ,{
+        "kind": "youtube#searchListResponse",
+        "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/9n4qF_nTR-1s286fXuVHYFSgF9s\"",
+        "prevPageToken": "CDIQAQ",
+        "regionCode": "CA",
+        "pageInfo": {
+         "totalResults": 58,
+         "resultsPerPage": 50
+        },
+        "items": [
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/VMGk2dhMQU8_jEJTBFkLwqgoR5k\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "nfXyNd43v-Y"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-12T20:44:45.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;ACT MY AGE&quot; - One Direction KARAOKE LYRICS (Guitar Instrumental) Backing Track",
+           "description": "One Direction ACT MY AGE Karaoke with LYRICS. Also used as a Backing Track or Guitar Instrumental. Give it a thumbs up if you liked it and want more ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/nfXyNd43v-Y/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/nfXyNd43v-Y/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/nfXyNd43v-Y/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/uwqQBViBKeBGla6c-rUAm1a6IBg\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "SeQr2RakPJw"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-20T10:34:28.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "&quot;The Nights&quot; - Avicii KARAOKE LYRICS (Guitar Instrumental) - Backing Track",
+           "description": "Avicii The Nights KARAOKE Lyrics. Also used as a Guitar Instrumental or backing track. Give it a thumbs up if you liked it and want more :) Request songs.",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/SeQr2RakPJw/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/SeQr2RakPJw/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/SeQr2RakPJw/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/LuJ_KiykOmSn3AZ5v184VdT4JNc\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "Y0TJLzAcWH0"
+          },
+          "snippet": {
+           "publishedAt": "2015-10-12T16:13:26.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Love Me Like You | Karaoke (Higher Key) (Acoustic Guitar Instrumental) - Little Mix",
+           "description": "Love Me Like You Acoustic Karaoke (Guitar). Can be used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you liked ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/Y0TJLzAcWH0/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/Y0TJLzAcWH0/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/Y0TJLzAcWH0/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/PQqlG60qxzTEnDaEwQwYvUIyB-k\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "LeFmzMRjGW0"
+          },
+          "snippet": {
+           "publishedAt": "2017-11-19T16:48:27.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Ed Sheeran - PERFECT | Karaoke Lyrics (Acoustic Guitar) Instrumental (with Higher and Lower Keys)",
+           "description": "Ed Sheeran PERFECT Karaoke Lyrics. Also used as Guitar Instrumental or Acoustic Backing Track with Lyrics. △ Please give it a thumbs up if you liked it and ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/LeFmzMRjGW0/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/LeFmzMRjGW0/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/LeFmzMRjGW0/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/mCEDa24adGpPvQ0SlgSLi1IqdzY\"",
+          "id": {
+           "kind": "youtube#playlist",
+           "playlistId": "PL8J7GEDaWI9EcPDY27Ig03XpKzst5GDvc"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-31T13:43:38.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Karaoke Covers!",
+           "description": "Awesome covers by YouTubers using \"Guitar Karaoke\"",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/VxoA4azAkj0/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/VxoA4azAkj0/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/VxoA4azAkj0/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/MBSQCDMygbJS9DEQUHSTxFK4358\"",
+          "id": {
+           "kind": "youtube#playlist",
+           "playlistId": "PL8J7GEDaWI9E7MQLSbw1EMj1f7A1lJiHC"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-17T09:34:37.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Uploaded Karaoke",
+           "description": "",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/rdUZcp4dUSE/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/rdUZcp4dUSE/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/rdUZcp4dUSE/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/isA_XDNIA9FSy37K007aFPF3wF4\"",
+          "id": {
+           "kind": "youtube#channel",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w"
+          },
+          "snippet": {
+           "publishedAt": "2013-09-10T16:54:40.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Guitar Karaoke!",
+           "description": "Acoustic guitar karaoke** of your favourite songs are here! Sing your heart out :)",
+           "thumbnails": {
+            "default": {
+             "url": "https://yt3.ggpht.com/-ZTlh1i-0eWg/AAAAAAAAAAI/AAAAAAAAAAA/9QdIOndBP58/s88-c-k-no-mo-rj-c0xffffff/photo.jpg"
+            },
+            "medium": {
+             "url": "https://yt3.ggpht.com/-ZTlh1i-0eWg/AAAAAAAAAAI/AAAAAAAAAAA/9QdIOndBP58/s240-c-k-no-mo-rj-c0xffffff/photo.jpg"
+            },
+            "high": {
+             "url": "https://yt3.ggpht.com/-ZTlh1i-0eWg/AAAAAAAAAAI/AAAAAAAAAAA/9QdIOndBP58/s800-c-k-no-mo-rj-c0xffffff/photo.jpg"
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         },
+         {
+          "kind": "youtube#searchResult",
+          "etag": "\"j6xRRd8dTPVVptg711_CSPADRfg/x3UIXyVfNNpn3mQc9qOo0sXFdio\"",
+          "id": {
+           "kind": "youtube#video",
+           "videoId": "ba_xF-edGOA"
+          },
+          "snippet": {
+           "publishedAt": "2014-12-16T08:00:00.000Z",
+           "channelId": "UCbzz_Y9oVH2-57G4k0awE0w",
+           "title": "Coldplay - &quot;Miracles&quot; KARAOKE LYRICS (Guitar Instrumental) Backing Track Unbroken",
+           "description": "Miracles Coldplay KARAOKE LYRICS ◅ If you use this Karaoke for a cover, please credit guitar karaoke in your video or in your video description by leaving a ...",
+           "thumbnails": {
+            "default": {
+             "url": "https://i.ytimg.com/vi/ba_xF-edGOA/default.jpg",
+             "width": 120,
+             "height": 90
+            },
+            "medium": {
+             "url": "https://i.ytimg.com/vi/ba_xF-edGOA/mqdefault.jpg",
+             "width": 320,
+             "height": 180
+            },
+            "high": {
+             "url": "https://i.ytimg.com/vi/ba_xF-edGOA/hqdefault.jpg",
+             "width": 480,
+             "height": 360
+            }
+           },
+           "channelTitle": "Guitar Karaoke!",
+           "liveBroadcastContent": "none"
+          }
+         }
+        ]
+       }
+       
+]

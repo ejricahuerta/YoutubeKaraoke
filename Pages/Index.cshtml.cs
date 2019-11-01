@@ -26,10 +26,9 @@ namespace Karaoke.Pages {
         public string SongId { get; set; }
 
         public bool HasAdded { get; set; } = false;
-        public async Task<IActionResult> OnGet (string SongId = null) {
+        public IActionResult OnGet (string SongId = null) {
 
-            
-            var init = karaokeService.InitializeData();
+            var init = karaokeService.InitializeData ();
 
             // if (!string.IsNullOrEmpty (Search)) {
             //     var songs = await karaokeService.FindSongs (Search);
