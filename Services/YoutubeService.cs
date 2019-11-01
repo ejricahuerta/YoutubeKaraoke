@@ -12,9 +12,9 @@ namespace Karaoke.Services {
     public interface IYoutubeService {
         YouTubeService YouTubeService { get; set; }
 
-        IEnumerable<Song> GetAllVideos ();
+        // IEnumerable<Song> GetAllVideos ();
         ICollection<Song> GetAllVideosFromFile ();
-        Task<IList<Song>> Search (string keyword);
+        // Task<IList<Song>> Search (string keyword);
     }
 
     public class YoutubeService : IYoutubeService {
@@ -45,86 +45,86 @@ namespace Karaoke.Services {
 
         }
 
-        public async Task<IList<Song>> Search (string keyword) {
+        // public async Task<IList<Song>> Search (string keyword) {
 
-            List<Song> songs = new List<Song> ();
+        //     List<Song> songs = new List<Song> ();
 
-            var searchListRequest = YouTubeService.Search.List ("snippet");
-            searchListRequest.MaxResults = 50;
-            var result = await searchListRequest.ExecuteAsync ();
-            if (result.Items.Count > 0) {
-                System.Console.WriteLine ("Has Result");
-            }
-            foreach (var video in result.Items) {
-                if (video.Id.Kind == "youtube#video") {
-                    System.Console.WriteLine ($"result VideoId: {video.Id.VideoId}");
-                    songs.Add (
-                        new Song {
-                            SongId = video.Id.VideoId,
-                                Title = video.Snippet.Title,
-                                Channel = video.Snippet.ChannelTitle,
-                                ChannelId = video.Snippet.ChannelId
-                        });
-                }
-            }
-            System.Console.WriteLine ($"song result: { songs.Count() }");
+        //     var searchListRequest = YouTubeService.Search.List ("snippet");
+        //     searchListRequest.MaxResults = 50;
+        //     var result = await searchListRequest.ExecuteAsync ();
+        //     if (result.Items.Count > 0) {
+        //         System.Console.WriteLine ("Has Result");
+        //     }
+        //     foreach (var video in result.Items) {
+        //         if (video.Id.Kind == "youtube#video") {
+        //             System.Console.WriteLine ($"result VideoId: {video.Id.VideoId}");
+        //             songs.Add (
+        //                 new Song {
+        //                     SongId = video.Id.VideoId,
+        //                         Title = video.Snippet.Title,
+        //                         Channel = video.Snippet.ChannelTitle,
+        //                         ChannelId = video.Snippet.ChannelId
+        //                 });
+        //         }
+        //     }
+        //     System.Console.WriteLine ($"song result: { songs.Count() }");
 
-            return songs;
-        }
-        public IEnumerable<Song> GetAllVideos () {
+        //     return songs;
+        // }
+        // public IEnumerable<Song> GetAllVideos () {
 
-            List<Song> songs = new List<Song> ();
-            try {
+        //     List<Song> songs = new List<Song> ();
+        //     try {
 
-                var searchListRequest = YouTubeService.Search.List ("snippet");
-                searchListRequest.MaxResults = 10;
-                foreach (var channel in Channels) {
-                    System.Console.WriteLine ($"Channel ID: {channel}");
+        //         var searchListRequest = YouTubeService.Search.List ("snippet");
+        //         searchListRequest.MaxResults = 10;
+        //         foreach (var channel in Channels) {
+        //             System.Console.WriteLine ($"Channel ID: {channel}");
 
-                    searchListRequest.ChannelId = channel;
+        //             searchListRequest.ChannelId = channel;
 
-                    var pageToken = string.Empty;
-                    //Request
-                    searchListRequest.PageToken = pageToken;
-                    //Get Response
-                    var result = searchListRequest.ExecuteAsync ().Result;
-                    if (result == null) {
+        //             var pageToken = string.Empty;
+        //             //Request
+        //             searchListRequest.PageToken = pageToken;
+        //             //Get Response
+        //             var result = searchListRequest.ExecuteAsync ().Result;
+        //             if (result == null) {
 
-                    } else {
-                        //convert response to SONG obj
-                        foreach (var video in result.Items) {
-                            //Add to lists of SONGS
-                            songs.Add (
-                                new Song {
-                                    SongId = video.Id.VideoId,
-                                        Title = video.Snippet.Title,
-                                        Channel = video.Snippet.ChannelTitle,
-                                        ChannelId = video.Snippet.ChannelId
-                                });
-                        }
+        //             } else {
+        //                 //convert response to SONG obj
+        //                 foreach (var video in result.Items) {
+        //                     //Add to lists of SONGS
+        //                     songs.Add (
+        //                         new Song {
+        //                             SongId = video.Id.VideoId,
+        //                                 Title = video.Snippet.Title,
+        //                                 Channel = video.Snippet.ChannelTitle,
+        //                                 ChannelId = video.Snippet.ChannelId
+        //                         });
+        //                 }
 
-                    }
-                }
-            } catch (System.Exception e) {
+        //             }
+        //         }
+        //     } catch (System.Exception e) {
 
-                System.Console.WriteLine (e.Message);
-            }
-            System.Console.WriteLine ($"Total Songs: {songs.Count()}");
-            System.Console.WriteLine (".............................");
-            foreach (var song in songs) {
-                System.Console.WriteLine ($"{ song.SongId}");
-                System.Console.WriteLine ($"{song.Title}");
-                System.Console.WriteLine ($"{song.ChannelId}");
-                System.Console.WriteLine ($"{song.Channel}");
-                System.Console.WriteLine ("----------------------");
-            }
-            return songs;
-        }
+        //         System.Console.WriteLine (e.Message);
+        //     }
+        //     System.Console.WriteLine ($"Total Songs: {songs.Count()}");
+        //     System.Console.WriteLine (".............................");
+        //     foreach (var song in songs) {
+        //         System.Console.WriteLine ($"{ song.SongId}");
+        //         System.Console.WriteLine ($"{song.Title}");
+        //         System.Console.WriteLine ($"{song.ChannelId}");
+        //         System.Console.WriteLine ($"{song.Channel}");
+        //         System.Console.WriteLine ("----------------------");
+        //     }
+        //     return songs;
+        // }
 
         public ICollection<Song> GetAllVideosFromFile () {
             var songs = new List<Song> ();
             var files = new List<string> {
-                @"first.json",
+
                 @"second.json",
                 @"third.json",
                 @"fourth.json",
@@ -137,6 +137,10 @@ namespace Karaoke.Services {
                     var json = File.ReadAllText (item);
                     var songRoot = JsonConvert.DeserializeObject<List<SongRoot>> (json);
                     foreach (var root in songRoot) {
+                        foreach (var song in root.Songs) {
+                            System.Console.WriteLine ($"{song.Snippet.Channel}");
+                            System.Console.WriteLine ($"{song.Snippet.Title}");
+                        }
                         songs.AddRange (root.Songs);
                     }
                 }
@@ -145,6 +149,7 @@ namespace Karaoke.Services {
                 System.Console.WriteLine ("Unable to Process files");
                 System.Console.WriteLine ($"Error:\n {e}");
             }
+
             return songs;
         }
 

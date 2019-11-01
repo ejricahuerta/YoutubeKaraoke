@@ -1,25 +1,21 @@
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
+using YouTubeKaraoke.Entities;
 
 namespace Karaoke.Entities {
     public class Song {
+
         [Key]
-        [JsonIgnore]
         public int Id { get; set; }
 
-        [JsonProperty ("videoId")]
-        public string SongId { get; set; }
+        [JsonProperty ("id")]
+        public SongId SongId { get; set; }
 
-        [JsonProperty ("title")]
-        public string Title { get; set; }
+        [JsonProperty ("snippet")]
 
-        [JsonProperty ("channelTitle")]
-        public string Channel { get; set; }
+        public Snippet Snippet { get; set; }
 
-        [JsonProperty ("channelId")]
-        public string ChannelId { get; set; }
-
-        [JsonIgnore]
         public bool OnQueue { get; set; } = false;
+
     }
 }

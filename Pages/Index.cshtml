@@ -61,7 +61,9 @@
 
 @foreach (var song in Model.Songs)
 {
-    <a class="btn btn-link" href="@(string.Concat("/?SongId=",@song.SongId))">@song.Title </a>
+  @if(song.SongId != null){
+    <a class="btn btn-link" href="@(string.Concat("/?SongId=",@song.SongId.VideoId))">@song.Snippet.Title </a>
+  }
 }
 </div>
 

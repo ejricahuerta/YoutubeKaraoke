@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Karaoke.Entities;
 using Karaoke.Hubs;
 using Karaoke.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karaoke.Services {
     class KaraokeService : IKaraokeService {
@@ -19,27 +20,23 @@ namespace Karaoke.Services {
 
         public async Task<bool> AddSong (string songId) {
             System.Console.WriteLine ($"Song ID: {songId} from Karaoke Service");
-            var song = context.Songs.FirstOrDefault (p => p.SongId == songId);
+            var song = context.Songs.FirstOrDefault (p => p.SongId.VideoId == songId);
             if (song != null) {
-                System.Console.WriteLine ($"Searched song is: {song.Title}");
+                System.Console.WriteLine ($"Searched song is: {song.Snippet.Title}");
                 await hub.SendSong (hub.Context.ConnectionId, song);
                 return true;
             }
             return false;
         }
 
-        public async Task<IEnumerable<Song>> FindSongs (string keyword) {
+        public IEnumerable<Song> FindSongs (string keyword) {
             System.Console.WriteLine ($"Keyword: {keyword}");
-            var songs = await youtubeService.Search (keyword);
-            if (songs != null) {
-                try {
-                    context.Songs.AddRange (songs);
-                } catch (System.Exception) {
-                    return null;
-                } finally {
-                    context.SaveChanges ();
-                }
-            }
+            var songs = context.Songs
+                .Include (p => p.SongId)
+                .Include (p => p.Snippet)
+                .AsNoTracking ()
+                .Where (p => p.Snippet.Title.Contains (keyword));
+
             return songs;
         }
 
@@ -52,15 +49,13 @@ namespace Karaoke.Services {
             try {
                 var songsToAdd = result;
                 if (songsToAdd.Any ()) {
-                    context.Songs.AddRange (songsToAdd);
+                    context.Songs.AddRange (songsToAdd.Where (p => p.SongId.VideoId != null));
                 }
             } catch (System.Exception e) {
                 System.Console.WriteLine ("Unable to add songs..");
                 System.Console.WriteLine ($"ERROR: {e.Message}");
                 return false;
             }
-
-            context.SaveChanges ();
             return true;
         }
     }
