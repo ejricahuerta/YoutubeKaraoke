@@ -1,5 +1,5 @@
 {
-  "FilePath": "c:\\Users\\EXD-EXD\\Documents\\Projects\\YouTubeKaraoke\\Karaoke.csproj",
+  "FilePath": "/Users/boyet/Projects/Karaoke/Karaoke.csproj",
   "Configuration": {
     "ConfigurationName": "MVC-2.1",
     "LanguageVersion": "2.1",
@@ -2961,28 +2961,28 @@
   "RootNamespace": "Karaoke",
   "Documents": [
     {
-      "FilePath": "Pages\\Index.cshtml",
-      "TargetPath": "Pages\\Index.cshtml",
+      "FilePath": "Pages/Index.cshtml",
+      "TargetPath": "Pages/Index.cshtml",
       "FileKind": "mvc"
     },
     {
-      "FilePath": "Pages\\_ViewImports.cshtml",
-      "TargetPath": "Pages\\_ViewImports.cshtml",
+      "FilePath": "Pages/Shared/_ValidationScriptsPartial.cshtml",
+      "TargetPath": "Pages/Shared/_ValidationScriptsPartial.cshtml",
       "FileKind": "mvc"
     },
     {
-      "FilePath": "Pages\\_ViewStart.cshtml",
-      "TargetPath": "Pages\\_ViewStart.cshtml",
+      "FilePath": "Pages/_ViewStart.cshtml",
+      "TargetPath": "Pages/_ViewStart.cshtml",
       "FileKind": "mvc"
     },
     {
-      "FilePath": "Pages\\Shared\\_ValidationScriptsPartial.cshtml",
-      "TargetPath": "Pages\\Shared\\_ValidationScriptsPartial.cshtml",
+      "FilePath": "Pages/Shared/_Layout.cshtml",
+      "TargetPath": "Pages/Shared/_Layout.cshtml",
       "FileKind": "mvc"
     },
     {
-      "FilePath": "Pages\\Shared\\_Layout.cshtml",
-      "TargetPath": "Pages\\Shared\\_Layout.cshtml",
+      "FilePath": "Pages/_ViewImports.cshtml",
+      "TargetPath": "Pages/_ViewImports.cshtml",
       "FileKind": "mvc"
     }
   ],

@@ -39,7 +39,7 @@ namespace Karaoke.Services {
                 .Include (p => p.SongId)
                 .Include (p => p.Snippet)
                 .AsNoTracking ()
-                .Where (p => p.Snippet.Title.Contains (keyword));
+                .Where (p => p.Snippet.Title.ToLower().Contains (keyword.ToLower())).OrderBy(p=>p.Snippet.Title);
 
             return songs;
         }

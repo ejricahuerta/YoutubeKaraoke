@@ -2,10 +2,8 @@
 // for details on configuring this project to bundle and minify static web assets.
 var player;
 var songList = []
-var scoreList = []
-var randomPlaylist = []
 var randomPlayer;
-var  isPlayerError = false;
+var isPlayerError = false;
 var IsPlaying = false;
 var listStyle = "list-group-item text-wrap"
 var channelList = ["UCIk6z4gxI5ADYK7HmNiJvNg", "UCbzz_Y9oVH2-57G4k0awE0w", "UCWtgXQ8Rc7H309esXN2gkrw", "UCUfLW7fYnY3A-5HCLgcK0_w", "UCaPwSXblS8F0owlKHGc6huw"]
@@ -14,37 +12,16 @@ var list = {
 }
 
 function onYouTubePlayerAPIReady() {
-    if (songList.length === 0) {
-        $("#player").addClass("d-none");
-        randomPlayer = setTimeout(function () {
-                $("#player").removeClass("d-none");
-                player = new YT.Player('player', {
-                    playerVars: {
-                        listType: 'playlist',
-                        list: randomPlaylist,
-                        autoplay: 1
-                    },
-                    events: {
-                        'onReady': onPlayerReady,
-                        'onStateChange': onPlayerStateChange
-                    }
-                });
-                $(".message").addClass("d-none").removeClass("d-flex");
-            },
-            1000)
 
-    } else {
-        clearTimeout(randomPlayer);
-        player = new YT.Player('player', {
-            videoId: songList.pop()["songId"],
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
-        });
-        $(".message").addClass("d-none").removeClass("d-flex");
-    }
+    player = new YT.Player('player', {
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+        }
+    });
+    $(".message").addClass("d-none").removeClass("d-flex");
 }
+
 
 // autoplay video
 function onPlayerReady(event) {
@@ -53,26 +30,28 @@ function onPlayerReady(event) {
 
 // when video ends
 function onPlayerStateChange(event) {
-    if(event.data == YT.PlayerState.PLAYING){
+    if (event.data == YT.PlayerState.PLAYING) {
         IsPlaying = true;
+        ShiftSongs();
     }
     if (event.data === 0) {
-        if (songList === undefined || songList.length == 0) {
-            $("#message").removeClass("d-none")
-        } else {
-            var videoId = songList[songList.length -1];
-            player.loadVideoById(videoId);
+        var song = songList.pop();
+        if (song) {
+            console.log("song is valid");
+            player.loadVideoById(song["songId"]);
         }
     }
 }
-
 function onPlayerError(event) {
-    console.log('Error: '+event.data);
+    console.log('Error: ' + event.data);
     isPlayerError = true;
     player.stopVideo();
-    var song = songList[songList.length -1];
+    var song = songList.pop();
+    if (song) {
+        console.log("song is valid");
+    }
     player.loadVideoById(song["songId"]);
-  }
+}
 
 
 let connection = new signalR.HubConnectionBuilder().withUrl("/hub").build();
@@ -80,30 +59,21 @@ let connection = new signalR.HubConnectionBuilder().withUrl("/hub").build();
 connection.on("UpdateSong", function (user, song) {
     console.log("requested by : " + user)
     console.log(JSON.stringify(song))
-    songList.push(song["songId"]);
     console.log(song["title"])
-    var NextIsEmpty = $(".next-song").hasClass("d-none");
-    console.log("next song is empty." + NextIsEmpty);
+    var playingIsEmpty = $(".playing").hasClass("d-none");
+    console.log("playing song is empty." + playingIsEmpty);
     var QueueIsEmpty = $(".list").hasClass("d-none");
     console.log("queue song is empty " + QueueIsEmpty);
-    if(NextIsEmpty) {
-        if(!IsPlaying){
-               player.loadVideoById(song["songId"]);
-        }
-        else{
-            songList.push(song);
-            $(".next-song").removeClass("d-none");
+    if (playingIsEmpty) {
+        if (!IsPlaying) {
+            $(".playing").removeClass("d-none");
             $(".song-title").text(song["title"]);
-
-
+            player.loadVideoById(song["songId"]);
         }
-    }
-    else if(!NextIsEmpty && QueueIsEmpty){
-        $(".list").removeClass("d-none");
-        $(".list-group").append("<li class="+ listStyle+">" +song["title"] + "</li>");
     }
     else {
-        $(".list-group").append("<li class="+ listStyle+">" +song["title"] + "</li>");
+        songList.unshift([song]);
+        $(".list-group").append("<li class=" + listStyle + ">" + song["title"] + "</li>");
     }
 
 });
@@ -113,3 +83,9 @@ connection.start().then(function () {
 }).catch(function (err) {
     return console.error(err.toString());
 });
+
+
+
+function ShiftSongs(params) {
+    $(".playing").hasClass("d-none")
+}
