@@ -28,6 +28,15 @@
   height: calc( 100vh );
   z-index: -2;
 }
+.bg-video .player-overlay {
+  position: absolute;
+  left: 0;
+  width: calc( 100vw - 300px);
+  height: calc( 100vh );
+  z-index: 10;
+  background: black;
+  color: white;
+}
 .sidebar {
   position: absolute;
    height: calc( 100vh );
@@ -90,16 +99,25 @@
 else {
 <div class="bg-video">
   <div id="player"></div>
+    <div class="player-overlay d-flex ">
+      <div class="m-auto text-center">
+      <h1 class="display-2">Add songs using your Phone.</h1>
+      <p class="lead">Open your browser (Chrome/Safari) and type "192.168.0.23:5000"</p>
+    </div>
+    </div>
 </div>
 <div class="sidebar bg-light">
-<div class="text-center p-1 text-white " style="background-color:#030a3a !important;"><h3>YouTube Karaoke</h3>
-  <p>localhost:5000</p>
+<div class="text-center p-1 pt-2 text-white " style="background-color:#030a3a !important;"><h3>YouTube Karaoke</h3>
+  <p class="lead">"192.168.0.23:5000"</p>
 </div>
 
 <div class="playing container-fluid m-0 p-0">
   <div class="card shadow bg-dark text-white m-2">
     <div class="card-header  text-uppercase ">
-      <h3 class="mb-0">Playing...</h3>
+      <div class="d-flex">
+      <h3 class="mb-0 mr-auto">Playing...</h3>
+      <button class="skip btn btn-link text-white" title="skip" type="button"><i class="fas fa-forward"></i></button>
+    </div>
     </div>
     <div class="card-body">
            <i class="fas fa-caret-square-right"></i>

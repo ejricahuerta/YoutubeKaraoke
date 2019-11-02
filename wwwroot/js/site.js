@@ -37,14 +37,18 @@ function stopVideo() {
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         IsPlaying = true;
+        $(".player-overlay").addClass("d-none").removeClass("d-flex");
     }
     if (event.data == YT.PlayerState.ENDED) {
+        $(".player-overlay").removeClass("d-none").addClass("d-flex");
         console.log("song left: " + songList.length);
         var song = ShiftSongs();
         if (song) {
+            $(".player-overlay").addClass("d-none").removeClass("d-flex");
             console.log("playing next song..")
             player.loadVideoById(song["songId"]);
         } else {
+            $(".song-title").text("")
             IsPlaying = false;
         }
     }
@@ -56,7 +60,12 @@ function onPlayerError(event) {
     console.log('Error: ' + event.data);
     player.stopVideo();
     var song = ShiftSongs();
-    player.loadVideoById(song["songId"]);
+    if (song) {
+
+        player.loadVideoById(song["songId"]);
+    } else {
+        $(".song-title").text("")
+    }
 
 }
 
@@ -73,7 +82,6 @@ function ShiftSongs() {
         });
 
     } else {
-
 
     }
     return popped;
@@ -98,6 +106,18 @@ connection.on("UpdateSong", function (user, song) {
 });
 
 $(function () {
+    $(".skip").on("click", function () {
+        if (player) {
+            if (songList) {
+                var song = ShiftSongs();
+                if (song) {
+                    player.loadVideoById(song["songId"]);
+                }
+            }
+        }
+    })
+
+
     connection.start().then(function () {
         console.log("connection started!");
     }).catch(function (err) {

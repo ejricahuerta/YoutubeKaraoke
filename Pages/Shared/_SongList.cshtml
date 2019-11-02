@@ -1,0 +1,12 @@
+@using Karaoke.Entities
+@model List<Song>
+
+@foreach (var song in Model)
+{
+  @if(song.SongId != null){
+    <div class="d-block">
+    <button  class="song-item btn btn-link text-left text-white" data-songId="@(song.SongId.VideoId)" >@song.Snippet.Title </button>
+    </div>
+  }
+}
+
