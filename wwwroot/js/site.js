@@ -1,91 +1,104 @@
 ﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 // for details on configuring this project to bundle and minify static web assets.
+let listStyle = "list-group-item";
+let connection = new signalR.HubConnectionBuilder().withUrl("/hub").build();
+
 var player;
 var songList = []
-var randomPlayer;
-var isPlayerError = false;
 var IsPlaying = false;
-var listStyle = "list-group-item text-wrap"
-var channelList = ["UCIk6z4gxI5ADYK7HmNiJvNg", "UCbzz_Y9oVH2-57G4k0awE0w", "UCWtgXQ8Rc7H309esXN2gkrw", "UCUfLW7fYnY3A-5HCLgcK0_w", "UCaPwSXblS8F0owlKHGc6huw"]
-var list = {
-    playlist: ["'racks Planet Karaoke"]
-}
+
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 function onYouTubePlayerAPIReady() {
-
     player = new YT.Player('player', {
         events: {
             'onReady': onPlayerReady,
             'onStateChange': onPlayerStateChange
         }
     });
-    $(".message").addClass("d-none").removeClass("d-flex");
 }
-
 
 // autoplay video
 function onPlayerReady(event) {
     event.target.playVideo();
 }
 
+function stopVideo() {
+    player.stopVideo();
+    IsPlaying = false;
+}
+
+
+
 // when video ends
 function onPlayerStateChange(event) {
-    if (event.data == YT.PlayerState.PLAYING) {
+    if (event.data === YT.PlayerState.PLAYING) {
         IsPlaying = true;
-        ShiftSongs();
     }
-    if (event.data === 0) {
-        var song = songList.pop();
+    if (event.data == YT.PlayerState.ENDED) {
+        console.log("song left: " + songList.length);
+        var song = ShiftSongs();
         if (song) {
-            console.log("song is valid");
+            console.log("playing next song..")
             player.loadVideoById(song["songId"]);
         }
     }
 }
+
+
 function onPlayerError(event) {
+    IsPlaying = false;
     console.log('Error: ' + event.data);
-    isPlayerError = true;
     player.stopVideo();
-    var song = songList.pop();
-    if (song) {
-        console.log("song is valid");
-    }
+    var song = ShiftSongs();
     player.loadVideoById(song["songId"]);
+
 }
 
+function ShiftSongs() {
+    //check if list is not null;
+    var popped;
+    if (songList.length != 0) {
+        popped = songList.pop();
+        $(".song-title").text(popped["title"]);
+        $(".list-group").empty();
+        songList.forEach(e => {
+            var item = "<li class=" + listStyle + ">" + e["title"] + "</li>"
+            $(".list-group").append(item)
+        });
 
-let connection = new signalR.HubConnectionBuilder().withUrl("/hub").build();
+    } else {
+
+
+    }
+    return popped;
+}
+
 
 connection.on("UpdateSong", function (user, song) {
     console.log("requested by : " + user)
-    console.log(JSON.stringify(song))
     console.log(song["title"])
-    var playingIsEmpty = $(".playing").hasClass("d-none");
-    console.log("playing song is empty." + playingIsEmpty);
-    var QueueIsEmpty = $(".list").hasClass("d-none");
-    console.log("queue song is empty " + QueueIsEmpty);
-    if (playingIsEmpty) {
-        if (!IsPlaying) {
-            $(".playing").removeClass("d-none");
-            $(".song-title").text(song["title"]);
-            player.loadVideoById(song["songId"]);
+    console.log(song["songId"])
+    if (song) {
+        songList.unshift(song);
+        if (IsPlaying) {
+            var item = "<li class=" + listStyle + ">" + song["title"] + "</li>"
+            $(".list-group").append(item)
+        } else {
+            var next = ShiftSongs();
+            $(".song-title").text(next["title"]);
+            player.loadVideoById(next["songId"]);
         }
-    }
-    else {
-        songList.unshift([song]);
-        $(".list-group").append("<li class=" + listStyle + ">" + song["title"] + "</li>");
-    }
-
+    };
 });
 
-connection.start().then(function () {
-    console.log("connection started!");
-}).catch(function (err) {
-    return console.error(err.toString());
-});
-
-
-
-function ShiftSongs(params) {
-    $(".playing").hasClass("d-none")
-}
+$(function () {
+    connection.start().then(function () {
+        console.log("connection started!");
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+})
