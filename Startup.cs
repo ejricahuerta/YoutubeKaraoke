@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Karaoke.Entities;
 using Karaoke.Hubs;
 using Karaoke.Models;
 using Karaoke.Services;
@@ -25,9 +26,11 @@ namespace Karaoke {
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices (IServiceCollection services) {
-            services.AddScoped<IYoutubeService, YoutubeService> ();
-            services.AddScoped<IKaraokeService, KaraokeService> ();
-            services.AddScoped<YoutubeHub> ();
+
+
+            services.AddTransient<IYoutubeService, YoutubeService> ();
+            services.AddTransient<IKaraokeService, KaraokeService> ();
+            services.AddSingleton<YoutubeHub> ();
 
             services.AddDbContext<KaraokeContext> ();
 
@@ -63,7 +66,16 @@ namespace Karaoke {
                 routes.MapHub<YoutubeHub> ("/hub");
             });
             System.Console.WriteLine ($"SONG COUNT: {context.Songs.Count()}");
-            app.UseMvc ();
+            var songsToRemove = new List<Song>();
+            foreach (var song in context.Songs.Include(p=>p.SongId))
+            {
+                if(string.IsNullOrEmpty(song.SongId.VideoId.Trim())){
+                    songsToRemove.Add(song);
+                }
+            }
+            context.Songs.RemoveRange(songsToRemove);
+            context.SaveChanges();
+                        app.UseMvc ();
         }
     }
 }
