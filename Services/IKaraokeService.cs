@@ -6,7 +6,7 @@ namespace Karaoke.Services {
     public interface IKaraokeService {
         bool InitializeData ();
         IEnumerable<Song> FindSongs (string keyword);
-        Task<bool> AddSong (string songId);
+        bool AddSong (string songId);
         Task<bool> RemoveSong (string songId);
     }
 }

@@ -6,6 +6,7 @@ var scoreList = []
 var randomPlaylist = []
 var randomPlayer;
 var  isPlayerError = false;
+var IsPlaying = false;
 var listStyle = "list-group-item text-wrap"
 var channelList = ["UCIk6z4gxI5ADYK7HmNiJvNg", "UCbzz_Y9oVH2-57G4k0awE0w", "UCWtgXQ8Rc7H309esXN2gkrw", "UCUfLW7fYnY3A-5HCLgcK0_w", "UCaPwSXblS8F0owlKHGc6huw"]
 var list = {
@@ -52,12 +53,15 @@ function onPlayerReady(event) {
 
 // when video ends
 function onPlayerStateChange(event) {
+    if(event.data == YT.PlayerState.PLAYING){
+        IsPlaying = true;
+    }
     if (event.data === 0) {
         if (songList === undefined || songList.length == 0) {
             $("#message").removeClass("d-none")
         } else {
-            var videoId = songList.pop();
-            player.loadVideoById(videoId)
+            var videoId = songList[songList.length -1];
+            player.loadVideoById(videoId);
         }
     }
 }
@@ -66,7 +70,8 @@ function onPlayerError(event) {
     console.log('Error: '+event.data);
     isPlayerError = true;
     player.stopVideo();
-    player.loadVideoById(songList.pop()["songId"]);
+    var song = songList[songList.length -1];
+    player.loadVideoById(song["songId"]);
   }
 
 
@@ -81,9 +86,17 @@ connection.on("UpdateSong", function (user, song) {
     console.log("next song is empty." + NextIsEmpty);
     var QueueIsEmpty = $(".list").hasClass("d-none");
     console.log("queue song is empty " + QueueIsEmpty);
-    if(NextIsEmpty && QueueIsEmpty) {
-        $(".next-song").removeClass("d-none");
-         $(".song-title").text(song["title"]);
+    if(NextIsEmpty) {
+        if(!IsPlaying){
+               player.loadVideoById(song["songId"]);
+        }
+        else{
+            songList.push(song);
+            $(".next-song").removeClass("d-none");
+            $(".song-title").text(song["title"]);
+
+
+        }
     }
     else if(!NextIsEmpty && QueueIsEmpty){
         $(".list").removeClass("d-none");
@@ -92,10 +105,7 @@ connection.on("UpdateSong", function (user, song) {
     else {
         $(".list-group").append("<li class="+ listStyle+">" +song["title"] + "</li>");
     }
-    if(isPlayerError) {
-        player.loadVideoById(songList.pop()["songId"]);
-        isPlayerError = false;
-    }
+
 });
 
 connection.start().then(function () {

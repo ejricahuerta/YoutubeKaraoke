@@ -18,12 +18,16 @@ namespace Karaoke.Services {
             this.hub = hub;
         }
 
-        public async Task<bool> AddSong (string songId) {
+        public  bool AddSong (string songId) {
             System.Console.WriteLine ($"Song ID: {songId} from Karaoke Service");
-            var song = context.Songs.FirstOrDefault (p => p.SongId.VideoId == songId);
+            var song =  context.Songs
+            .Include(p=>p.SongId)
+            .Include(p=>p.Snippet)
+            .FirstOrDefault(p => p.SongId.VideoId == songId);
+            
             if (song != null) {
                 System.Console.WriteLine ($"Searched song is: {song.Snippet.Title}");
-                await hub.SendSong (hub.Context.ConnectionId, song);
+                var  hubresult =  hub.SendSong (hub.Context.ConnectionId, song);
                 return true;
             }
             return false;
