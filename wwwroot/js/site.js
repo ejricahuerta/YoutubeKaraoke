@@ -44,6 +44,8 @@ function onPlayerStateChange(event) {
         if (song) {
             console.log("playing next song..")
             player.loadVideoById(song["songId"]);
+        } else {
+            IsPlaying = false;
         }
     }
 }

@@ -68,51 +68,51 @@ namespace Karaoke {
                 routes.MapHub<YoutubeHub> ("/hub");
             });
             System.Console.WriteLine ($"SONG COUNT: {context.Songs.Count()}");
-            var songsToRemove = new List<Song> ();
-            var songsUpdated = new List<Song> ();
-            var listofWords = new List<string> {
-                "&quot;",
-                "(",
-                ")",
-                "Guitar",
-                "HD",
-                "Karaoke",
-                "lyrics",
-                "Instrumental",
-                "Version",
-                "Female key",
-                "Coversph",
-                "]",
-                "[",
-                "Acoustic",
-                "/",
-                "|",
-                "OST"
+            // var songsToRemove = new List<Song> ();
+            // var songsUpdated = new List<Song> ();
+            // var listofWords = new List<string> {
+            //     "&quot;",
+            //     "(",
+            //     ")",
+            //     "Guitar",
+            //     "HD",
+            //     "Karaoke",
+            //     "lyrics",
+            //     "Instrumental",
+            //     "Version",
+            //     "Female key",
+            //     "Coversph",
+            //     "]",
+            //     "[",
+            //     "Acoustic",
+            //     "/",
+            //     "|",
+            //     "OST"
 
-            };
-            RegexOptions options = RegexOptions.None;
-            Regex regex = new Regex ("[ ]{2,}", options);
-            foreach (var song in context.Songs.Include (p => p.SongId).Include (p => p.Snippet)) {
-                if (string.IsNullOrEmpty (song.SongId.VideoId.Trim ())) {
-                    songsToRemove.Add (song);
-                }
-                var songTitle = song.Snippet.Title;
-                foreach (var item in listofWords) {
-                    songTitle = songTitle.Replace (item, string.Empty, true, CultureInfo.CurrentCulture);
+            // };
+            // RegexOptions options = RegexOptions.None;
+            // Regex regex = new Regex ("[ ]{2,}", options);
+            // foreach (var song in context.Songs.Include (p => p.SongId).Include (p => p.Snippet)) {
+            //     if (string.IsNullOrEmpty (song.SongId.VideoId.Trim ())) {
+            //         songsToRemove.Add (song);
+            //     }
+            //     var songTitle = song.Snippet.Title;
+            //     foreach (var item in listofWords) {
+            //         songTitle = songTitle.Replace (item, string.Empty, true, CultureInfo.CurrentCulture);
 
-                    songTitle = regex.Replace (songTitle, " ");
-                    songTitle = songTitle.Replace ("-", " - ");
-                    songTitle = songTitle.Replace ("&amp;", "&");
-                    songTitle = songTitle.Replace ("&#39;", "'");
+            //         songTitle = regex.Replace (songTitle, " ");
+            //         songTitle = songTitle.Replace ("-", " - ");
+            //         songTitle = songTitle.Replace ("&amp;", "&");
+            //         songTitle = songTitle.Replace ("&#39;", "'");
 
-                }
-                song.Snippet.Title = songTitle;
-                songsUpdated.Add (song);
+            //     }
+            //     song.Snippet.Title = songTitle;
+            //     songsUpdated.Add (song);
 
-            }
-            context.Songs.RemoveRange (songsToRemove);
-            context.Songs.UpdateRange (songsUpdated);
-            context.SaveChanges ();
+            // }
+            // context.Songs.RemoveRange (songsToRemove);
+            // context.Songs.UpdateRange (songsUpdated);
+            // context.SaveChanges ();
             app.UseMvc ();
         }
     }
