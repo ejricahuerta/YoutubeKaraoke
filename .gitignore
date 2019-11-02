@@ -363,3 +363,5 @@ obj/Debug/netcoreapp2.2/Karaoke.Views.dll
 obj/Debug/netcoreapp2.2/Karaoke.assets.cache
 obj/Karaoke.csproj.nuget.cache
 obj/Karaoke.csproj.nuget.g.props
+obj/Debug/netcoreapp2.2/Karaoke.assets.cache
+obj/Debug/netcoreapp2.2/Karaoke.Views.dll
