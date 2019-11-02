@@ -24,7 +24,7 @@
 .bg-video #player {
   position: absolute;
   left: 0;
-  width: calc( 100vw - 280px);
+  width: calc( 100vw - 300px);
   height: calc( 100vh );
   z-index: -2;
 }
@@ -32,8 +32,9 @@
   position: absolute;
    height: calc( 100vh );
   right: 0;
-  width: 280px;
-  background-color: white;
+  width: 300px;
+  overflow-y: hidden;
+
 }
 
 .message {
@@ -42,31 +43,46 @@
   height: 100vh;
   z-index: 2;
 }
+.list {
+}
 </style>
 
 @if(agent.Contains("iPhone") || agent.Contains("Android")) {
-
-  <div class="jumbotron jumbotron-fluid my-0">
-  <div class="container">
-    <h1 class="display-4">Add Songs to the Queue</h1>
-    <p class="lead">Start searching below...</p>
-  </div>
-  <form class="p-2" >
+<div>
+  <form class="p-2 fixed-top bg-dark" >
+    <h4 class="text-white">YouTube Karaoke</h4>
   <div class="form-group d-flex">
     <input type="text" class="form-control" asp-for="Search"  placeholder="Song, Artist...">
       <button type="submit" class="btn btn-sm btn-dark">GO</button>
   </div>
 </form>
 
-
+<div class="pt-4 mt-2">
 @foreach (var song in Model.Songs)
 {
   @if(song.SongId != null){
-    <a class="btn btn-link" href="@(string.Concat("/?SongId=",@song.SongId.VideoId))">@song.Snippet.Title </a>
+    <a class="btn btn-link text-left text-white" href="@(string.Concat("/?SongId=",@song.SongId.VideoId))">@song.Snippet.Title </a>
   }
 }
 </div>
+<div class="accordion fixed-bottomrk" id="accordionExample">
+  <div class="card">
+    <div class="card-header" id="headingOne">
+      <h2 class="mb-0">
+        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Next Songs...
+        </button>
+      </h2>
+    </div>
 
+    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+      <div class="card-body">
+        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 }
 else {
 <div class="bg-video">
@@ -78,24 +94,34 @@ else {
       </div>
     </div>
 </div>
-<div class="sidebar bg-light p-2">
-<div class="text-center bg-dark p-1 text-white "><h3>YouTube Karaoke</h3>
+<div class="sidebar bg-light">
+<div class="text-center p-1 text-white " style="background-color:#030a3a !important;"><h3>YouTube Karaoke</h3>
   <p>localhost:5000</p>
 </div>
 
-  <div class="next-song card m-1 shadow-lg d-none">
-    <div class="card-header text-white  bg-primary text-uppercase p-1">Next Song</div>
+<div class="next-song container-fluid m-0 p-0 d-none">
+  <div class="card shadow bg-dark text-white m-2">
+    <div class="card-header  text-uppercase ">
+      <h3 class="mb-0">Playing...</h3>
+    </div>
     <div class="card-body">
-     <h4 class="song-title text-wrap "></h4>
+           <i class="fas fa-caret-square-right"></i>
+      <i class="fas fa-microphone"></i>
+      <span class="song-title"></span>
     </div>
   </div>
-  <hr>
-  <div class="list card m-1 shadow d-none">
-    <div class="card-header  text-uppercase p-1">Queue</div>
-    <div class="card-body">
+<div class="card list border shadow m-2 d-none">
+  <div class="card-header bg-white  text-uppercase">
+    <h5 class="mb-0">
+Up Next
+    </h5>
+  </div>
+  <div class="card-body bg-light p-0">
     <ul class="list-group list-group-flush">
     </ul>
-    </div>
   </div>
 </div>
+</div>
+  </div>
+
 }
