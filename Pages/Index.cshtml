@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Home page";
     var agent = Request.Headers["User-Agent"].ToString();
+
+    var url =  Request.Host.Value;
 }
 
 <style>
@@ -106,14 +108,14 @@ else
         <div class="player-overlay d-flex ">
             <div class="m-auto text-center">
                 <h1 class="display-2">Add songs using your Phone.</h1>
-                <p class="lead">Open your browser (Chrome/Safari) and type "192.168.0.23:5000"</p>
+                <p class="lead">Open your browser (Chrome/Safari) and type @url</p>
             </div>
         </div>
     </div>
     <div class="sidebar bg-light">
         <div class="text-center p-1 pt-2 text-white " style="background-color:#030a3a !important;">
             <h3>YouTube Karaoke</h3>
-            <p class="lead">"192.168.0.23:5000"</p>
+            <p class="lead">@url</p>
         </div>
 
         <div class="playing container-fluid m-0 p-0">
