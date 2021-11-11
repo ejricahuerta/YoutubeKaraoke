@@ -20,11 +20,6 @@ namespace Karaoke.Models {
 
         }
 
-        protected override void OnConfiguring (DbContextOptionsBuilder options) {
-            options.UseSqlite ("Data Source=karaoke.db");
-
-        }
-
         protected override void OnModelCreating (ModelBuilder modelBuilder) {
             base.OnModelCreating (modelBuilder);
 

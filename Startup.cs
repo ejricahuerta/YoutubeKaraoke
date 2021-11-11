@@ -38,7 +38,7 @@ namespace Karaoke
             services.AddTransient<IKaraokeService, KaraokeService>();
             services.AddSingleton<YoutubeHub>();
 
-            services.AddDbContext<KaraokeContext>();
+            services.AddDbContext<KaraokeContext>(opt=>opt.UseSqlServer(Configuration.GetConnectionString("KaraokeDbContext")));
 
             services.Configure<CookiePolicyOptions>(options =>
             {
