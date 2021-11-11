@@ -18,56 +18,73 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Karaoke {
-    public class Startup {
+namespace Karaoke
+{
+    public class Startup
+    {
 
-        public Startup (IConfiguration configuration) {
+        public Startup(IConfiguration configuration)
+        {
             this.Configuration = configuration;
 
         }
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices (IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services)
+        {
 
-            services.AddTransient<IYoutubeService, YoutubeService> ();
-            services.AddTransient<IKaraokeService, KaraokeService> ();
-            services.AddSingleton<YoutubeHub> ();
+            services.AddTransient<IYoutubeService, YoutubeService>();
+            services.AddTransient<IKaraokeService, KaraokeService>();
+            services.AddSingleton<YoutubeHub>();
 
-            services.AddDbContext<KaraokeContext> ();
+            services.AddDbContext<KaraokeContext>();
 
-            services.Configure<CookiePolicyOptions> (options => {
+            services.Configure<CookiePolicyOptions>(options =>
+            {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-
-            services.AddMvc ().SetCompatibilityVersion (CompatibilityVersion.Version_2_2);
-            services.AddCors (options => options.AddPolicy ("CorsPolicy",
-                builder => {
-                    builder.AllowAnyMethod ().AllowAnyHeader ()
-                        .WithOrigins ("http://localhost:5000", "http://192.168.2.166:5000", "192.168.0.23:5000")
-                        .AllowCredentials ();
-                }));
-            services.AddSignalR ();
+            services.AddCors(options => options.AddPolicy("CorsPolicy",
+               builder =>
+               {
+                   builder.AllowAnyMethod().AllowAnyHeader()
+                       .WithOrigins("http://localhost:5000", "http://192.168.2.166:5000", "192.168.0.23:5000")
+                       .AllowCredentials();
+               }));
+            services.AddRazorPages();
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure (IApplicationBuilder app, IHostingEnvironment env, KaraokeContext context) {
-            if (env.IsDevelopment ()) {
-                app.UseDeveloperExceptionPage ();
-            } else {
-                app.UseExceptionHandler ("/Error");
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, KaraokeContext context)
+        {
+
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
             }
 
-            app.UseStaticFiles ();
-            app.UseCookiePolicy ();
-            app.UseCors ("CorsPolicy");
+            app.UseStaticFiles();
 
-            app.UseSignalR (routes => {
-                routes.MapHub<YoutubeHub> ("/hub");
+
+            app.UseCookiePolicy();
+            app.UseCors("CorsPolicy");
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapRazorPages();
+                endpoints.MapHub<YoutubeHub>("/hub");
             });
-            System.Console.WriteLine ($"SONG COUNT: {context.Songs.Count()}");
+
+
+            System.Console.WriteLine($"SONG COUNT: {context.Songs.Count()}");
             // var songsToRemove = new List<Song> ();
             // var songsUpdated = new List<Song> ();
             // var listofWords = new List<string> {
@@ -113,7 +130,6 @@ namespace Karaoke {
             // context.Songs.RemoveRange (songsToRemove);
             // context.Songs.UpdateRange (songsUpdated);
             // context.SaveChanges ();
-            app.UseMvc ();
         }
     }
 }

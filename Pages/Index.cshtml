@@ -6,137 +6,142 @@
 }
 
 <style>
-  body {
+    body {
+        background: black;
+    }
 
-    background:black;
+    .bg-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        z-index: -1;
+    }
 
-  }
-  .bg-video {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  z-index: -1;
-}
+        .bg-video #player {
+            position: absolute;
+            left: 0;
+            width: calc( 100vw - 300px);
+            height: calc( 100vh );
+            z-index: -2;
+        }
 
-.bg-video #player {
-  position: absolute;
-  left: 0;
-  width: calc( 100vw - 300px);
-  height: calc( 100vh );
-  z-index: -2;
-}
-.bg-video .player-overlay {
-  position: absolute;
-  left: 0;
-  width: calc( 100vw - 300px);
-  height: calc( 100vh );
-  z-index: 10;
-  background: black;
-  color: white;
-}
-.sidebar {
-  position: absolute;
-   height: calc( 100vh );
-  right: 0;
-  width: 300px;
-  overflow-y: hidden;
+        .bg-video .player-overlay {
+            position: absolute;
+            left: 0;
+            width: calc( 100vw - 300px);
+            height: calc( 100vh );
+            z-index: 10;
+            background: black;
+            color: white;
+        }
 
-}
+    .sidebar {
+        position: absolute;
+        height: calc( 100vh );
+        right: 0;
+        width: 300px;
+        overflow-y: hidden;
+    }
 
-.message {
-  position: absolute;
-  width: 100vw;
-  height: 100vh;
-  z-index: 2;
-}
-.list {
-}
+    .message {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        z-index: 2;
+    }
+
+    .list {
+    }
 </style>
 
-@if(agent.Contains("iPhone") || agent.Contains("Android")) {
-<div>
-  <form class="p-2 fixed-top bg-dark" >
-    <h4 class="text-white">YouTube Karaoke</h4>
-  <div class="form-group d-flex">
-    <input type="text" class="form-control" asp-for="Search"  placeholder="Song, Artist...">
-      <button type="submit" class="btn btn-sm btn-dark font-weight-bold">GO</button>
-  </div>
-</form>
-
-<div class="pt-4 mt-2">
-@foreach (var song in Model.Songs)
+@if (agent.Contains("iPhone") || agent.Contains("Android"))
 {
-  @if(song.SongId != null){
-    <div class="d-block">
-    <a class="btn btn-link text-left text-white" href="@(string.Concat("/?SongId=",@song.SongId.VideoId))">@song.Snippet.Title </a>
-    </div>
-  }
-}
-</div>
-<!-- <div class="accordion fixed-bottom" id="accordionExample">
-  <div class="card">
-    <div class="card-header" id="headingOne">
-      <h2 class="mb-0">
-        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-           Next Songs... <span class="playing"></span> 
-        </button>
-      </h2>
-    </div>
+    <div>
+        <form class="p-2 fixed-top bg-dark">
+            <h4 class="text-white">YouTube Karaoke</h4>
+            <div class="form-group d-flex">
+                <input type="text" class="form-control" asp-for="Search" placeholder="Song, Artist...">
+                <button type="submit" class="btn btn-sm btn-dark font-weight-bold">GO</button>
+            </div>
+        </form>
 
-    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
-      <div class="list card-body">
-            <ul class="list-group list-group-flush">
-            </ul>
-      </div>
-    </div>
-  </div>
-</div> -->
-</div>
-}
-else {
-<div class="bg-video">
-  <div id="player"></div>
-    <div class="player-overlay d-flex ">
-      <div class="m-auto text-center">
-      <h1 class="display-2">Add songs using your Phone.</h1>
-      <p class="lead">Open your browser (Chrome/Safari) and type "192.168.0.23:5000"</p>
-    </div>
-    </div>
-</div>
-<div class="sidebar bg-light">
-<div class="text-center p-1 pt-2 text-white " style="background-color:#030a3a !important;"><h3>YouTube Karaoke</h3>
-  <p class="lead">"192.168.0.23:5000"</p>
-</div>
+        <div class="pt-4 mt-2">
+            @foreach (var song in Model.Songs)
+            {
+                @if (song.SongId != null)
+                {
+                    <div class="d-block">
+                        <a class="btn btn-link text-left text-white" href="@(string.Concat("/?SongId=",@song.SongId.VideoId))">@song.Snippet.Title </a>
+                    </div>
+                }
+            }
+        </div>
+        <!-- <div class="accordion fixed-bottom" id="accordionExample">
+          <div class="card">
+            <div class="card-header" id="headingOne">
+              <h2 class="mb-0">
+                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                   Next Songs... <span class="playing"></span>
+                </button>
+              </h2>
+            </div>
 
-<div class="playing container-fluid m-0 p-0">
-  <div class="card shadow bg-dark text-white m-2">
-    <div class="card-header  text-uppercase ">
-      <div class="d-flex">
-      <h3 class="mb-0 mr-auto">Playing...</h3>
-      <button class="skip btn btn-link text-white" title="skip" type="button"><i class="fas fa-forward"></i></button>
+            <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+              <div class="list card-body">
+                    <ul class="list-group list-group-flush">
+                    </ul>
+              </div>
+            </div>
+          </div>
+        </div> -->
     </div>
+}
+else
+{
+    <div class="bg-video">
+        <div id="player"></div>
+        <div class="player-overlay d-flex ">
+            <div class="m-auto text-center">
+                <h1 class="display-2">Add songs using your Phone.</h1>
+                <p class="lead">Open your browser (Chrome/Safari) and type "192.168.0.23:5000"</p>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-           <i class="fas fa-caret-square-right"></i>
-      <i class="fas fa-microphone"></i>
-      <span class="song-title"></span>
+    <div class="sidebar bg-light">
+        <div class="text-center p-1 pt-2 text-white " style="background-color:#030a3a !important;">
+            <h3>YouTube Karaoke</h3>
+            <p class="lead">"192.168.0.23:5000"</p>
+        </div>
+
+        <div class="playing container-fluid m-0 p-0">
+            <div class="card shadow bg-dark text-white m-2">
+                <div class="card-header  text-uppercase ">
+                    <div class="d-flex">
+                        <h3 class="mb-0 mr-auto">Playing...</h3>
+                        <button class="skip btn btn-link text-white" title="skip" type="button"><i class="fas fa-forward"></i></button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <i class="fas fa-caret-square-right"></i>
+                    <i class="fas fa-microphone"></i>
+                    <span class="song-title"></span>
+                </div>
+            </div>
+            <div class="card list border shadow m-2">
+                <div class="card-header bg-white  text-uppercase">
+                    <h5 class="mb-0">
+                        Up Next
+                    </h5>
+                </div>
+                <div class="card-body bg-light p-0">
+                    <ul class="list-group list-group-flush">
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-<div class="card list border shadow m-2">
-  <div class="card-header bg-white  text-uppercase">
-    <h5 class="mb-0">
-Up Next
-    </h5>
-  </div>
-  <div class="card-body bg-light p-0">
-    <ul class="list-group list-group-flush">
-    </ul>
-  </div>
-</div>
-</div>
-  </div>
 
 }
