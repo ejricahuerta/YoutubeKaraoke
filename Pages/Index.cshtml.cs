@@ -16,7 +16,6 @@ namespace Karaoke.Pages {
             this.karaokeService = karaokeService;
         }
 
-        public string URL { get; set; } = "http://localhost:5000";
 
         [BindProperty (SupportsGet = true)]
         public string Search { get; set; }
@@ -29,12 +28,12 @@ namespace Karaoke.Pages {
         public bool SongAdded { get; private set; }
 
         public IActionResult OnGet (string SongId = null) {
-            karaokeService.InitializeData ();
+
             if (!string.IsNullOrEmpty (Search)) {
                 var songs = karaokeService.FindSongs (Search);
                 Songs = songs.ToList ();
                 foreach (var song in Songs) {
-                    System.Console.WriteLine ($"Song ID: {song.SongId}");
+                    System.Console.WriteLine ($"Song ID: {song.SongId.Id}");
                 }
             }
 

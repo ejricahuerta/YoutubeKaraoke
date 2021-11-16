@@ -38,7 +38,7 @@ namespace Karaoke
             services.AddTransient<IKaraokeService, KaraokeService>();
             services.AddSingleton<YoutubeHub>();
 
-            services.AddDbContext<KaraokeContext>(opt=>opt.UseSqlServer(Configuration.GetConnectionString("KaraokeDbContext")));
+            services.AddDbContext<KaraokeContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("KaraokeDbContext")));
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -50,7 +50,7 @@ namespace Karaoke
                builder =>
                {
                    builder.AllowAnyMethod().AllowAnyHeader()
-                       .WithOrigins("http://localhost:5000", "http://192.168.2.166:5000", "192.168.0.23:5000")
+                       .WithOrigins("http://localhost:5000", "http://192.168.2.166:5000", "192.168.0.23:5000", "http://localhost:4000", "http://localhost:4001")
                        .AllowCredentials();
                }));
             services.AddRazorPages();
@@ -83,13 +83,15 @@ namespace Karaoke
                 endpoints.MapHub<YoutubeHub>("/hub");
             });
 
+            context.Database.Migrate();
+
             context.Database.EnsureCreated();
+
+
             if (context.Songs.Any())
             {
                 System.Console.WriteLine($"SONG COUNT: {context.Songs.Count()}");
-            }
-            else
-            {
+
                 var songsToRemove = new List<Song>();
                 var songsUpdated = new List<Song>();
                 var listofWords = new List<string> {

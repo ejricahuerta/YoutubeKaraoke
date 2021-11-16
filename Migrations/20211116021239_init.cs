@@ -2,7 +2,7 @@
 
 namespace Karaoke.Migrations
 {
-    public partial class INIT : Migration
+    public partial class init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -10,11 +10,11 @@ namespace Karaoke.Migrations
                 name: "Snippet",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Title = table.Column<string>(nullable: true),
-                    Channel = table.Column<string>(nullable: true),
-                    ChannelId = table.Column<string>(nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Channel = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ChannelId = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -25,9 +25,9 @@ namespace Karaoke.Migrations
                 name: "SongId",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VideoId = table.Column<string>(nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VideoId = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -38,11 +38,11 @@ namespace Karaoke.Migrations
                 name: "Songs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    SongIdId = table.Column<int>(nullable: true),
-                    SnippetId = table.Column<int>(nullable: true),
-                    OnQueue = table.Column<bool>(nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SongIdId = table.Column<int>(type: "int", nullable: true),
+                    SnippetId = table.Column<int>(type: "int", nullable: true),
+                    OnQueue = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

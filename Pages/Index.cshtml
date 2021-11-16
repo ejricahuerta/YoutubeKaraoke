@@ -4,7 +4,7 @@
     ViewData["Title"] = "Home page";
     var agent = Request.Headers["User-Agent"].ToString();
 
-    var url =  Request.Host.Value;
+    var url = Request.Host.Value;
 }
 
 <style>
@@ -81,24 +81,7 @@
                 }
             }
         </div>
-        <!-- <div class="accordion fixed-bottom" id="accordionExample">
-          <div class="card">
-            <div class="card-header" id="headingOne">
-              <h2 class="mb-0">
-                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                   Next Songs... <span class="playing"></span>
-                </button>
-              </h2>
-            </div>
 
-            <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
-              <div class="list card-body">
-                    <ul class="list-group list-group-flush">
-                    </ul>
-              </div>
-            </div>
-          </div>
-        </div> -->
     </div>
 }
 else
@@ -127,7 +110,6 @@ else
                     </div>
                 </div>
                 <div class="card-body">
-                    <i class="fas fa-caret-square-right"></i>
                     <i class="fas fa-microphone"></i>
                     <span class="song-title"></span>
                 </div>

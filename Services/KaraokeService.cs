@@ -60,6 +60,7 @@ namespace Karaoke.Services {
                 System.Console.WriteLine ($"ERROR: {e.Message}");
                 return false;
             }
+            context.SaveChanges();
             return true;
         }
     }
