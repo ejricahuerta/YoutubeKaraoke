@@ -10,9 +10,6 @@ export const PauseIcon = ({ className = "h-6 w-6" }: Props) => (
 export const NextIcon = ({ className = "h-6 w-6" }: Props) => (
   <svg {...base} className={className}><path d="M5 5.6v12.8a1 1 0 0 0 1.55.83L15 13.5V18a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v4.5L6.55 4.77A1 1 0 0 0 5 5.6z" /></svg>
 );
-export const RestartIcon = ({ className = "h-6 w-6" }: Props) => (
-  <svg {...base} className={className}><path d="M19 5.6v12.8a1 1 0 0 1-1.55.83L9 13.5V18a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4.5l8.45-5.73A1 1 0 0 1 19 5.6z" /></svg>
-);
 export const CloseIcon = ({ className = "h-5 w-5" }: Props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden className={className}><path d="M6 6l12 12M18 6L6 18" /></svg>
 );
@@ -36,4 +33,7 @@ export const FullscreenIcon = ({ className = "h-5 w-5" }: Props) => (
 );
 export const MicIcon = ({ className = "h-6 w-6" }: Props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M8.5 21h7" /></svg>
+);
+export const Forward10Icon = ({ className = "h-6 w-6" }: Props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}><path d="M20 4v5h-5" /><path d="M19.4 9A8 8 0 1 0 20 12" /><text x="12" y="15.5" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none">10</text></svg>
 );

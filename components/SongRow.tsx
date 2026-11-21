@@ -43,7 +43,10 @@ export function IconButton({
   children,
   className = "",
   disabled,
+  size = "md",
 }: {
+  /** "lg" is for the main-screen transport controls, sized to be hit from across a room. */
+  size?: "md" | "lg";
   label: string;
   onClick: () => void;
   children: ReactNode;
@@ -57,7 +60,9 @@ export function IconButton({
       title={label}
       onClick={onClick}
       disabled={disabled}
-      className={`grid h-10 w-10 place-items-center rounded-full text-neutral-300 transition hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:hover:bg-transparent ${className}`}
+      className={`grid ${
+        size === "lg" ? "h-16 w-16 min-[1920px]:h-24 min-[1920px]:w-24" : "h-12 w-12"
+      } place-items-center rounded-full text-neutral-300 transition hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:hover:bg-transparent ${className}`}
     >
       {children}
     </button>

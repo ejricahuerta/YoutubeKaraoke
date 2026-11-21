@@ -4,8 +4,11 @@ Karaoke night with a shared queue. One screen plays YouTube karaoke and lyrics
 videos; everyone else scans a QR code and adds songs from their phone.
 
 - **Main screen** (`/s/CODE`): video on the left, queue on the right, with
-  play/pause, next, restart, volume and full screen. Reloading keeps the session
-  and resumes the current song.
+  the app's own large controls (play/pause, forward 10 s, next, seek bar, volume,
+  full screen) and a button to hide the queue. YouTube's own player controls are
+  turned off. Controls are sized for a TV and work with a keyboard or remote
+  (Tab/arrows to move, Enter to press, media keys for play/pause, next and
+  fast-forward). Reloading keeps the session and resumes the current song.
 - **Phones** (`/join/CODE`): scan the QR code, enter a name, search, tap + to
   add. Guests can remove their own songs; only the main screen can pause, skip,
   reorder or remove other people's songs.
@@ -22,7 +25,8 @@ videos; everyone else scans a QR code and adds songs from their phone.
 - **Playback** uses YouTube's official IFrame player on the main screen. Video
   streams directly from YouTube; the app stores only video ids and titles.
   Videos whose owners disable embedding are skipped automatically.
-- **Search** uses `youtubei.js` on the server (no API key). It is unofficial and
+- **Search** uses `youtubei.js` on the server (no API key) and hides videos
+  that cannot be embedded. It is unofficial and
   can break or be throttled; everything YouTube-specific is in
   `lib/youtube-search.ts`.
 

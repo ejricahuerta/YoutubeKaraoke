@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOrigin, useStoredString } from "@/lib/browser-hooks";
 import { sessionRequest, useSessionState } from "@/lib/useSessionState";
-import { FullscreenIcon, MicIcon, NextIcon, PauseIcon, PlayIcon, RestartIcon, VolumeIcon } from "./icons";
-import { Player, type PlayerHandle } from "./Player";
+import { formatDuration } from "@/lib/format";
+import { Forward10Icon, FullscreenIcon, MicIcon, NextIcon, PauseIcon, PlayIcon, VolumeIcon } from "./icons";
+import { Player, type PlayerHandle, type Progress } from "./Player";
 import { QrCode } from "./QrCode";
 import { QueuePanel } from "./QueuePanel";
 import { SearchPanel } from "./SearchPanel";
 import { IconButton, SongRow } from "./SongRow";
+
+const BIG_ICON = "h-9 w-9 min-[1920px]:h-14 min-[1920px]:w-14";
 
 export function HostScreen({ code }: { code: string }) {
   const { state, status, refresh } = useSessionState(code);
@@ -19,9 +22,12 @@ export function HostScreen({ code }: { code: string }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<"queue" | "search">("queue");
   const [notice, setNotice] = useState<string | null>(null);
+  const [progress, setProgress] = useState<Progress>({ seconds: 0, duration: 0 });
   // The host screen is the authority on play/pause once it has loaded.
   const [localPlaying, setLocalPlaying] = useState<boolean | null>(null);
   const [storedVolume, setStoredVolume] = useStoredString("karaoke:volume");
+  const [queueHidden, setQueueHidden] = useStoredString("karaoke:queue-hidden");
+  const showQueue = queueHidden !== "1";
   const volume = storedVolume ? Math.min(100, Math.max(0, Number(storedVolume) || 0)) : 100;
 
   useEffect(() => {
@@ -50,6 +56,29 @@ export function HostScreen({ code }: { code: string }) {
     },
     [api, refresh],
   );
+
+  // Remote controls and keyboards: media keys work anywhere; Space works unless a control has focus.
+  useEffect(() => {
+    if (!state?.isHost) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const onControl = !!target?.closest("input, button, a, textarea, select");
+      if (e.key === "MediaPlayPause" || (e.key === " " && !onControl)) {
+        e.preventDefault();
+        if (current) setPlaying(!playing);
+      } else if (e.key === "MediaPlay") {
+        if (current) setPlaying(true);
+      } else if (e.key === "MediaPause") {
+        if (current) setPlaying(false);
+      } else if (e.key === "MediaTrackNext") {
+        if (current) skip(current.id);
+      } else if (e.key === "MediaFastForward") {
+        playerRef.current?.seekBy(10);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [state?.isHost, current, playing, setPlaying, skip]);
 
   const titles = useRef(new Map<string, string>());
   useEffect(() => {
@@ -107,10 +136,19 @@ export function HostScreen({ code }: { code: string }) {
           Karaoke
         </Link>
         <div className="flex items-center gap-3 text-sm text-neutral-400">
-          Session
+          <span className="hidden sm:inline">Session</span>
           <span className="rounded-md bg-white/10 px-2 py-1 font-mono text-base font-semibold tracking-widest text-white">
             {code}
           </span>
+          <button
+            type="button"
+            aria-expanded={showQueue}
+            aria-controls="queue-panel"
+            onClick={() => setQueueHidden(showQueue ? "1" : null)}
+            className="h-12 rounded-full bg-white/10 px-6 text-base font-medium text-white transition hover:bg-white/15 min-[1920px]:h-16 min-[1920px]:px-8 min-[1920px]:text-xl"
+          >
+            {showQueue ? "Hide queue" : `Show queue (${state.queue.length})`}
+          </button>
         </div>
       </header>
 
@@ -132,6 +170,7 @@ export function HostScreen({ code }: { code: string }) {
                 onEnded={skip}
                 onError={onPlayerError}
                 onPlayingChange={setPlaying}
+                onProgress={setProgress}
               />
             ) : current ? (
               <div className="grid h-full place-items-center p-6 text-center">
@@ -154,39 +193,60 @@ export function HostScreen({ code }: { code: string }) {
             )}
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+          {isHost && current ? (
+            <div className="mt-3 flex items-center gap-3 text-sm tabular-nums text-neutral-400 min-[1920px]:text-xl">
+              <span className="w-12 text-right min-[1920px]:w-16">{formatDuration(progress.seconds) || "0:00"}</span>
+              <input
+                type="range"
+                min={0}
+                max={Math.max(1, Math.floor(progress.duration || current.durationSeconds))}
+                value={Math.floor(progress.seconds)}
+                aria-label="Song position"
+                onChange={(e) => {
+                  const seconds = Number(e.target.value);
+                  setProgress((p) => ({ ...p, seconds }));
+                  playerRef.current?.seekTo(seconds);
+                }}
+                className="h-2 min-w-0 flex-1 cursor-pointer accent-rose-500"
+              />
+              <span className="w-12 min-[1920px]:w-16">{formatDuration(progress.duration || current.durationSeconds)}</span>
+            </div>
+          ) : null}
+
+          <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-3">
             <div className="min-w-0 flex-1 basis-64">
-              <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+              <p className="text-xs font-semibold uppercase tracking-wider text-rose-400 min-[1920px]:text-base">
                 {current ? (playing ? "Now singing" : "Paused") : "Nothing playing"}
               </p>
-              <h2 className="truncate text-xl font-semibold" title={current?.title}>
+              <h2 className="truncate text-xl font-semibold min-[1920px]:text-4xl" title={current?.title}>
                 {current?.title ?? "The queue is empty"}
               </h2>
-              <p className="truncate text-sm text-neutral-400">
+              <p className="truncate text-sm text-neutral-400 min-[1920px]:text-xl">
                 {current ? `Added by ${current.addedBy}` : "Add a song to get the party started."}
               </p>
             </div>
 
             {isHost ? (
               <div className="flex items-center gap-1">
-                <IconButton label="Restart song" onClick={() => playerRef.current?.restart()} disabled={!current}>
-                  <RestartIcon />
-                </IconButton>
                 <button
                   type="button"
                   aria-label={playing ? "Pause" : "Play"}
                   title={playing ? "Pause" : "Play"}
                   disabled={!current}
                   onClick={() => setPlaying(!playing)}
-                  className="mx-1 grid h-14 w-14 place-items-center rounded-full bg-white text-black transition hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
+                  autoFocus
+                  className="mx-2 grid h-20 w-20 place-items-center rounded-full bg-white text-black transition hover:scale-105 disabled:opacity-40 disabled:hover:scale-100 min-[1920px]:h-28 min-[1920px]:w-28"
                 >
-                  {playing && current ? <PauseIcon className="h-7 w-7" /> : <PlayIcon className="h-7 w-7" />}
+                  {playing && current ? <PauseIcon className={BIG_ICON} /> : <PlayIcon className={BIG_ICON} />}
                 </button>
-                <IconButton label="Next song" onClick={() => current && skip(current.id)} disabled={!current}>
-                  <NextIcon />
+                <IconButton size="lg" label="Forward 10 seconds" onClick={() => playerRef.current?.seekBy(10)} disabled={!current}>
+                  <Forward10Icon className={BIG_ICON} />
                 </IconButton>
-                <label className="ml-3 hidden items-center gap-2 text-neutral-400 sm:flex">
-                  <VolumeIcon />
+                <IconButton size="lg" label="Next song" onClick={() => current && skip(current.id)} disabled={!current}>
+                  <NextIcon className={BIG_ICON} />
+                </IconButton>
+                <label className="ml-3 hidden items-center gap-3 text-neutral-400 sm:flex">
+                  <VolumeIcon className="h-7 w-7 min-[1920px]:h-10 min-[1920px]:w-10" />
                   <input
                     type="range"
                     min={0}
@@ -197,10 +257,11 @@ export function HostScreen({ code }: { code: string }) {
                       setStoredVolume(e.target.value);
                       playerRef.current?.setVolume(Number(e.target.value));
                     }}
-                    className="w-24 accent-rose-500"
+                    className="h-2 w-28 accent-rose-500 min-[1920px]:w-48"
                   />
                 </label>
                 <IconButton
+                  size="lg"
                   label="Full screen"
                   disabled={!current}
                   onClick={() => {
@@ -208,7 +269,7 @@ export function HostScreen({ code }: { code: string }) {
                     else stageRef.current?.requestFullscreen?.();
                   }}
                 >
-                  <FullscreenIcon />
+                  <FullscreenIcon className="h-7 w-7 min-[1920px]:h-10 min-[1920px]:w-10" />
                 </IconButton>
               </div>
             ) : (
@@ -220,7 +281,11 @@ export function HostScreen({ code }: { code: string }) {
         </main>
 
         {/* Right: join code and queue */}
-        <aside className="flex min-h-0 w-full flex-col border-t border-white/10 lg:w-[420px] lg:border-l lg:border-t-0">
+        <aside
+          id="queue-panel"
+          hidden={!showQueue}
+          className={`${showQueue ? "flex" : ""} min-h-0 w-full flex-col border-t border-white/10 lg:w-[420px] lg:border-l lg:border-t-0 min-[1920px]:w-[440px] min-[1920px]:[zoom:1.3]`}
+        >
           <div className="flex items-center gap-4 border-b border-white/10 p-4">
             {joinUrl ? <QrCode url={joinUrl} size={96} /> : <div className="h-24 w-24 rounded-xl bg-white/10" />}
             <div className="min-w-0">
@@ -238,7 +303,7 @@ export function HostScreen({ code }: { code: string }) {
                 role="tab"
                 aria-selected={tab === id}
                 onClick={() => setTab(id)}
-                className={`h-9 rounded-full px-4 text-sm font-medium transition ${
+                className={`h-12 rounded-full px-5 text-base font-medium transition ${
                   tab === id ? "bg-white text-black" : "bg-white/10 text-neutral-200 hover:bg-white/15"
                 }`}
               >
