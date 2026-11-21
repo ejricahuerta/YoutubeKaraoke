@@ -78,12 +78,17 @@ begin
   assert karaoke.move_item('TEST22', 'host-hash', pg_temp.item_id('TEST22', 'E'), gen_random_uuid()) = 'not_found', 'nor can a song move after an unknown one';
   assert pg_temp.queue_titles('TEST22') = 'E,G,F,D', 'refused moves change nothing';
 
-  -- Repeated moves into the same gap keep a strict order.
-  for i in 1..40 loop
+  -- Repeated moves into the same gap keep a strict order. Each move halves the gap between
+  -- two positions, and a double runs out of halves after about fifty.
+  for i in 1..200 loop
     assert karaoke.move_item('TEST22', 'host-hash',
       pg_temp.item_id('TEST22', case when i % 2 = 0 then 'G' else 'F' end), pg_temp.item_id('TEST22', 'E')) = 'ok';
+    assert pg_temp.queue_titles('TEST22') = case when i % 2 = 0 then 'E,G,F,D' else 'E,F,G,D' end,
+      'move ' || i || ' into the same gap lands where it was put';
   end loop;
-  assert pg_temp.queue_titles('TEST22') = 'E,G,F,D', 'forty moves into one gap still leave a strict order';
+  assert (select count(distinct position) = count(*) from karaoke.queue_items i
+          join karaoke.sessions s on s.id = i.session_id where s.code = 'TEST22' and i.status = 'queued'),
+    'no two waiting songs ever share a position';
 end $$;
 
 -- The queue is capped at 200 waiting songs.
