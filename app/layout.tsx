@@ -7,9 +7,9 @@ const sans = Instrument_Sans({ subsets: ["latin"], variable: "--font-instrument"
 const mono = JetBrains_Mono({ subsets: ["latin"], weight: "700", variable: "--font-jetbrains" });
 
 export const metadata: Metadata = {
-  title: "Karaoke",
+  title: "YouOke",
   authors: [{ name: "edmel.dev", url: "https://edmel.dev" }],
-  description: "Karaoke night with a shared queue: play YouTube karaoke videos on the big screen and add songs from your phone.",
+  description: "YouOke: karaoke night with a shared queue: play YouTube karaoke videos on the big screen and add songs from your phone.",
 };
 
 export const viewport: Viewport = { themeColor: "#0b0a10", width: "device-width", initialScale: 1 };

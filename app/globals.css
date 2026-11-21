@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Karaoke Night design tokens. Names match the design system. */
+/* YouOke design tokens. Names match the design system. */
 @theme inline {
   --font-display: var(--font-bricolage), "Arial Black", system-ui, sans-serif;
   --font-sans: var(--font-instrument), system-ui, -apple-system, "Segoe UI", sans-serif;

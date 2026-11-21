@@ -27,7 +27,7 @@ export default async function Home() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-[70rem] flex-col gap-12 px-6 py-8">
-      <header><Logo tile="h-10 w-10 rounded-xl" icon="h-6 w-6" word="text-[1.625rem]" /></header>
+      <header><Logo mark="h-10 w-10" word="text-[1.625rem]" /></header>
 
       <div className="flex flex-1 flex-wrap items-center gap-x-16 gap-y-12">
         <div className="min-w-0 flex-[999_1_26rem]">

@@ -1,4 +1,4 @@
-# YouTube Karaoke
+# YouOke
 
 Karaoke night with a shared queue. One screen plays YouTube karaoke and lyrics
 videos; everyone else scans a QR code and adds songs from their phone.
@@ -23,7 +23,7 @@ videos; everyone else scans a QR code and adds songs from their phone.
 - **The QR code never leaves the main screen**: it is in the queue panel, and
   moves to a corner of the video when the panel is hidden or in full screen.
 
-The look follows the Karaoke Night design system: tokens live in
+The look follows the YouOke design system: tokens live in
 `app/globals.css`, and the main screen is drawn on a 1920 x 1080 grid that
 scales with the window, so it reads the same on a laptop and a 4K TV.
 
