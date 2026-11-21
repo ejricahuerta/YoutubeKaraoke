@@ -59,7 +59,7 @@ export function HostScreen({ code }: { code: string }) {
   const onPlayerError = useCallback(
     (itemId: string) => {
       const title = titles.current.get(itemId) ?? "That video";
-      setNotice(`Skipped "${title}": its owner doesn't allow it to play outside YouTube.`);
+      setNotice(`Skipped "${title}": YouTube won't let it play here.`);
       skip(itemId);
     },
     [skip],

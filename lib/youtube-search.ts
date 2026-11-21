@@ -57,6 +57,30 @@ export function mapVideoNode(raw: unknown): SearchResult | null {
   };
 }
 
+const embeddable = new Map<string, boolean>();
+
+/**
+ * Whether the video can play in an embedded player. Many karaoke channels turn
+ * embedding off; YouTube's oEmbed endpoint answers 401/403 for those. If the
+ * check itself fails we assume yes: the main screen skips unplayable videos anyway.
+ */
+export async function isEmbeddable(videoId: string): Promise<boolean> {
+  const known = embeddable.get(videoId);
+  if (known !== undefined) return known;
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`,
+      { signal: AbortSignal.timeout(2500) },
+    );
+    const ok = res.status !== 401 && res.status !== 403 && res.status !== 404;
+    if (embeddable.size > 5000) embeddable.clear();
+    embeddable.set(videoId, ok);
+    return ok;
+  } catch {
+    return true;
+  }
+}
+
 export async function searchVideos(query: string): Promise<SearchResult[]> {
   const key = query.toLowerCase();
   const hit = cache.get(key);
@@ -68,15 +92,18 @@ export async function searchVideos(query: string): Promise<SearchResult[]> {
   });
   try {
     const search = await Promise.race([getClient().then((yt) => yt.search(query, { type: "video" })), timeout]);
-    const results: SearchResult[] = [];
+    const candidates: SearchResult[] = [];
     const seen = new Set<string>();
     for (const node of search.results ?? []) {
       const mapped = mapVideoNode(node);
       if (!mapped || seen.has(mapped.videoId)) continue;
       seen.add(mapped.videoId);
-      results.push(mapped);
-      if (results.length >= MAX_RESULTS) break;
+      candidates.push(mapped);
+      if (candidates.length >= MAX_RESULTS) break;
     }
+    // Hide videos that would be skipped on the main screen.
+    const playable = await Promise.all(candidates.map((video) => isEmbeddable(video.videoId)));
+    const results = candidates.filter((_, i) => playable[i]);
     if (cache.size > 500) cache.clear();
     cache.set(key, { at: Date.now(), results });
     return results;
