@@ -1,0 +1,179 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useState, type ReactNode } from "react";
+import { STORAGE_KEYS, useExpiringState, useStoredString } from "@/lib/client/browser-hooks";
+import { useSessionState } from "@/lib/client/use-session-state";
+import { countSongs, formatWait } from "@/lib/domain/format";
+import { guestLineup, waitSeconds } from "@/lib/domain/queue";
+import type { QueueItem, SearchResult } from "@/lib/domain/types";
+import { displayTitle } from "@/lib/domain/video";
+import { Avatar } from "../Avatar";
+import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
+import { MicIcon, QueueIcon, SearchIcon } from "../Icons";
+import { Logo } from "../Logo";
+import { QueuePanel } from "../QueuePanel";
+import { SearchPanel } from "../SearchPanel";
+import { SongRow } from "../SongRow";
+import { AddedToast } from "./AddedToast";
+import { MySongs } from "./MySongs";
+import { NameForm } from "./NameForm";
+import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
+
+type Tab = "search" | "queue" | "mine";
+const TAB_TITLES: Record<Tab, string> = { search: "Find a song", queue: "Queue", mine: "My songs" };
+const TOAST_MS = 6000;
+
+const playingLabel = (isPlaying: boolean) => (isPlaying ? "Now singing" : "Paused");
+
+/** The phone view (/join/CODE): pick a name, search, add songs, and watch your place in line. */
+export function GuestScreen({ code }: { code: string }) {
+  const { state, status, refresh, remove } = useSessionState(code);
+  const [name, setName] = useStoredString(STORAGE_KEYS.name);
+  const [tab, setTab] = useState<Tab>("search");
+  /** Video id of the song this guest just added, while its toast shows. */
+  const [justAdded, setJustAdded] = useExpiringState<string>(TOAST_MS);
+
+  const onAdded = useCallback(
+    (video: SearchResult) => {
+      setJustAdded(video.videoId);
+      refresh();
+    },
+    [refresh, setJustAdded],
+  );
+
+  if (status === "archived") {
+    return (
+      <CenteredMessage title="This session has ended">
+        Ask the host to start a new one, then scan its QR code.
+      </CenteredMessage>
+    );
+  }
+  if (status === "not_found") {
+    return (
+      <CenteredMessage title="Session not found">
+        This karaoke session has ended, or the code is wrong. Scan the QR code on the screen again, or{" "}
+        <Link href="/" className="font-semibold text-encore underline">go to the start page</Link>.
+      </CenteredMessage>
+    );
+  }
+  if (!state || name === undefined) return <SessionLoadingMessage status={status} />;
+  if (!name) return <NameForm code={code} onSubmit={setName} />;
+
+  const { current, queue } = state;
+  const { onNow, queued, next, songCount } = guestLineup(current, queue);
+  const wait = (index: number) => formatWait(waitSeconds(current, queue, index));
+  const turnBanner = <TurnBanner onNow={onNow} next={next} hasCurrent={!!current} />;
+
+  const tabs: [Tab, string, ReactNode][] = [
+    ["search", "Search", <SearchIcon key="i" />],
+    ["queue", `Queue · ${queue.length}`, <QueueIcon key="i" />],
+    ["mine", `My songs · ${songCount}`, <MicIcon key="i" className="h-5 w-5" />],
+  ];
+
+  return (
+    <div className="mx-auto flex h-dvh w-full max-w-xl flex-col">
+      <header className="flex items-center gap-2.5 px-4 pb-3 pt-4">
+        <Logo label={TAB_TITLES[tab]} />
+        <button
+          type="button"
+          onClick={() => setName(null)}
+          aria-label={`${name}, change name`}
+          className="ml-auto flex h-11 max-w-[45%] shrink-0 items-center gap-2 rounded-full bg-stage-200 pl-1.5 pr-3.5 text-sm font-semibold transition hover:bg-stage-300"
+        >
+          <Avatar name={name} className="h-8 w-8 text-sm" />
+          <span className="truncate">{name}</span>
+        </button>
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-3">
+        {tab === "search" ? (
+          <SearchPanel code={code} name={name} current={current} queue={queue} onAdded={onAdded} />
+        ) : tab === "queue" ? (
+          <>
+            {isTurnSoon(onNow, next) ? turnBanner : next ? <NextSongCard next={next} wait={wait(next.index)} /> : null}
+            {queue.length > 0 ? (
+              <p className="px-1 pb-1.5 text-xs font-bold uppercase tracking-[0.1em] text-ink-muted">
+                {countSongs(queue.length)} waiting · {wait(queue.length)}
+              </p>
+            ) : null}
+            <div className="-mx-2">
+              {current ? <NowRow current={current} playing={state.isPlaying} /> : null}
+              <QueuePanel
+                queue={queue}
+                isHost={false}
+                onRemove={remove}
+                emptyText={current ? "Nothing queued after this song." : "No songs yet. Be the first to add one."}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col gap-5">
+            {turnBanner}
+            <MySongs onNow={onNow} queued={queued} wait={wait} onRemove={remove} onFindSong={() => setTab("search")} />
+          </div>
+        )}
+      </div>
+
+      {justAdded ? (
+        <AddedToast
+          placed={queued.findLast(({ item }) => item.videoId === justAdded)}
+          onNow={onNow?.videoId === justAdded}
+          wait={wait}
+          onUndo={(itemId) => {
+            setJustAdded(null);
+            remove(itemId);
+          }}
+        />
+      ) : null}
+
+      {current && tab !== "queue" ? (
+        <div className="mx-2 mb-2 flex items-center gap-2.5 rounded-row bg-stage-100 px-3 py-2">
+          <Avatar name={current.addedBy} className="h-8 w-8 text-sm" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.6875rem] font-bold uppercase leading-[0.875rem] tracking-[0.1em] text-spotlight">
+              {playingLabel(state.isPlaying)}
+            </p>
+            <p className="truncate text-sm font-semibold leading-5">{current.addedBy} · {displayTitle(current.title)}</p>
+          </div>
+        </div>
+      ) : null}
+
+      <nav aria-label="Sections" className="flex border-t border-line bg-stage-100 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5">
+        {tabs.map(([id, label, icon]) => (
+          <button
+            key={id}
+            type="button"
+            aria-current={tab === id ? "page" : undefined}
+            onClick={() => setTab(id)}
+            className={`flex min-h-12 flex-1 flex-col items-center gap-1 rounded-row py-1.5 text-xs ${
+              tab === id ? "font-bold text-ink" : "font-semibold text-ink-muted"
+            }`}
+          >
+            <span className={`grid h-[1.875rem] w-14 place-items-center rounded-full transition ${tab === id ? "bg-ink text-stage-000" : ""}`}>
+              {icon}
+            </span>
+            {label}
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+/** The song being sung, at the top of the guest's queue list. */
+function NowRow({ current, playing }: { current: QueueItem; playing: boolean }) {
+  return (
+    <SongRow
+      leading={<Avatar name={current.addedBy} />}
+      title={displayTitle(current.title)}
+      subtitle={
+        <>
+          <span className="text-spotlight">{playingLabel(playing)}</span> ·{" "}
+          {current.mine ? <span className="text-ink">You</span> : current.addedBy}
+        </>
+      }
+      className="mb-0.5 bg-stage-200 pl-3"
+    />
+  );
+}

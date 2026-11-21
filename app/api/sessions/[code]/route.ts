@@ -1,15 +1,12 @@
-import { NextResponse } from "next/server";
-import { getHostHash, getOrCreateGuestId } from "@/lib/auth";
-import { normalizeCode } from "@/lib/codes";
-import { errorResponse } from "@/lib/http";
-import { getState } from "@/lib/sessions";
+import { errorResponse, sessionRoute } from "@/lib/server/api";
+import { getHostTokenHash, getOrCreateGuestId } from "@/lib/server/auth";
+import { getSessionState } from "@/lib/server/session-store";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, ctx: { params: Promise<{ code: string }> }) {
-  const code = normalizeCode((await ctx.params).code);
-  if (!code) return errorResponse("not_found", 404);
-  const state = await getState(code, await getHostHash(code), await getOrCreateGuestId());
+/** The session as this browser may see it. The host's polls double as the session's heartbeat. */
+export const GET = sessionRoute(async (_req, { code }) => {
+  const state = await getSessionState(code, await getHostTokenHash(code), await getOrCreateGuestId());
   if (!state) return errorResponse("not_found", 404);
-  return NextResponse.json(state, { headers: { "Cache-Control": "no-store" } });
-}
+  return Response.json(state, { headers: { "Cache-Control": "no-store" } });
+});

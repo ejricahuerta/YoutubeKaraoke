@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { displayTitle, formatDuration } from "@/lib/format";
-import type { QueueItem } from "@/lib/types";
+import { formatDuration } from "@/lib/domain/format";
+import { dropAfterId } from "@/lib/domain/queue";
+import type { QueueItem } from "@/lib/domain/types";
+import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "./Avatar";
-import { CloseIcon, TopIcon } from "./icons";
-import { IconButton, SongRow } from "./SongRow";
+import { IconButton } from "./IconButton";
+import { CloseIcon, TopIcon } from "./Icons";
+import { SongRow } from "./SongRow";
 
 /**
  * The full "Up next" list. The host can remove any song, send one to the top, and
@@ -32,13 +35,10 @@ export function QueuePanel({
   }
 
   function drop(targetIndex: number) {
-    const from = queue.findIndex((q) => q.id === dragId);
+    const afterId = dropAfterId(queue, dragId, targetIndex);
+    if (onMove && dragId && afterId !== undefined) onMove(dragId, afterId);
     setDragId(null);
     setOverId(null);
-    if (!onMove || from < 0 || from === targetIndex) return;
-    // Dropping on a row takes that row's place.
-    const afterIndex = from < targetIndex ? targetIndex : targetIndex - 1;
-    onMove(queue[from].id, afterIndex >= 0 ? queue[afterIndex].id : null);
   }
 
   return (

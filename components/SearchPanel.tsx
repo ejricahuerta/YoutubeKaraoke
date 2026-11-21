@@ -1,15 +1,20 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
-import { sessionRequest } from "@/lib/useSessionState";
-import type { QueueItem, SearchKind, SearchResult } from "@/lib/types";
-import { CheckIcon, PlusIcon, SearchIcon } from "./icons";
+import { addSong, searchSongs } from "@/lib/client/session-api";
+import type { QueueItem, SearchKind, SearchResult } from "@/lib/domain/types";
+import { CheckIcon, PlusIcon, SearchIcon } from "./Icons";
 import { SongRow } from "./SongRow";
 
+const SESSION_ENDED = "This session has ended.";
+/** What to tell the person for each way a search or an add can fail. */
 const MESSAGES: Record<string, string> = {
   search_unavailable: "YouTube search isn't responding right now. Try again in a moment.",
-  rate_limited: "Too many searches. Wait a few seconds and try again.",
-  not_found: "This session has ended.",
+  rate_limited: "Too many requests. Wait a few seconds and try again.",
+  not_found: SESSION_ENDED,
+  archived: SESSION_ENDED,
+  queue_full: "The queue is full. Wait for a few songs to finish.",
+  network_error: "You seem to be offline. Check your connection and try again.",
 };
 
 /** Search YouTube for karaoke or lyrics videos and add them to the session queue. */
@@ -21,6 +26,7 @@ export function SearchPanel({
   onAdded,
 }: {
   code: string;
+  /** The singer name new songs are added under. */
   name: string;
   /** The session's songs, to mark results that are already playing or queued. */
   current: QueueItem | null;
@@ -40,21 +46,16 @@ export function SearchPanel({
     const id = ++requestId.current;
     setLoading(true);
     setMessage(null);
-    try {
-      const res = await fetch(`/api/search?code=${code}&kind=${k}&q=${encodeURIComponent(q)}`);
-      const data = await res.json().catch(() => ({}));
-      if (id !== requestId.current) return;
-      if (!res.ok) {
-        setResults(null);
-        setMessage(MESSAGES[data.error] ?? "Search failed. Try again.");
-      } else {
-        setResults(data.results ?? []);
-        setAdded({});
-      }
-    } catch {
-      if (id === requestId.current) setMessage("You seem to be offline. Check your connection and try again.");
-    } finally {
-      if (id === requestId.current) setLoading(false);
+    const outcome = await searchSongs(code, q, k);
+    if (id !== requestId.current) return; // a newer search superseded this one
+    setLoading(false);
+    if ("results" in outcome) {
+      setResults(outcome.results);
+      setAdded({});
+    } else {
+      // Offline keeps the last results on screen; a refusal from the server clears them.
+      if (outcome.error !== "network_error") setResults(null);
+      setMessage(MESSAGES[outcome.error] ?? "Search failed. Try again.");
     }
   }
 
@@ -65,17 +66,13 @@ export function SearchPanel({
 
   async function add(video: SearchResult) {
     setAdded((a) => ({ ...a, [video.videoId]: "adding" }));
-    const status = await sessionRequest(`/api/sessions/${code}/queue`, "POST", { ...video, name });
-    if (status === 200) {
+    const outcome = await addSong(code, video, name);
+    if (outcome === "ok") {
       setAdded((a) => ({ ...a, [video.videoId]: "added" }));
       onAdded(video);
     } else {
       setAdded((a) => Object.fromEntries(Object.entries(a).filter(([id]) => id !== video.videoId)));
-      setMessage(
-        status === 409 ? "The queue is full. Wait for a few songs to finish."
-          : status === 404 || status === 410 ? MESSAGES.not_found
-          : "Couldn't add that song. Try again.",
-      );
+      setMessage(MESSAGES[outcome] ?? "Couldn't add that song. Try again.");
     }
   }
 

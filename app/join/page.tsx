@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
-import { normalizeCode } from "@/lib/codes";
+import { normalizeSessionCode } from "@/lib/domain/session-code";
 
 /** Target of the "enter a code" form on the start page. */
-export default async function JoinByCode({ searchParams }: { searchParams: Promise<{ code?: string }> }) {
+export default async function JoinByCodePage({ searchParams }: { searchParams: Promise<{ code?: string }> }) {
   const raw = (await searchParams).code ?? "";
-  redirect(`/join/${normalizeCode(raw) ?? encodeURIComponent(raw.trim().toUpperCase() || "UNKNOWN")}`);
+  // A code that cannot be one still goes to /join/..., which explains what a code looks like.
+  redirect(`/join/${normalizeSessionCode(raw) ?? encodeURIComponent(raw.trim().toUpperCase() || "UNKNOWN")}`);
 }
