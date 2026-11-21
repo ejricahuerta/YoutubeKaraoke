@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import Link from "next/link";
+import { Credit } from "@/components/Credit";
 import { MicIcon } from "@/components/icons";
 import { getHostedCodes, getHostHash } from "@/lib/auth";
 import { normalizeCode } from "@/lib/codes";
@@ -86,6 +87,8 @@ export default async function Home() {
           </button>
         </form>
       </section>
+
+      <Credit className="mt-12" />
     </main>
   );
 }

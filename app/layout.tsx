@@ -3,6 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Karaoke",
+  authors: [{ name: "edmel.dev", url: "https://edmel.dev" }],
   description: "Karaoke night with a shared queue: play YouTube karaoke videos on the big screen and add songs from your phone.",
 };
 

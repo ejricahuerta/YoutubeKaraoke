@@ -6,6 +6,7 @@ import { useOrigin, useStoredString } from "@/lib/browser-hooks";
 import { sessionRequest, useSessionState } from "@/lib/useSessionState";
 import { formatDuration } from "@/lib/format";
 import { Forward10Icon, FullscreenIcon, MicIcon, NextIcon, PauseIcon, PlayIcon, VolumeIcon } from "./icons";
+import { Credit } from "./Credit";
 import { Player, type PlayerHandle, type Progress } from "./Player";
 import { QrCode } from "./QrCode";
 import { QueuePanel } from "./QueuePanel";
@@ -135,6 +136,10 @@ export function HostScreen({ code }: { code: string }) {
           <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-600"><MicIcon className="h-5 w-5" /></span>
           Karaoke
         </Link>
+        {/* Plain text, not a link: no focus stop that could navigate away mid-party. */}
+        <span className="mr-auto hidden text-xs text-neutral-500 sm:inline min-[1920px]:text-base">
+          by <span className="font-medium text-neutral-400">edmel.dev</span>
+        </span>
         <div className="flex items-center gap-3 text-sm text-neutral-400">
           <span className="hidden sm:inline">Session</span>
           <span className="rounded-md bg-white/10 px-2 py-1 font-mono text-base font-semibold tracking-widest text-white">
@@ -350,6 +355,7 @@ export function CenteredMessage({ title, children }: { title: string; children?:
       <div>
         <h1 className="text-2xl font-bold">{title}</h1>
         {children ? <p className="mt-2 text-neutral-400">{children}</p> : null}
+        <Credit className="mt-8" />
       </div>
     </div>
   );
