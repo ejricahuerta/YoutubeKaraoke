@@ -1,18 +1,79 @@
 @import "tailwindcss";
 
+/* Karaoke Night design tokens. Names match the design system. */
+@theme inline {
+  --font-display: var(--font-bricolage), "Arial Black", system-ui, sans-serif;
+  --font-sans: var(--font-instrument), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@theme {
+  --color-stage-000: #0b0a10;
+  --color-stage-100: #15131c;
+  --color-stage-200: #1f1c29;
+  --color-stage-300: #2c283a;
+  --color-line: #37324a;
+  --color-line-strong: #6b6485;
+  --color-ink: #f6f3ff;
+  --color-ink-muted: #b3adc7;
+  --color-ink-faint: #8f89a6;
+  --color-encore: #ff4f7b;
+  --color-encore-hover: #ff7396;
+  --color-on-encore: #1c0710;
+  --color-spotlight: #ffd84a;
+  --color-on-spotlight: #1a1400;
+  --color-aqua: #4fe0d2;
+  --color-on-aqua: #04201d;
+  --color-notice: #ffb84d;
+  --color-notice-ground: #33250d;
+  --color-danger: #ff6b5e;
+  --color-singer-1: #ff7a59;
+  --color-singer-2: #ffd84a;
+  --color-singer-3: #b6f25c;
+  --color-singer-4: #4fe0d2;
+  --color-singer-5: #6cb8ff;
+  --color-singer-6: #b69cff;
+  --color-singer-7: #ff8fd0;
+  --color-singer-8: #f2d2a9;
+  --color-on-singer: #14121a;
+
+  --radius-row: 0.875rem;
+  --radius-card: 1.375rem;
+  --radius-panel: 2rem;
+
+  --shadow-lift: 0 16px 40px rgb(0 0 0 / 0.55);
+}
+
 :root {
   color-scheme: dark;
 }
 
 body {
-  background: #0a0a0a;
-  color: #fafafa;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--color-stage-000);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-:focus-visible {
-  /* Thick ring: the main screen is driven from a distance with a remote or keyboard. */
-  outline: 4px solid #fb7185;
-  outline-offset: 3px;
+@layer base {
+  :focus-visible {
+    /* Solid spotlight ring: the main screen is driven from a distance with a remote or keyboard. */
+    outline: max(3px, 0.25rem) solid var(--color-spotlight);
+    outline-offset: max(3px, 0.25rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(0.75rem); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise {
+  animation: rise 0.3s ease-out both;
 }

@@ -2,7 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { sessionRequest } from "@/lib/useSessionState";
-import type { SearchKind, SearchResult } from "@/lib/types";
+import type { QueueItem, SearchKind, SearchResult } from "@/lib/types";
 import { CheckIcon, PlusIcon, SearchIcon } from "./icons";
 import { SongRow } from "./SongRow";
 
@@ -13,7 +13,20 @@ const MESSAGES: Record<string, string> = {
 };
 
 /** Search YouTube for karaoke or lyrics videos and add them to the session queue. */
-export function SearchPanel({ code, name, onAdded }: { code: string; name: string; onAdded: () => void }) {
+export function SearchPanel({
+  code,
+  name,
+  current,
+  queue,
+  onAdded,
+}: {
+  code: string;
+  name: string;
+  /** The session's songs, to mark results that are already playing or queued. */
+  current: QueueItem | null;
+  queue: QueueItem[];
+  onAdded: (video: SearchResult) => void;
+}) {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<SearchKind>("karaoke");
   const [results, setResults] = useState<SearchResult[] | null>(null);
@@ -55,7 +68,7 @@ export function SearchPanel({ code, name, onAdded }: { code: string; name: strin
     const status = await sessionRequest(`/api/sessions/${code}/queue`, "POST", { ...video, name });
     if (status === 200) {
       setAdded((a) => ({ ...a, [video.videoId]: "added" }));
-      onAdded();
+      onAdded(video);
     } else {
       setAdded((a) => Object.fromEntries(Object.entries(a).filter(([id]) => id !== video.videoId)));
       setMessage(
@@ -66,79 +79,94 @@ export function SearchPanel({ code, name, onAdded }: { code: string; name: strin
     }
   }
 
+  /** Where a result already sits in the session, if anywhere. */
+  function placement(videoId: string) {
+    if (current?.videoId === videoId) return <span className="text-spotlight">Now singing · {current.addedBy}</span>;
+    const queued = queue.find((q) => q.videoId === videoId);
+    return queued ? <>In queue · {queued.mine ? "You" : queued.addedBy}</> : null;
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <form onSubmit={onSubmit} className="flex gap-2">
-        <div className="relative flex-1">
-          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
-          <input
-            type="search"
-            enterKeyHint="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Song or artist"
-            aria-label="Search for a song or artist"
-            className="h-12 w-full rounded-full border border-white/10 bg-neutral-900 pl-10 pr-4 text-base text-white placeholder:text-neutral-500 focus:border-rose-500 focus:outline-none"
-          />
-        </div>
+      <form onSubmit={onSubmit} className="relative" role="search">
+        <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
+        <input
+          type="search"
+          enterKeyHint="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Song or artist"
+          aria-label="Search for a song or artist"
+          className="h-[3.25rem] w-full rounded-full border-[1.5px] border-line-strong bg-stage-200 pl-[2.875rem] pr-28 text-base font-medium text-ink placeholder:text-ink-faint focus:border-spotlight focus:outline-none [&::-webkit-search-cancel-button]:hidden"
+        />
         <button
           type="submit"
           disabled={loading || !query.trim()}
-          className="h-12 rounded-full bg-rose-600 px-5 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-50"
+          className="absolute right-1.5 top-1.5 h-10 rounded-full bg-encore px-5 text-sm font-bold text-on-encore transition hover:bg-encore-hover active:scale-95 disabled:opacity-40"
         >
-          {loading ? "Searching…" : "Search"}
+          {loading ? "Searching" : "Search"}
         </button>
       </form>
 
-      <div className="mt-3 flex gap-2" role="group" aria-label="Video type">
-        {(["karaoke", "lyrics"] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            aria-pressed={kind === k}
-            onClick={() => {
-              setKind(k);
-              runSearch(query, k);
-            }}
-            className={`h-9 rounded-full px-4 text-sm font-medium capitalize transition ${
-              kind === k ? "bg-white text-black" : "bg-white/10 text-neutral-200 hover:bg-white/15"
-            }`}
-          >
-            {k}
-          </button>
-        ))}
+      <div className="mt-3 flex items-center gap-3">
+        <div className="inline-flex gap-1 rounded-full bg-stage-100 p-1" role="group" aria-label="Video type">
+          {(["karaoke", "lyrics"] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              aria-pressed={kind === k}
+              onClick={() => {
+                setKind(k);
+                runSearch(query, k);
+              }}
+              className={`h-10 rounded-full px-5 text-sm font-semibold capitalize transition ${
+                kind === k ? "bg-ink text-stage-000" : "text-ink-muted hover:text-ink"
+              }`}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+        {results && results.length > 0 ? (
+          <span className="ml-auto text-[0.8125rem] font-semibold text-ink-faint">{results.length} videos</span>
+        ) : null}
       </div>
 
-      {message ? <p role="alert" className="mt-3 rounded-lg bg-amber-500/15 px-3 py-2 text-sm text-amber-200">{message}</p> : null}
+      {message ? (
+        <p role="alert" className="mt-3 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{message}</p>
+      ) : null}
 
-      <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+      <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto">
         {results === null && !message ? (
-          <p className="px-2 py-8 text-center text-sm text-neutral-500">
-            Search for a song and tap + to add it to the queue.
-          </p>
+          <div className="px-4 py-10 text-center">
+            <p className="font-display text-2xl font-bold tracking-tight">What are you singing?</p>
+            <p className="mt-2 text-sm text-ink-muted">Search for a song or artist, then tap + to add it to the queue.</p>
+          </div>
         ) : null}
         {results?.length === 0 ? (
-          <p className="px-2 py-8 text-center text-sm text-neutral-400">No videos found. Try different words.</p>
+          <p className="px-4 py-10 text-center text-sm text-ink-muted">No videos found. Try different words.</p>
         ) : null}
-        <ul>
+        <ul className="space-y-0.5">
           {results?.map((video) => {
             const state = added[video.videoId];
+            const placed = placement(video.videoId);
             return (
               <li key={video.videoId}>
                 <SongRow
                   thumbnailUrl={video.thumbnailUrl}
                   title={video.title}
-                  subtitle={video.channel}
+                  subtitle={state === "added" ? <span className="text-aqua">Added to the queue</span> : placed ?? video.channel}
                   durationSeconds={video.durationSeconds}
+                  className={state === "added" ? "bg-stage-100" : ""}
                   actions={
                     <button
                       type="button"
                       onClick={() => add(video)}
                       disabled={state !== undefined}
                       aria-label={state === "added" ? `Added ${video.title}` : `Add ${video.title} to the queue`}
-                      className={`grid h-11 w-11 place-items-center rounded-full transition ${
-                        state === "added" ? "bg-emerald-600 text-white" : "bg-white/10 text-white hover:bg-rose-600"
-                      } disabled:cursor-default`}
+                      className={`grid h-12 w-12 place-items-center rounded-full transition active:scale-95 disabled:cursor-default ${
+                        state === "added" ? "bg-aqua text-on-aqua" : "bg-stage-200 text-ink hover:bg-encore hover:text-on-encore"
+                      }`}
                     >
                       {state === "added" ? <CheckIcon /> : <PlusIcon />}
                     </button>

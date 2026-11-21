@@ -16,6 +16,16 @@ videos; everyone else scans a QR code and adds songs from their phone.
   screen link is sent to the add-songs view; sessions are started from a
   computer, TV or tablet.
 - **Multiple sessions** run independently, each with its own 6-character code.
+- **Singers, not just songs.** Each name gets a colour and an initial on every
+  screen. Before each song the main screen shows a 10-second "you're up" call-out
+  (Play starts it at once), and in the last 30 seconds of a song a banner names
+  the next singer. Phones show your place in line and a rough wait.
+- **The QR code never leaves the main screen**: it is in the queue panel, and
+  moves to a corner of the video when the panel is hidden or in full screen.
+
+The look follows the Karaoke Night design system: tokens live in
+`app/globals.css`, and the main screen is drawn on a 1920 x 1080 grid that
+scales with the window, so it reads the same on a laptop and a 4K TV.
 
 ## How it works
 

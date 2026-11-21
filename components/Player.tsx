@@ -60,7 +60,7 @@ function loadApi(): Promise<YTNamespace> {
 }
 
 /** Where to resume this queue item after a page reload (0 = from the start). */
-function savedPosition(itemId: string): number {
+export function savedPosition(itemId: string): number {
   try {
     const saved = JSON.parse(readStorage(POSITION_KEY) ?? "null");
     return saved?.itemId === itemId && saved.seconds > 5 ? Math.floor(saved.seconds) : 0;
@@ -252,15 +252,15 @@ export function Player({
                 alt=""
                 className="absolute inset-0 h-full w-full object-cover opacity-50"
               />
-              <span className="relative flex items-center gap-3 rounded-full bg-rose-600 px-8 py-4 text-xl font-semibold text-white shadow-lg min-[1920px]:px-12 min-[1920px]:py-6 min-[1920px]:text-4xl">
-                <PlayIcon /> {blocked ? "Click to start the music" : "Paused"}
+              <span className="relative flex items-center gap-4 rounded-full bg-ink px-10 py-5 text-[1.75rem] font-bold text-stage-000 shadow-lift">
+                <PlayIcon className="h-9 w-9" /> {blocked ? "Click to start the music" : "Paused"}
               </span>
             </span>
           ) : null}
         </button>
       ) : null}
       {loadFailed ? (
-        <div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-neutral-300">
+        <div className="absolute inset-0 grid place-items-center p-6 text-center text-[1.5rem] text-ink-muted">
           The YouTube player couldn&apos;t load. Check this device&apos;s internet connection and reload the page.
         </div>
       ) : null}

@@ -37,3 +37,6 @@ export const MicIcon = ({ className = "h-6 w-6" }: Props) => (
 export const Forward10Icon = ({ className = "h-6 w-6" }: Props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}><path d="M20 4v5h-5" /><path d="M19.4 9A8 8 0 1 0 20 12" /><text x="12" y="15.5" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none">10</text></svg>
 );
+export const QueueIcon = ({ className = "h-5 w-5" }: Props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className={className}><path d="M4 6h16M4 12h16M4 18h10" /></svg>
+);
