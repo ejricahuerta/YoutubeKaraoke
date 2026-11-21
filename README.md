@@ -33,13 +33,17 @@ videos; everyone else scans a QR code and adds songs from their phone.
   can break or be throttled; everything YouTube-specific is in
   `lib/youtube-search.ts`.
 
-The browser that starts a session gets an httpOnly host cookie for it. Sessions
-with no activity for 24 hours are deleted.
+The browser that starts a session gets an httpOnly host cookie for it.
+
+A session is archived, and closed for good, after 15 minutes of inactivity.
+Activity means the main screen is open, or someone adds a song or uses a
+control, so a long song never ends a session but closing the main screen does.
+Archived sessions and their songs are deleted 24 hours later.
 
 ## Setup
 
-1. Create a Supabase project and run `supabase/migrations/0001_init.sql` in the
-   SQL editor.
+1. Create a Supabase project and run the files in `supabase/migrations/` in
+   order in the SQL editor.
 2. In the Supabase dashboard, open Project Settings > API (Data API) and add
    `karaoke` to **Exposed schemas**.
 3. Copy `.env.example` to `.env.local` and fill in the project URL and

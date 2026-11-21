@@ -9,13 +9,13 @@ import { isSupabaseConfigured } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
-/** Sessions this browser hosts that are still alive, for "resume". */
+/** Sessions this browser hosts that are still live (not archived), for "resume". */
 async function hostedSessions() {
   const codes = (await getHostedCodes()).map(normalizeCode).filter((c): c is string => c !== null);
   const states = await Promise.all(
     codes.map(async (code) => getState(code, await getHostHash(code), null).catch(() => null)),
   );
-  return states.filter((s) => s?.isHost).map((s) => s!);
+  return states.filter((s) => s?.isHost && !s.archived).map((s) => s!);
 }
 
 export default async function Home() {

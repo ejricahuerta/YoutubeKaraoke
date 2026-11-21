@@ -11,6 +11,8 @@ export type QueueItem = {
 
 export type SessionState = {
   code: string;
+  /** Closed for good after 15 minutes without activity. */
+  archived: boolean;
   isPlaying: boolean;
   isHost: boolean;
   current: QueueItem | null;

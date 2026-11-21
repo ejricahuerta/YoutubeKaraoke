@@ -2,7 +2,7 @@ import { generateCode } from "./codes";
 import { supabaseServer } from "./supabase-server";
 import type { SessionState } from "./types";
 
-export type MutationResult = "ok" | "not_found" | "forbidden" | "invalid" | "queue_full" | "stale";
+export type MutationResult = "ok" | "not_found" | "forbidden" | "invalid" | "queue_full" | "stale" | "archived";
 
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabaseServer().rpc(fn, args);

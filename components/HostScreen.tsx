@@ -110,11 +110,11 @@ export function HostScreen({ code }: { code: string }) {
     [api, refresh],
   );
 
-  if (status === "not_found") {
+  if (status === "not_found" || status === "archived") {
     return (
       <CenteredMessage title="This session has ended">
-        Sessions close after a day without activity.{" "}
-        <Link href="/" className="text-rose-400 underline">Start a new one</Link>.
+        Sessions close after 15 minutes without the main screen open.{" "}
+        <Link href="/" className="text-rose-400 underline">Start a new session</Link>.
       </CenteredMessage>
     );
   }
