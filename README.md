@@ -41,14 +41,23 @@ scales with the window, so it reads the same on a laptop and a 4K TV.
 - **Search** uses `youtubei.js` on the server (no API key) and hides videos
   that cannot be embedded. It is unofficial and
   can break or be throttled; everything YouTube-specific is in
-  `lib/youtube-search.ts`.
+  `lib/server/youtube-search.ts`.
 
 The browser that starts a session gets an httpOnly host cookie for it.
 
 A session is archived, and closed for good, after 15 minutes of inactivity.
-Activity means the main screen is open, or someone adds a song or uses a
-control, so a long song never ends a session but closing the main screen does.
+Activity means the main screen is open, or someone adds a song or uses a control,
+so a long song never ends a session but closing the main screen does.
 Archived sessions and their songs are deleted 24 hours later.
+
+More detail, and the reasons behind each of these choices:
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): the parts, the code layout, the
+  data model and where new code goes.
+- [docs/CONVENTIONS.md](docs/CONVENTIONS.md): vocabulary, naming and how to work
+  on the code.
+- [docs/adr/](docs/adr/README.md): one record per decision, each with what would
+  make it the wrong choice.
 
 ## Setup
 
@@ -80,9 +89,24 @@ Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL` and
 | --- | --- |
 | `npm run dev` | Development server |
 | `npm run build` / `npm start` | Production build and server |
-| `npm run lint` | ESLint |
+| `npm run check` | Lint, types and unit tests: run before pushing |
+| `npm run lint` | ESLint, including the layer rules in `docs/ARCHITECTURE.md` |
 | `npm run typecheck` | TypeScript |
-| `npm test` | Unit tests (Vitest) |
+| `npm test` / `npm run test:watch` | Unit tests (Vitest) |
+| `npm run test:db` | Database function tests (needs a local Postgres, below) |
+
+### Database tests
+
+The rules of the app live in Postgres functions, and `supabase/tests` checks them
+against a real database. The runner drops and recreates the `karaoke` schema, so
+it only accepts a local server:
+
+```bash
+docker run --rm -d --name youoke-test-db -e POSTGRES_HOST_AUTH_METHOD=trust -p 127.0.0.1:5432:5432 postgres:16
+TEST_DATABASE_URL=postgres://postgres@localhost:5432/postgres npm run test:db
+```
+
+CI runs all of the above on every pull request.
 
 ## Credits
 
