@@ -33,3 +33,17 @@ test.describe("on a phone", () => {
     await expect(page.getByRole("button", { name: "Start a session" })).toHaveCount(0);
   });
 });
+
+test("every response carries the security headers", async ({ page, request }) => {
+  const responses = [await page.goto("/"), await page.goto("/join/ABC234"), await request.get("/api/search?q=")];
+  for (const response of responses) {
+    const headers = response!.headers();
+    expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'"); // no other site may frame the app
+    expect(headers["x-frame-options"]).toBe("DENY");
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    // YouTube's player refuses to play without a referrer, so the origin must still be sent.
+    expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+    expect(headers["permissions-policy"]).toContain("camera=()");
+    expect(headers["x-powered-by"]).toBeUndefined();
+  }
+});
