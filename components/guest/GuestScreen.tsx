@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useState, type ReactNode } from "react";
-import { STORAGE_KEYS, useExpiringState, useStoredString } from "@/lib/client/browser-hooks";
+import { STORAGE_KEYS, useExpiringState, useStoredString, useTurnAlert } from "@/lib/client/browser-hooks";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { countSongs, formatWait } from "@/lib/domain/format";
 import { playingLabel } from "@/lib/domain/playback";
-import { guestLineup, waitSeconds } from "@/lib/domain/queue";
+import { guestLineup, turnAlertKey, waitSeconds } from "@/lib/domain/queue";
 import type { QueueItem, SearchResult } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
@@ -31,9 +31,14 @@ export function GuestScreen({ code }: { code: string }) {
   const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
   const { state, status, reconnecting, refresh, remove } = useSessionState(code, setNotice);
   const [name, setName] = useStoredString(STORAGE_KEYS.name);
+  const [editingName, setEditingName] = useState(false);
   const [tab, setTab] = useState<Tab>("search");
   /** Video id of the song this guest just added, while its toast shows. */
   const [justAdded, setJustAdded] = useExpiringState<string>(TOAST_MS);
+
+  const lineup = guestLineup(state?.current ?? null, state?.queue ?? []);
+  const alertKey = turnAlertKey(lineup);
+  useTurnAlert(name ? alertKey : null, alertKey?.startsWith("now:") ? "You're on!" : "You're next!");
 
   const onAdded = useCallback(
     (video: SearchResult) => {
@@ -59,10 +64,22 @@ export function GuestScreen({ code }: { code: string }) {
     );
   }
   if (!state || name === undefined) return <SessionLoadingMessage status={status} />;
-  if (!name) return <NameForm code={code} onSubmit={setName} />;
+  if (!name || editingName) {
+    return (
+      <NameForm
+        code={code}
+        initialName={name ?? ""}
+        onSubmit={(next) => {
+          setName(next);
+          setEditingName(false);
+        }}
+        onCancel={name ? () => setEditingName(false) : undefined}
+      />
+    );
+  }
 
   const { current, queue } = state;
-  const { onNow, queued, next, songCount } = guestLineup(current, queue);
+  const { onNow, queued, next, songCount } = lineup;
   const wait = (index: number) => formatWait(waitSeconds(current, queue, index));
   const turnBanner = <TurnBanner onNow={onNow} next={next} hasCurrent={!!current} />;
 
@@ -78,7 +95,7 @@ export function GuestScreen({ code }: { code: string }) {
         <Logo label={TAB_TITLES[tab]} />
         <button
           type="button"
-          onClick={() => setName(null)}
+          onClick={() => setEditingName(true)}
           aria-label={`${name}, change name`}
           className="ml-auto flex h-11 max-w-[45%] shrink-0 items-center gap-2 rounded-full bg-stage-200 pl-1.5 pr-3.5 text-sm font-semibold transition hover:bg-stage-300"
         >
@@ -153,7 +170,7 @@ export function GuestScreen({ code }: { code: string }) {
           <button
             key={id}
             type="button"
-            aria-current={tab === id ? "page" : undefined}
+            aria-current={tab === id ? "true" : undefined}
             onClick={() => setTab(id)}
             className={`flex min-h-12 flex-1 flex-col items-center gap-1 rounded-row py-1.5 text-xs ${
               tab === id ? "font-bold text-ink" : "font-semibold text-ink-muted"

@@ -51,7 +51,7 @@ export function SingerIntro({
           <Avatar name={item.addedBy} className="absolute inset-[2.25rem] font-display text-[7rem] font-extrabold" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className={`${OVERLINE} text-spotlight`} aria-live="polite">Up next · starts in {Math.max(0, left)}</p>
+          <p className={`${OVERLINE} text-spotlight`} role="timer">Up next · starts in {Math.max(0, left)}</p>
           <h1 className="mt-5 font-display text-[7rem] font-extrabold leading-[0.92] tracking-[-0.03em] [overflow-wrap:anywhere]">
             {item.addedBy},<br />you&apos;re up!
           </h1>

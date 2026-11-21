@@ -107,3 +107,22 @@ test("an ended session offers a way to start a new one", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "This session has ended" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Start a new session" })).toHaveAttribute("href", "/");
 });
+
+test("the queue panel's tabs work from the keyboard and name their panel", async ({ page }) => {
+  await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+
+  const panel = page.getByRole("tabpanel");
+  await expect(panel).toHaveAccessibleName("Up next");
+
+  await page.getByRole("tab", { name: "Up next" }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("tab", { name: "Edit queue" })).toBeFocused();
+  await expect(page.getByRole("tab", { name: "Edit queue" })).toHaveAttribute("aria-selected", "true");
+  await expect(panel).toHaveAccessibleName("Edit queue");
+  await expect(page.getByRole("button", { name: "Remove Song C" })).toBeVisible();
+
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("ArrowLeft"); // wraps round to the last tab
+  await expect(page.getByRole("tab", { name: "Add a song" })).toBeFocused();
+});

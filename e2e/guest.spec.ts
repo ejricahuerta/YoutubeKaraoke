@@ -94,3 +94,49 @@ test("a phone that opens the main-screen link lands on the guest screen", async 
   await page.goto(`/s/${CODE}`);
   await expect(page).toHaveURL(`/join/${CODE}`);
 });
+
+test("changing your name starts from the old one and can be cancelled", async ({ page }) => {
+  await mockSession(page, session());
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  await page.getByRole("button", { name: "Leo, change name" }).click();
+  await expect(page.getByLabel("Your name")).toHaveValue("Leo");
+  await page.getByRole("button", { name: "Keep Leo" }).click();
+  await expect(page.getByRole("button", { name: "Leo, change name" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Leo, change name" }).click();
+  await page.getByLabel("Your name").fill("Leonie");
+  await page.getByRole("button", { name: "Save name" }).click();
+  await expect(page.getByRole("button", { name: "Leonie, change name" })).toBeVisible();
+});
+
+test("a guest's phone buzzes when their song becomes next, and once only", async ({ page }) => {
+  await page.clock.install();
+  await page.addInitScript(() => {
+    const buzzes: unknown[] = [];
+    Object.assign(window, { buzzes });
+    Object.defineProperty(navigator, "vibrate", { value: (pattern: unknown) => buzzes.push(pattern) });
+  });
+  const buzzes = () => page.evaluate(() => (window as unknown as { buzzes: unknown[] }).buzzes.length);
+  const waiting = [song(3, "Sam", "Mr. Brightside - Karaoke"), song(2, "Leo", "Dancing Queen (Karaoke Version)", true)];
+  const api = await mockSession(page, session({ queue: waiting }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await page.getByRole("button", { name: /My songs · 1/ }).click();
+  await expect(page.getByText("2nd in line")).toBeVisible();
+  expect(await buzzes()).toBe(0);
+
+  api.state = session({ current: waiting[0], queue: [waiting[1]] });
+  await page.clock.fastForward(16_000);
+  await expect(page.getByText("You're next.")).toBeVisible();
+  expect(await buzzes()).toBe(1);
+
+  await page.clock.fastForward(16_000); // nothing changed: no second buzz
+  expect(await buzzes()).toBe(1);
+
+  api.state = session({ current: waiting[1], queue: [] });
+  await page.clock.fastForward(16_000);
+  await expect(page.getByText("You're on.")).toBeVisible();
+  expect(await buzzes()).toBe(2);
+});

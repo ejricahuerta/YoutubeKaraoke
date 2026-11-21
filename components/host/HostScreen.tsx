@@ -274,13 +274,30 @@ export function HostScreen({ code }: { code: string }) {
         hidden={!showQueue}
         className={`${showQueue ? "flex" : ""} min-h-0 w-full shrink-0 flex-col gap-4 rounded-panel bg-stage-100 p-8 lg:w-[32.5rem]`}
       >
-        <div className="flex gap-1 rounded-full bg-stage-000 p-1.5" role="tablist">
+        <div
+          className="flex gap-1 rounded-full bg-stage-000 p-1.5"
+          role="tablist"
+          aria-label="Queue panel"
+          onKeyDown={(e) => {
+            // Left and right move between tabs, as on any tab list and as a TV remote expects.
+            const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+            if (!step) return;
+            e.preventDefault();
+            const index = railTabs.findIndex(([id]) => id === shownTab);
+            const [nextId] = railTabs[(index + step + railTabs.length) % railTabs.length];
+            setTab(nextId);
+            document.getElementById(`queue-tab-${nextId}`)?.focus();
+          }}
+        >
           {railTabs.map(([id, label]) => (
             <button
               key={id}
               type="button"
               role="tab"
+              id={`queue-tab-${id}`}
+              aria-controls="queue-tabpanel"
               aria-selected={shownTab === id}
+              tabIndex={shownTab === id ? 0 : -1}
               onClick={() => setTab(id)}
               className={`h-12 flex-1 rounded-full text-[1.25rem] font-semibold transition ${
                 shownTab === id ? "bg-ink text-stage-000" : "text-ink-muted hover:text-ink"
@@ -292,7 +309,12 @@ export function HostScreen({ code }: { code: string }) {
         </div>
 
         {/* Rows in the lists bleed past their column; the side padding holds that so no sideways scrollbar appears. */}
-        <div className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0">
+        <div
+          role="tabpanel"
+          id="queue-tabpanel"
+          aria-labelledby={`queue-tab-${shownTab}`}
+          className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0"
+        >
           {shownTab === "next" ? (
             <UpNextList queue={queue} hasCurrent={!!current} queueWait={queueWait} />
           ) : (

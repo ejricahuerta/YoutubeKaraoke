@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const noopSubscribe = () => () => {};
 
@@ -47,6 +47,36 @@ export function useWakeLock(enabled: boolean) {
       lock?.release().catch(() => {});
     };
   }, [enabled]);
+}
+
+const TURN_VIBRATION_MS = [200, 100, 200];
+
+/**
+ * Gets a guest's attention when `alertKey` changes to a new value: the phone vibrates where
+ * it can, and a tab in the background shows `title` until it is looked at. The value present
+ * when the page opens is not alerted: the person is already looking at it.
+ */
+export function useTurnAlert(alertKey: string | null, title: string) {
+  const last = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const previous = last.current;
+    last.current = alertKey;
+    if (previous === undefined || alertKey === null || alertKey === previous) return;
+    try {
+      navigator.vibrate?.(TURN_VIBRATION_MS);
+    } catch {
+      // Not allowed before the first tap on some browsers; the banner on screen still shows.
+    }
+    if (document.visibilityState === "visible") return;
+    const original = document.title;
+    document.title = title;
+    const restore = () => {
+      if (document.visibilityState !== "visible") return;
+      document.title = original;
+      document.removeEventListener("visibilitychange", restore);
+    };
+    document.addEventListener("visibilitychange", restore);
+  }, [alertKey, title]);
 }
 
 /** State that clears itself after `ms`: for toasts and notices. */

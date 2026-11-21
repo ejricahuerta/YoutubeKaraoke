@@ -7,8 +7,20 @@ import { Credit } from "../Credit";
 import { Logo } from "../Logo";
 
 /** The first thing a guest sees: pick the name the room will read on the main screen. */
-export function NameForm({ code, onSubmit }: { code: string; onSubmit: (name: string) => void }) {
-  const [draftName, setDraftName] = useState("");
+export function NameForm({
+  code,
+  initialName = "",
+  onSubmit,
+  onCancel,
+}: {
+  code: string;
+  /** The name to start from when changing an existing one. */
+  initialName?: string;
+  onSubmit: (name: string) => void;
+  /** Present when there is a name to go back to. */
+  onCancel?: () => void;
+}) {
+  const [draftName, setDraftName] = useState(initialName);
   const name = normalizeSingerName(draftName);
 
   const submit = (e: FormEvent) => {
@@ -47,8 +59,13 @@ export function NameForm({ code, onSubmit }: { code: string; onSubmit: (name: st
           disabled={!name}
           className="h-14 w-full rounded-full bg-encore text-lg font-bold text-on-encore transition hover:bg-encore-hover active:scale-[0.98] disabled:opacity-40"
         >
-          Join and pick a song
+          {onCancel ? "Save name" : "Join and pick a song"}
         </button>
+        {onCancel ? (
+          <button type="button" onClick={onCancel} className="mt-2 h-12 w-full rounded-full text-base font-semibold text-ink-muted transition hover:text-ink">
+            Keep {initialName}
+          </button>
+        ) : null}
         <Credit className="mt-4 text-center" />
       </div>
     </form>
