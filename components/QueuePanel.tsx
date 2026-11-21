@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { displayTitle, formatDuration } from "@/lib/format";
 import type { QueueItem } from "@/lib/types";
+import { Avatar } from "./Avatar";
 import { CloseIcon, TopIcon } from "./icons";
 import { IconButton, SongRow } from "./SongRow";
 
 /**
- * The "Up next" list. The host can remove any song, send one to the top, and
+ * The full "Up next" list. The host can remove any song, send one to the top, and
  * drag to reorder; guests can remove only the songs they added.
  */
 export function QueuePanel({
@@ -26,7 +28,7 @@ export function QueuePanel({
   const [overId, setOverId] = useState<string | null>(null);
 
   if (queue.length === 0) {
-    return <p className="px-2 py-8 text-center text-sm text-neutral-500">{emptyText}</p>;
+    return <p className="px-2 py-8 text-center text-sm text-ink-faint">{emptyText}</p>;
   }
 
   function drop(targetIndex: number) {
@@ -40,60 +42,64 @@ export function QueuePanel({
   }
 
   return (
-    <ol>
-      {queue.map((item, index) => (
-        <li
-          key={item.id}
-          draggable={isHost}
-          onDragStart={(e) => {
-            setDragId(item.id);
-            e.dataTransfer.effectAllowed = "move";
-          }}
-          onDragOver={(e) => {
-            if (!dragId) return;
-            e.preventDefault();
-            setOverId(item.id);
-          }}
-          onDragEnd={() => {
-            setDragId(null);
-            setOverId(null);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            drop(index);
-          }}
-          className={`rounded-lg ${isHost ? "cursor-grab active:cursor-grabbing" : ""} ${
-            dragId === item.id ? "opacity-40" : ""
-          } ${overId === item.id && dragId !== item.id ? "bg-white/10" : ""}`}
-        >
-          <SongRow
-            thumbnailUrl={item.thumbnailUrl}
-            title={item.title}
-            subtitle={
-              <>
-                <span className="tabular-nums text-neutral-500">{index + 1}.</span> {item.addedBy}
-                {item.mine && !isHost ? " (you)" : ""}
-              </>
-            }
-            durationSeconds={item.durationSeconds}
-            className="hover:bg-white/5"
-            actions={
-              <>
-                {isHost && onMove && index > 0 ? (
-                  <IconButton label={`Play ${item.title} next`} onClick={() => onMove(item.id, null)}>
-                    <TopIcon />
-                  </IconButton>
-                ) : null}
-                {isHost || item.mine ? (
-                  <IconButton label={`Remove ${item.title}`} onClick={() => onRemove(item.id)}>
-                    <CloseIcon />
-                  </IconButton>
-                ) : null}
-              </>
-            }
-          />
-        </li>
-      ))}
+    <ol className="space-y-0.5">
+      {queue.map((item, index) => {
+        const mine = item.mine && !isHost;
+        const duration = formatDuration(item.durationSeconds);
+        return (
+          <li
+            key={item.id}
+            draggable={isHost}
+            onDragStart={(e) => {
+              setDragId(item.id);
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            onDragOver={(e) => {
+              if (!dragId) return;
+              e.preventDefault();
+              setOverId(item.id);
+            }}
+            onDragEnd={() => {
+              setDragId(null);
+              setOverId(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              drop(index);
+            }}
+            className={`rounded-row ${isHost ? "cursor-grab active:cursor-grabbing" : ""} ${
+              dragId === item.id ? "opacity-40" : ""
+            } ${overId === item.id && dragId !== item.id ? "bg-stage-300" : ""}`}
+          >
+            <SongRow
+              leading={<Avatar name={item.addedBy} />}
+              title={displayTitle(item.title)}
+              subtitle={
+                <>
+                  <span className="tabular-nums">{index + 1}</span> ·{" "}
+                  {mine ? <span className="text-ink">You</span> : item.addedBy}
+                  {duration ? ` · ${duration}` : ""}
+                </>
+              }
+              className={`pl-3 ${mine ? "bg-stage-100" : isHost ? "hover:bg-stage-200" : ""}`}
+              actions={
+                <>
+                  {isHost && onMove && index > 0 ? (
+                    <IconButton label={`Play ${item.title} next`} onClick={() => onMove(item.id, null)}>
+                      <TopIcon />
+                    </IconButton>
+                  ) : null}
+                  {isHost || item.mine ? (
+                    <IconButton label={`Remove ${item.title}`} onClick={() => onRemove(item.id)}>
+                      <CloseIcon />
+                    </IconButton>
+                  ) : null}
+                </>
+              }
+            />
+          </li>
+        );
+      })}
     </ol>
   );
 }
