@@ -24,10 +24,12 @@ import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
 type Tab = "search" | "queue" | "mine";
 const TAB_TITLES: Record<Tab, string> = { search: "Find a song", queue: "Queue", mine: "My songs" };
 const TOAST_MS = 6000;
+const NOTICE_MS = 6000;
 
 /** The phone view (/join/CODE): pick a name, search, add songs, and watch your place in line. */
 export function GuestScreen({ code }: { code: string }) {
-  const { state, status, refresh, remove } = useSessionState(code);
+  const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
+  const { state, status, reconnecting, refresh, remove } = useSessionState(code, setNotice);
   const [name, setName] = useStoredString(STORAGE_KEYS.name);
   const [tab, setTab] = useState<Tab>("search");
   /** Video id of the song this guest just added, while its toast shows. */
@@ -84,6 +86,14 @@ export function GuestScreen({ code }: { code: string }) {
           <span className="truncate">{name}</span>
         </button>
       </header>
+
+      {notice ? (
+        <p role="alert" className="animate-rise mx-4 mb-2 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{notice}</p>
+      ) : reconnecting ? (
+        <p role="status" className="mx-4 mb-2 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">
+          Reconnecting… the queue may be out of date.
+        </p>
+      ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-3">
         {tab === "search" ? (

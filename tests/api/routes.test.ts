@@ -10,12 +10,14 @@ const store = {
   createSession: vi.fn(),
 };
 vi.mock("@/lib/server/session-store", () => store);
+const clearHostCookie = vi.fn();
 vi.mock("@/lib/server/auth", () => ({
   getHostTokenHash: async () => "host-hash",
   getOrCreateGuestId: async () => "guest-1",
   createHostToken: () => "token",
   hashHostToken: () => "host-hash",
   setHostCookie: vi.fn(),
+  clearHostCookie,
 }));
 const searchVideos = vi.fn();
 vi.mock("@/lib/server/youtube-search", () => ({ searchVideos }));
@@ -50,6 +52,21 @@ describe("GET /api/sessions/[code]", () => {
   it("answers 404 for a session that does not exist", async () => {
     store.getSessionState.mockResolvedValue(null);
     expect((await sessionRoute.GET(json("GET"), ctx({ code: "ABC234" }))).status).toBe(404);
+  });
+
+  it("keeps the host cookie while this browser hosts a live session", async () => {
+    store.getSessionState.mockResolvedValue({ ...live, isHost: true });
+    await sessionRoute.GET(json("GET"), ctx({ code: "ABC234" }));
+    expect(clearHostCookie).not.toHaveBeenCalled();
+  });
+
+  it("drops a host cookie that can never be used again", async () => {
+    for (const state of [null, { ...live, isHost: true, archived: true }, { ...live, isHost: false }]) {
+      clearHostCookie.mockClear();
+      store.getSessionState.mockResolvedValue(state);
+      await sessionRoute.GET(json("GET"), ctx({ code: "ABC234" }));
+      expect(clearHostCookie).toHaveBeenCalledWith("ABC234");
+    }
   });
 
   it("answers 500 JSON when the database is down", async () => {
@@ -142,13 +159,37 @@ describe("POST /api/sessions", () => {
     expect(store.createSession).not.toHaveBeenCalled();
   });
 
-  it("limits how many sessions one address can start per minute", async () => {
+  it("limits how many sessions one address can start per minute, sending a form post back with the reason", async () => {
     store.createSession.mockResolvedValue("ABC234");
     const headers = { ...desktop, "x-forwarded-for": "198.51.100.3" };
-    const statuses = [];
-    for (let i = 0; i < 11; i++) statuses.push((await sessionsRoute.POST(json("POST", undefined, headers))).status);
-    expect(statuses.slice(0, 10).every((s) => s === 303)).toBe(true);
-    expect(statuses[10]).toBe(429);
+    const responses = [];
+    for (let i = 0; i < 11; i++) responses.push(await sessionsRoute.POST(json("POST", undefined, headers)));
+    expect(responses.slice(0, 10).every((r) => r.headers.get("location") === "/s/ABC234")).toBe(true);
+    expect(responses[10].status).toBe(303);
+    expect(responses[10].headers.get("location")).toBe("/?error=slow_down");
+  });
+
+  it("answers a script over the limit with 429 JSON", async () => {
+    store.createSession.mockResolvedValue("ABC234");
+    const headers = { ...desktop, accept: "application/json", "x-forwarded-for": "198.51.100.4" };
+    let last = new Response();
+    for (let i = 0; i < 11; i++) last = await sessionsRoute.POST(json("POST", undefined, headers));
+    expect(last.status).toBe(429);
+    expect(await last.json()).toEqual({ ok: false, error: "rate_limited" });
+  });
+
+  it("sends a form post back to the start page when the database is down", async () => {
+    store.createSession.mockRejectedValue(new Error("create_session failed"));
+    const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, "x-forwarded-for": "198.51.100.5" }));
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("/?error=unavailable");
+  });
+
+  it("answers a script with 500 JSON when the database is down", async () => {
+    store.createSession.mockRejectedValue(new Error("create_session failed"));
+    const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, accept: "application/json", "x-forwarded-for": "198.51.100.6" }));
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ ok: false, error: "server_error" });
   });
 });
 

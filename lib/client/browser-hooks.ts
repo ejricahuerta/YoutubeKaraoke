@@ -19,6 +19,36 @@ export function useFullscreen(): boolean {
   return useSyncExternalStore(subscribeFullscreen, () => document.fullscreenElement !== null, () => false);
 }
 
+/**
+ * Keeps the screen from dimming or sleeping while `enabled`, where the browser can.
+ * The host screen needs this: a sleeping laptop stops polling and its session is archived (docs/adr/0008).
+ */
+export function useWakeLock(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled || !("wakeLock" in navigator)) return;
+    let lock: WakeLockSentinel | null = null;
+    let cancelled = false;
+    const acquire = async () => {
+      try {
+        const next = await navigator.wakeLock.request("screen");
+        if (cancelled) next.release();
+        else lock = next;
+      } catch {
+        // Refused (low battery, tab not visible): the screen just behaves as it always did.
+      }
+    };
+    // The browser drops the lock whenever the tab is hidden, so take it again on return.
+    const onVisible = () => document.visibilityState === "visible" && acquire();
+    acquire();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      lock?.release().catch(() => {});
+    };
+  }, [enabled]);
+}
+
 /** State that clears itself after `ms`: for toasts and notices. */
 export function useExpiringState<T>(ms: number): [T | null, (value: T | null) => void] {
   const [value, setValue] = useState<T | null>(null);
