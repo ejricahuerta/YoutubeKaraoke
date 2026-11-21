@@ -68,9 +68,9 @@ describe("upNextBannerVisible", () => {
 });
 
 describe("playingLabel", () => {
-  it("says the singer is on the mic while the song plays", () => {
+  it("says now playing while the song plays", () => {
     expect(playingLabel(true)).toBe(SINGING_LABEL);
-    expect(SINGING_LABEL).toBe("On the mic");
+    expect(SINGING_LABEL).toBe("Now playing");
   });
 
   it("says paused while the song is paused", () => {
