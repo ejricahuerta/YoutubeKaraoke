@@ -34,8 +34,8 @@ reused by a stranger.
 - A host who steps away for 15 minutes with the screen closed loses the session
   and its queue, with no undo.
 - A sleeping laptop stops polling, so a long sleep ends the session.
-- The 15-minute and 24-hour values are written in SQL in several places and in
-  user-facing text.
+- The 15-minute value is written twice in SQL (`check_archived`, `cleanup`) and
+  twice in user-facing text; they must be changed together.
 
 ## Revisit when
 - Hosts lose sessions they wanted to keep (ask for pause, or a longer window).
