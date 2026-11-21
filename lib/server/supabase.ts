@@ -16,7 +16,8 @@ export function isSupabaseConfigured(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-export function supabaseServer() {
+/** The server's Supabase client. It holds only the publishable key: see docs/adr/0002. */
+export function getSupabaseServerClient() {
   if (!isSupabaseConfigured()) {
     throw new Error("Supabase is not configured: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
   }

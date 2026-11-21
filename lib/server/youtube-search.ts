@@ -1,5 +1,5 @@
-import type { SearchResult } from "./types";
-import { thumbnailFor, VIDEO_ID_PATTERN } from "./format";
+import type { SearchResult } from "@/lib/domain/types";
+import { isVideoId, thumbnailUrl } from "@/lib/domain/video";
 
 /**
  * Keyless YouTube search via youtubei.js (the same internal API the website
@@ -8,7 +8,10 @@ import { thumbnailFor, VIDEO_ID_PATTERN } from "./format";
  */
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
-const TIMEOUT_MS = 6000;
+const CACHE_MAX_QUERIES = 500;
+const SEARCH_TIMEOUT_MS = 6000;
+const EMBED_CHECK_TIMEOUT_MS = 2500;
+const EMBED_CACHE_MAX_VIDEOS = 5000;
 const MAX_RESULTS = 20;
 const cache = new Map<string, { at: number; results: SearchResult[] }>();
 
@@ -42,7 +45,7 @@ export function mapVideoNode(raw: unknown): SearchResult | null {
   const node = raw as VideoNode | null;
   if (!node || node.type !== "Video") return null;
   const videoId = node.video_id ?? node.id ?? "";
-  if (!VIDEO_ID_PATTERN.test(videoId)) return null;
+  if (!isVideoId(videoId)) return null;
   if (node.is_live || node.is_upcoming) return null;
   const durationSeconds = Math.floor(node.duration?.seconds ?? 0);
   if (!(durationSeconds > 0)) return null; // live streams and odd entries have no length
@@ -52,7 +55,7 @@ export function mapVideoNode(raw: unknown): SearchResult | null {
     videoId,
     title,
     channel: (node.author?.name ?? "").trim(),
-    thumbnailUrl: thumbnailFor(videoId),
+    thumbnailUrl: thumbnailUrl(videoId),
     durationSeconds,
   };
 }
@@ -70,10 +73,10 @@ export async function isEmbeddable(videoId: string): Promise<boolean> {
   try {
     const res = await fetch(
       `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`,
-      { signal: AbortSignal.timeout(2500) },
+      { signal: AbortSignal.timeout(EMBED_CHECK_TIMEOUT_MS) },
     );
     const ok = res.status !== 401 && res.status !== 403 && res.status !== 404;
-    if (embeddable.size > 5000) embeddable.clear();
+    if (embeddable.size > EMBED_CACHE_MAX_VIDEOS) embeddable.clear();
     embeddable.set(videoId, ok);
     return ok;
   } catch {
@@ -88,7 +91,7 @@ export async function searchVideos(query: string): Promise<SearchResult[]> {
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error("YouTube search timed out")), TIMEOUT_MS);
+    timer = setTimeout(() => reject(new Error("YouTube search timed out")), SEARCH_TIMEOUT_MS);
   });
   try {
     const search = await Promise.race([getClient().then((yt) => yt.search(query, { type: "video" })), timeout]);
@@ -104,7 +107,7 @@ export async function searchVideos(query: string): Promise<SearchResult[]> {
     // Hide videos that would be skipped on the main screen.
     const playable = await Promise.all(candidates.map((video) => isEmbeddable(video.videoId)));
     const results = candidates.filter((_, i) => playable[i]);
-    if (cache.size > 500) cache.clear();
+    if (cache.size > CACHE_MAX_QUERIES) cache.clear();
     cache.set(key, { at: Date.now(), results });
     return results;
   } finally {

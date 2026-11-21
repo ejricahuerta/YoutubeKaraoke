@@ -1,25 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { supabaseBrowser } from "./supabase-browser";
-import type { SessionState } from "./types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { SessionState } from "@/lib/domain/types";
+import { moveSong, removeSong, sessionStateUrl } from "./session-api";
+import { getSupabaseBrowserClient } from "./supabase";
 
 const POLL_MS = 15_000;
+/** Must match karaoke.notify() in supabase/migrations: channel "session:CODE", event "changed". */
+const CHANGED_EVENT = "changed";
+const channelName = (code: string) => `session:${code}`;
+
+export type SessionStatus = "loading" | "ready" | "not_found" | "archived" | "error";
 
 /**
  * Live state of one karaoke session. The server is the source of truth: we
  * refetch whenever Supabase Realtime pings the session channel, when the tab
- * regains focus, and on a slow poll in case a ping is missed.
+ * regains focus, and on a slow poll in case a ping is missed (docs/adr/0003).
  */
 export function useSessionState(code: string) {
   const [state, setState] = useState<SessionState | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "not_found" | "archived" | "error">("loading");
+  const [status, setStatus] = useState<SessionStatus>("loading");
   const latest = useRef(0);
 
   const refresh = useCallback(async () => {
     const request = ++latest.current;
     try {
-      const res = await fetch(`/api/sessions/${code}`, { cache: "no-store" });
+      const res = await fetch(sessionStateUrl(code), { cache: "no-store" });
       if (request !== latest.current) return; // a newer request superseded this one
       if (res.status === 404) return setStatus("not_found");
       if (!res.ok) throw new Error(String(res.status));
@@ -27,6 +33,7 @@ export function useSessionState(code: string) {
       setState(next);
       setStatus(next.archived ? "archived" : "ready");
     } catch {
+      // Keep showing the last good state through a blip; only a first load can fail visibly.
       if (request === latest.current) setStatus((s) => (s === "ready" ? "ready" : "error"));
     }
   }, [code]);
@@ -41,10 +48,10 @@ export function useSessionState(code: string) {
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", refresh);
 
-    const supabase = supabaseBrowser();
+    const supabase = getSupabaseBrowserClient();
     const channel = supabase
-      ?.channel(`session:${code}`)
-      .on("broadcast", { event: "changed" }, () => refresh())
+      ?.channel(channelName(code))
+      .on("broadcast", { event: CHANGED_EVENT }, () => refresh())
       .subscribe();
 
     return () => {
@@ -56,19 +63,20 @@ export function useSessionState(code: string) {
     };
   }, [code, refresh, ended]);
 
-  return { state, status, refresh };
-}
+  // Queue changes any screen may make; each refetches at once rather than waiting for the ping.
+  const actions = useMemo(
+    () => ({
+      remove: async (itemId: string) => {
+        await removeSong(code, itemId);
+        refresh();
+      },
+      move: async (itemId: string, afterId: string | null) => {
+        await moveSong(code, itemId, afterId);
+        refresh();
+      },
+    }),
+    [code, refresh],
+  );
 
-/** POST/PATCH/DELETE helper for session mutations; resolves to the HTTP status. */
-export async function sessionRequest(path: string, method: string, body?: unknown): Promise<number> {
-  try {
-    const res = await fetch(path, {
-      method,
-      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-    return res.status;
-  } catch {
-    return 0;
-  }
+  return { state, status, refresh, ...actions };
 }

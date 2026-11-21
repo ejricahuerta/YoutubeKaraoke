@@ -1,23 +1,22 @@
-import { NextResponse } from "next/server";
-import { hashToken, newHostToken, setHostCookie } from "@/lib/auth";
-import { isPhone } from "@/lib/device";
-import { errorResponse } from "@/lib/http";
-import { allow } from "@/lib/rate-limit";
-import { createSession } from "@/lib/sessions";
+import { clientIp, errorResponse } from "@/lib/server/api";
+import { createHostToken, hashHostToken, setHostCookie } from "@/lib/server/auth";
+import { isPhone } from "@/lib/server/device";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/server/rate-limit";
+import { createSession } from "@/lib/server/session-store";
 
 export const dynamic = "force-dynamic";
+
+const seeOther = (location: string) => new Response(null, { status: 303, headers: { Location: location } });
 
 /** Starts a session, makes this browser its host, and sends it to the main screen. */
 export async function POST(req: Request) {
   // Sessions are started from the big screen, never from a phone.
-  if (isPhone(req.headers)) return new NextResponse(null, { status: 303, headers: { Location: "/" } });
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  if (!allow(`create:${ip}`, 10)) return errorResponse("rate_limited", 429);
-  const token = newHostToken();
-  const code = await createSession(hashToken(token));
+  if (isPhone(req.headers)) return seeOther("/");
+  if (!checkRateLimit(`create:${clientIp(req.headers)}`, RATE_LIMITS.createSession)) return errorResponse("rate_limited", 429);
+  const token = createHostToken();
+  const code = await createSession(hashHostToken(token));
   await setHostCookie(code, token);
-  if (req.headers.get("accept")?.includes("application/json")) {
-    return NextResponse.json({ ok: true, code });
-  }
-  return new NextResponse(null, { status: 303, headers: { Location: `/s/${code}` } });
+  // The start page posts a plain form and follows the redirect; scripts can ask for JSON.
+  if (req.headers.get("accept")?.includes("application/json")) return Response.json({ ok: true, code });
+  return seeOther(`/s/${code}`);
 }

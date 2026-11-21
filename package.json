@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:db": "bash scripts/test-db.sh",
+    "check": "npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

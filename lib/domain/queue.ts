@@ -1,0 +1,46 @@
+/** Questions about the queue that every screen answers the same way. */
+import type { QueueItem } from "./types";
+
+/** Used when YouTube gave no duration for a video. */
+const DEFAULT_SONG_SECONDS = 210;
+
+type Timed = { durationSeconds: number };
+
+function songSeconds(item: Timed): number {
+  return item.durationSeconds > 0 ? item.durationSeconds : DEFAULT_SONG_SECONDS;
+}
+
+/**
+ * Seconds until queue[index] starts. Pass queue.length for the whole queue.
+ * `elapsed` is how far into the current song we are; when unknown, assume halfway.
+ */
+export function waitSeconds(current: Timed | null, queue: Timed[], index: number, elapsed?: number): number {
+  let total = 0;
+  if (current) {
+    const length = songSeconds(current);
+    total += elapsed === undefined ? length / 2 : Math.max(0, length - elapsed);
+  }
+  for (let i = 0; i < Math.min(index, queue.length); i++) total += songSeconds(queue[i]);
+  return total;
+}
+
+/**
+ * Where a dragged row lands when dropped on the row at `targetIndex` (it takes that
+ * row's place). Returns the id it should follow, null for the top of the queue, or
+ * undefined when nothing should move.
+ */
+export function dropAfterId(queue: { id: string }[], draggedId: string | null, targetIndex: number): string | null | undefined {
+  const from = queue.findIndex((item) => item.id === draggedId);
+  if (from < 0 || from === targetIndex) return undefined;
+  const afterIndex = from < targetIndex ? targetIndex : targetIndex - 1;
+  return afterIndex >= 0 ? queue[afterIndex].id : null;
+}
+
+export type QueuedSong = { item: QueueItem; index: number };
+
+/** One guest's songs: the one being sung now, and the queued ones with their place in line. */
+export function guestLineup(current: QueueItem | null, queue: QueueItem[]) {
+  const queued: QueuedSong[] = queue.map((item, index) => ({ item, index })).filter(({ item }) => item.mine);
+  const onNow = current?.mine ? current : null;
+  return { onNow, queued, next: queued[0] as QueuedSong | undefined, songCount: queued.length + (onNow ? 1 : 0) };
+}

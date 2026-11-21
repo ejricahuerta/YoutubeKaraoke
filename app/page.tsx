@@ -2,19 +2,19 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { Credit } from "@/components/Credit";
 import { Logo } from "@/components/Logo";
-import { getHostedCodes, getHostHash } from "@/lib/auth";
-import { normalizeCode } from "@/lib/codes";
-import { isPhone } from "@/lib/device";
-import { getState } from "@/lib/sessions";
-import { isSupabaseConfigured } from "@/lib/supabase-server";
+import { normalizeSessionCode, SESSION_CODE_LENGTH } from "@/lib/domain/session-code";
+import { getHostedSessionCodes, getHostTokenHash } from "@/lib/server/auth";
+import { isPhone } from "@/lib/server/device";
+import { getSessionState } from "@/lib/server/session-store";
+import { isSupabaseConfigured } from "@/lib/server/supabase";
 
 export const dynamic = "force-dynamic";
 
 /** Sessions this browser hosts that are still live (not archived), for "resume". */
 async function hostedSessions() {
-  const codes = (await getHostedCodes()).map(normalizeCode).filter((c): c is string => c !== null);
+  const codes = (await getHostedSessionCodes()).map(normalizeSessionCode).filter((c): c is string => c !== null);
   const states = await Promise.all(
-    codes.map(async (code) => getState(code, await getHostHash(code), null).catch(() => null)),
+    codes.map(async (code) => getSessionState(code, await getHostTokenHash(code), null).catch(() => null)),
   );
   return states.filter((s) => s?.isHost && !s.archived).map((s) => s!);
 }
@@ -88,7 +88,7 @@ export default async function Home() {
               <input
                 name="code"
                 required
-                maxLength={6}
+                maxLength={SESSION_CODE_LENGTH}
                 autoCapitalize="characters"
                 autoComplete="off"
                 placeholder="ABC123"

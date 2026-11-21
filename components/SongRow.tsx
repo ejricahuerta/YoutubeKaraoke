@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { formatDuration } from "@/lib/format";
+import { formatDuration } from "@/lib/domain/format";
 
 /** One song line: a thumbnail (or a custom leading element), title, a secondary line, and trailing actions. */
 export function SongRow({
@@ -39,37 +39,5 @@ export function SongRow({
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-1">{actions}</div> : null}
     </div>
-  );
-}
-
-export function IconButton({
-  label,
-  onClick,
-  children,
-  className = "",
-  disabled,
-  size = "md",
-}: {
-  /** "lg" is for the main-screen transport controls, sized to be hit from across a room. */
-  size?: "md" | "lg";
-  label: string;
-  onClick: () => void;
-  children: ReactNode;
-  className?: string;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      disabled={disabled}
-      className={`grid shrink-0 place-items-center rounded-full text-ink transition active:scale-95 disabled:opacity-40 ${
-        size === "lg" ? "h-24 w-24 hover:bg-stage-200 disabled:hover:bg-transparent" : "h-11 w-11 bg-stage-200 hover:bg-stage-300"
-      } ${className}`}
-    >
-      {children}
-    </button>
   );
 }

@@ -1,8 +1,15 @@
 "use client";
 
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
-import { readStorage, writeStorage } from "@/lib/browser-hooks";
-import { PlayIcon } from "./icons";
+import { readStorage, STORAGE_KEYS, writeStorage } from "@/lib/client/browser-hooks";
+import { resumePosition } from "@/lib/domain/playback";
+import { thumbnailUrl } from "@/lib/domain/video";
+import { PlayIcon } from "../Icons";
+
+/**
+ * The main screen's video: YouTube's IFrame player with its own controls turned off
+ * (docs/adr/0005). Play, pause, seek and volume come from the parent through props and `ref`.
+ */
 
 // Minimal typing for the parts of the YouTube IFrame Player API we use.
 type YTPlayer = {
@@ -37,7 +44,12 @@ declare global {
 }
 
 const ENDED = 0, PLAYING = 1, PAUSED = 2;
-const POSITION_KEY = "karaoke:position";
+/** Seeking pauses the player for a moment; a pause shorter than this is not reported. */
+const PAUSE_SETTLE_MS = 800;
+/** If playback has not started this long after loading, the browser blocked autoplay. */
+const AUTOPLAY_CHECK_MS = 3000;
+const PROGRESS_INTERVAL_MS = 500;
+const SAVE_POSITION_INTERVAL_MS = 3000;
 
 let apiPromise: Promise<YTNamespace> | null = null;
 function loadApi(): Promise<YTNamespace> {
@@ -61,12 +73,7 @@ function loadApi(): Promise<YTNamespace> {
 
 /** Where to resume this queue item after a page reload (0 = from the start). */
 export function savedPosition(itemId: string): number {
-  try {
-    const saved = JSON.parse(readStorage(POSITION_KEY) ?? "null");
-    return saved?.itemId === itemId && saved.seconds > 5 ? Math.floor(saved.seconds) : 0;
-  } catch {
-    return 0;
-  }
+  return resumePosition(readStorage(STORAGE_KEYS.position), itemId);
 }
 
 export type PlayerHandle = {
@@ -159,7 +166,7 @@ export function Player({
                   if (e.target.getPlayerState() === PAUSED && latest.current.playing) {
                     latest.current.onPlayingChange(false);
                   }
-                }, 800);
+                }, PAUSE_SETTLE_MS);
               }
             },
             // 2/5: bad video, 100: removed or private, 101/150: embedding disabled.
@@ -189,7 +196,7 @@ export function Player({
     // Browsers may refuse to autoplay with sound before any click on the page.
     const check = setTimeout(() => {
       if (latest.current.playing && player.getPlayerState() !== PLAYING) setBlocked(true);
-    }, 3000);
+    }, AUTOPLAY_CHECK_MS);
     return () => {
       clearTimeout(check);
       setBlocked(false);
@@ -211,7 +218,7 @@ export function Player({
       const player = playerRef.current;
       if (!player) return;
       latest.current.onProgress({ seconds: player.getCurrentTime() || 0, duration: player.getDuration() || 0 });
-    }, 500);
+    }, PROGRESS_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [ready]);
 
@@ -220,8 +227,8 @@ export function Player({
     const timer = setInterval(() => {
       const player = playerRef.current;
       if (!player || player.getPlayerState() !== PLAYING) return;
-      writeStorage(POSITION_KEY, JSON.stringify({ itemId, seconds: player.getCurrentTime() }));
-    }, 3000);
+      writeStorage(STORAGE_KEYS.position, JSON.stringify({ itemId, seconds: player.getCurrentTime() }));
+    }, SAVE_POSITION_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [itemId]);
 
@@ -248,7 +255,7 @@ export function Player({
           {!playing || blocked ? (
             <span className="absolute inset-0 grid place-items-center bg-black">
               <img
-                src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
+                src={thumbnailUrl(videoId, "poster")}
                 alt=""
                 className="absolute inset-0 h-full w-full object-cover opacity-50"
               />
