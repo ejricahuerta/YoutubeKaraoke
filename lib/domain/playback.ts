@@ -10,7 +10,7 @@ export const UP_NEXT_BANNER_SECONDS = 30;
 const RESUME_MIN_SECONDS = 5;
 
 /** What every screen calls the song that is playing now. */
-export const SINGING_LABEL = "On the mic";
+export const SINGING_LABEL = "Now playing";
 
 /** The label over the current song. */
 export function playingLabel(isPlaying: boolean): string {
