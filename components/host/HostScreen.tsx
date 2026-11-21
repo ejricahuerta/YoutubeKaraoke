@@ -6,7 +6,7 @@ import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredStri
 import { sendPlayback } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatWait } from "@/lib/domain/format";
-import { clampVolume, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
+import { clampVolume, playingLabel, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
 import { waitSeconds } from "@/lib/domain/queue";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
@@ -208,7 +208,7 @@ export function HostScreen({ code }: { code: string }) {
         <div className="flex shrink-0 flex-wrap items-center gap-x-8 gap-y-4 lg:min-h-[9rem]">
           <div className="min-w-0 flex-1 basis-[24rem]">
             <p className={`${OVERLINE} ${current && playing && !intro ? "text-spotlight" : "text-ink-muted"}`}>
-              {current ? (intro ? "Up next" : playing ? "Now singing" : "Paused") : "Nothing playing"}
+              {current ? (intro ? "Up next" : playingLabel(playing)) : "Nothing playing"}
             </p>
             <h2 className="mt-2.5 line-clamp-2 font-display text-[2.75rem] font-bold leading-[1.05] tracking-tight" title={current?.title}>
               {current ? displayTitle(current.title) : "Waiting for the first song"}
@@ -273,7 +273,8 @@ export function HostScreen({ code }: { code: string }) {
           ))}
         </div>
 
-        <div className="flex min-h-64 flex-1 flex-col overflow-y-auto lg:min-h-0">
+        {/* Rows in the lists bleed past their column; the side padding holds that so no sideways scrollbar appears. */}
+        <div className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0">
           {tab === "next" ? (
             <UpNextList queue={queue} hasCurrent={!!current} queueWait={queueWait} />
           ) : (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampVolume, hostKeyCommand, resumePosition, upNextBannerVisible } from "@/lib/domain/playback";
+import { clampVolume, hostKeyCommand, INTRO_SECONDS, playingLabel, resumePosition, SINGING_LABEL, upNextBannerVisible } from "@/lib/domain/playback";
 
 describe("hostKeyCommand", () => {
   it("maps media keys wherever the focus is", () => {
@@ -64,5 +64,22 @@ describe("upNextBannerVisible", () => {
     expect(upNextBannerVisible({ hasNext: true, intro: true, duration: 200, seconds: 190 })).toBe(false);
     expect(upNextBannerVisible({ hasNext: true, intro: false, duration: 0, seconds: 0 })).toBe(false);
     expect(upNextBannerVisible({ hasNext: true, intro: false, duration: 200, seconds: 200 })).toBe(false);
+  });
+});
+
+describe("playingLabel", () => {
+  it("says the singer is on the mic while the song plays", () => {
+    expect(playingLabel(true)).toBe(SINGING_LABEL);
+    expect(SINGING_LABEL).toBe("On the mic");
+  });
+
+  it("says paused while the song is paused", () => {
+    expect(playingLabel(false)).toBe("Paused");
+  });
+});
+
+describe("the singer intro", () => {
+  it("gives the singer five seconds to reach the mic", () => {
+    expect(INTRO_SECONDS).toBe(5);
   });
 });
