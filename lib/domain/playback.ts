@@ -3,11 +3,19 @@
 /** How far "forward" jumps, on screen and on a remote's fast-forward key. */
 export const SEEK_STEP_SECONDS = 10;
 /** The pause before each song so the singer can get to the mic. */
-export const INTRO_SECONDS = 10;
+export const INTRO_SECONDS = 5;
 /** The "up next" banner appears this long before the current song ends. */
 export const UP_NEXT_BANNER_SECONDS = 30;
 /** A reload resumes a song only when it was at least this far in. */
 const RESUME_MIN_SECONDS = 5;
+
+/** What every screen calls the song that is playing now. */
+export const SINGING_LABEL = "On the mic";
+
+/** The label over the current song. */
+export function playingLabel(isPlaying: boolean): string {
+  return isPlaying ? SINGING_LABEL : "Paused";
+}
 
 export type HostKeyCommand = "toggle" | "play" | "pause" | "next" | "forward";
 

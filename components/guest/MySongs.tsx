@@ -1,4 +1,5 @@
 import { ordinal } from "@/lib/domain/format";
+import { SINGING_LABEL } from "@/lib/domain/playback";
 import type { QueuedSong } from "@/lib/domain/queue";
 import type { QueueItem } from "@/lib/domain/types";
 import { IconButton } from "../IconButton";
@@ -31,7 +32,7 @@ export function MySongs({
                 <SongRow
                   thumbnailUrl={onNow.thumbnailUrl}
                   title={onNow.title}
-                  subtitle={<span className="text-spotlight">Now singing</span>}
+                  subtitle={<span className="text-spotlight">{SINGING_LABEL}</span>}
                   durationSeconds={onNow.durationSeconds}
                   className="bg-stage-100"
                 />

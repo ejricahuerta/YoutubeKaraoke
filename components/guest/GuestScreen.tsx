@@ -5,6 +5,7 @@ import { useCallback, useState, type ReactNode } from "react";
 import { STORAGE_KEYS, useExpiringState, useStoredString } from "@/lib/client/browser-hooks";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { countSongs, formatWait } from "@/lib/domain/format";
+import { playingLabel } from "@/lib/domain/playback";
 import { guestLineup, waitSeconds } from "@/lib/domain/queue";
 import type { QueueItem, SearchResult } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
@@ -23,8 +24,6 @@ import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
 type Tab = "search" | "queue" | "mine";
 const TAB_TITLES: Record<Tab, string> = { search: "Find a song", queue: "Queue", mine: "My songs" };
 const TOAST_MS = 6000;
-
-const playingLabel = (isPlaying: boolean) => (isPlaying ? "Now singing" : "Paused");
 
 /** The phone view (/join/CODE): pick a name, search, add songs, and watch your place in line. */
 export function GuestScreen({ code }: { code: string }) {

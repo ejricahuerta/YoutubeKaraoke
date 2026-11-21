@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { addSong, searchSongs } from "@/lib/client/session-api";
+import { SINGING_LABEL } from "@/lib/domain/playback";
 import type { QueueItem, SearchKind, SearchResult } from "@/lib/domain/types";
 import { CheckIcon, PlusIcon, SearchIcon } from "./Icons";
 import { SongRow } from "./SongRow";
@@ -78,7 +79,7 @@ export function SearchPanel({
 
   /** Where a result already sits in the session, if anywhere. */
   function placement(videoId: string) {
-    if (current?.videoId === videoId) return <span className="text-spotlight">Now singing · {current.addedBy}</span>;
+    if (current?.videoId === videoId) return <span className="text-spotlight">{SINGING_LABEL} · {current.addedBy}</span>;
     const queued = queue.find((q) => q.videoId === videoId);
     return queued ? <>In queue · {queued.mine ? "You" : queued.addedBy}</> : null;
   }

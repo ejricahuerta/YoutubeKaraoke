@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ordinal } from "@/lib/domain/format";
+import { SINGING_LABEL } from "@/lib/domain/playback";
 import type { QueuedSong } from "@/lib/domain/queue";
 import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
@@ -7,7 +8,7 @@ import { displayTitle } from "@/lib/domain/video";
 /** The spotlight card shown only when this guest is singing now or next; nothing otherwise. */
 export function TurnBanner({ onNow, next, hasCurrent }: { onNow: QueueItem | null; next: QueuedSong | undefined; hasCurrent: boolean }) {
   if (onNow) {
-    return <Spotlight overline="Now singing" title={<>You&apos;re on.<br />Go sing.</>} song={displayTitle(onNow.title)} />;
+    return <Spotlight overline={SINGING_LABEL} title={<>You&apos;re on.<br />Go sing.</>} song={displayTitle(onNow.title)} />;
   }
   if (next?.index === 0) {
     return (

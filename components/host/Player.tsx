@@ -22,6 +22,8 @@ type YTPlayer = {
   getCurrentTime(): number;
   getDuration(): number;
   getPlayerState(): number;
+  /** Not in YouTube's documented API, so it may be missing. */
+  unloadModule?(name: string): void;
   destroy(): void;
 };
 type YTEvent = { data: number; target: YTPlayer };
@@ -32,7 +34,7 @@ type YTNamespace = {
       width: string;
       height: string;
       playerVars: Record<string, number | string>;
-      events: { onReady(e: YTEvent): void; onStateChange(e: YTEvent): void; onError(e: YTEvent): void };
+      events: { onReady(e: YTEvent): void; onStateChange(e: YTEvent): void; onApiChange(e: YTEvent): void; onError(e: YTEvent): void };
     },
   ) => YTPlayer;
 };
@@ -50,6 +52,15 @@ const PAUSE_SETTLE_MS = 800;
 const AUTOPLAY_CHECK_MS = 3000;
 const PROGRESS_INTERVAL_MS = 500;
 const SAVE_POSITION_INTERVAL_MS = 3000;
+
+/**
+ * Karaoke videos have the words on screen already, so captions only cover them. YouTube has
+ * no setting for "captions off" (a viewer's own preference can switch them on), so the
+ * captions module is unloaded whenever the player may have loaded it.
+ */
+function hideCaptions(player: YTPlayer) {
+  player.unloadModule?.("captions");
+}
 
 let apiPromise: Promise<YTNamespace> | null = null;
 function loadApi(): Promise<YTNamespace> {
@@ -158,6 +169,7 @@ export function Player({
               if (e.data === ENDED) {
                 latest.current.onEnded(latest.current.itemId);
               } else if (e.data === PLAYING) {
+                hideCaptions(e.target);
                 setBlocked(false);
                 if (!latest.current.playing) latest.current.onPlayingChange(true);
               } else if (e.data === PAUSED) {
@@ -169,6 +181,8 @@ export function Player({
                 }, PAUSE_SETTLE_MS);
               }
             },
+            // Fires when the player loads a module, captions included.
+            onApiChange: (e) => hideCaptions(e.target),
             // 2/5: bad video, 100: removed or private, 101/150: embedding disabled.
             onError: () => latest.current.onError(latest.current.itemId),
           },
