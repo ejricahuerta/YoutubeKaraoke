@@ -24,6 +24,13 @@ export function GuestScreen({ code }: { code: string }) {
     [code, refresh],
   );
 
+  if (status === "archived") {
+    return (
+      <CenteredMessage title="This session has ended">
+        Ask the host to start a new one, then scan its QR code.
+      </CenteredMessage>
+    );
+  }
   if (status === "not_found") {
     return (
       <CenteredMessage title="Session not found">

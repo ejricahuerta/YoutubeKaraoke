@@ -60,7 +60,7 @@ export function SearchPanel({ code, name, onAdded }: { code: string; name: strin
       setAdded((a) => Object.fromEntries(Object.entries(a).filter(([id]) => id !== video.videoId)));
       setMessage(
         status === 409 ? "The queue is full. Wait for a few songs to finish."
-          : status === 404 ? MESSAGES.not_found
+          : status === 404 || status === 410 ? MESSAGES.not_found
           : "Couldn't add that song. Try again.",
       );
     }

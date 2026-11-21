@@ -13,7 +13,7 @@ const POLL_MS = 15_000;
  */
 export function useSessionState(code: string) {
   const [state, setState] = useState<SessionState | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "not_found" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "not_found" | "archived" | "error">("loading");
   const latest = useRef(0);
 
   const refresh = useCallback(async () => {
@@ -23,14 +23,18 @@ export function useSessionState(code: string) {
       if (request !== latest.current) return; // a newer request superseded this one
       if (res.status === 404) return setStatus("not_found");
       if (!res.ok) throw new Error(String(res.status));
-      setState((await res.json()) as SessionState);
-      setStatus("ready");
+      const next = (await res.json()) as SessionState;
+      setState(next);
+      setStatus(next.archived ? "archived" : "ready");
     } catch {
       if (request === latest.current) setStatus((s) => (s === "ready" ? "ready" : "error"));
     }
   }, [code]);
 
+  const ended = status === "archived" || status === "not_found";
+
   useEffect(() => {
+    if (ended) return; // the session is over: stop polling and listening
     const initial = setTimeout(refresh, 0);
     const poll = setInterval(refresh, POLL_MS);
     const onVisible = () => document.visibilityState === "visible" && refresh();
@@ -50,7 +54,7 @@ export function useSessionState(code: string) {
       window.removeEventListener("focus", refresh);
       if (channel) supabase?.removeChannel(channel);
     };
-  }, [code, refresh]);
+  }, [code, refresh, ended]);
 
   return { state, status, refresh };
 }

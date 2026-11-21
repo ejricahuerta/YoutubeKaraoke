@@ -8,6 +8,7 @@ const STATUS: Record<MutationResult, number> = {
   forbidden: 403,
   invalid: 400,
   queue_full: 409,
+  archived: 410,
 };
 
 export function resultResponse(result: MutationResult) {

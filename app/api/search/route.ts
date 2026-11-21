@@ -17,7 +17,8 @@ export async function GET(req: Request) {
   if (!query) return NextResponse.json({ results: [] });
 
   // Only people in a live session may search, so this is not an open proxy.
-  if (!code || !(await getState(code, null, null))) return errorResponse("not_found", 404);
+  const session = code ? await getState(code, null, null) : null;
+  if (!session || session.archived) return errorResponse("not_found", 404);
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
   if (!allow(`search:${ip}`, 40)) return errorResponse("rate_limited", 429);
 
