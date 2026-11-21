@@ -67,6 +67,7 @@ export default async function Home() {
             name="code"
             required
             maxLength={6}
+            autoCapitalize="characters"
             autoComplete="off"
             placeholder="Session code"
             aria-label="Session code"
