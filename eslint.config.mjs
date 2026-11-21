@@ -16,7 +16,7 @@ const config = [
     rules: {
       // Thumbnails come straight from YouTube and the QR code is a data URL: next/image adds nothing.
       "@next/next/no-img-element": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     },
   },
 

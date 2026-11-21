@@ -81,8 +81,12 @@ Work test-first:
 - A bug fix starts with a test that fails because of the bug.
 - A change to a database function comes with a new migration (never edit an
   applied one) and assertions in `supabase/tests`.
+- A change to what a screen shows or does comes with a browser test in `e2e/`.
+  Find things the way a person would, by role and visible text, never by class
+  name or test id, and assert on what the page sent (`api.sent`) rather than on
+  internals. Freeze time with `page.clock` instead of waiting.
 - `npm run check` (lint, types, unit tests) must pass before pushing. CI also runs
-  the build and the database tests.
+  the build, the browser tests and the database tests.
 
 ## Database migrations
 
