@@ -73,3 +73,7 @@ Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL` and
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript |
 | `npm test` | Unit tests (Vitest) |
+
+## Credits
+
+Made by [edmel.dev](https://edmel.dev).

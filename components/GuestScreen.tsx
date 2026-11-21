@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useState, type FormEvent } from "react";
 import { useStoredString } from "@/lib/browser-hooks";
 import { sessionRequest, useSessionState } from "@/lib/useSessionState";
+import { Credit } from "./Credit";
 import { CenteredMessage } from "./HostScreen";
 import { MicIcon } from "./icons";
 import { QueuePanel } from "./QueuePanel";
@@ -75,6 +76,7 @@ export function GuestScreen({ code }: { code: string }) {
           >
             Continue
           </button>
+          <Credit className="mt-8 text-center" />
         </form>
       </div>
     );
@@ -132,6 +134,7 @@ export function GuestScreen({ code }: { code: string }) {
           <QueuePanel queue={state.queue} isHost={false} onRemove={remove} emptyText="No songs waiting. Add one from Find a song." />
         )}
       </div>
+      <Credit className="border-t border-white/10 py-2 text-center" />
     </div>
   );
 }
