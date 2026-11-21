@@ -3,7 +3,7 @@ import { GuestScreen } from "@/components/GuestScreen";
 import { CenteredMessage } from "@/components/HostScreen";
 import { normalizeCode } from "@/lib/codes";
 
-export const metadata: Metadata = { title: "Add a song · Karaoke" };
+export const metadata: Metadata = { title: "Add a song · YouOke" };
 
 export default async function JoinPage({ params }: { params: Promise<{ code: string }> }) {
   const code = normalizeCode(decodeURIComponent((await params).code));

@@ -6,7 +6,7 @@ import { normalizeCode } from "@/lib/codes";
 import { isPhone } from "@/lib/device";
 
 export async function generateMetadata({ params }: { params: Promise<{ code: string }> }): Promise<Metadata> {
-  return { title: `Karaoke · ${(await params).code.toUpperCase().slice(0, 6)}` };
+  return { title: `YouOke · ${(await params).code.toUpperCase().slice(0, 6)}` };
 }
 
 export default async function SessionPage({ params }: { params: Promise<{ code: string }> }) {

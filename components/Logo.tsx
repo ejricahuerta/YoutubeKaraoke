@@ -1,5 +1,5 @@
 /**
- * The Karaoke mark: a K whose stem is a singer, with the sing-along ball for a head.
+ * The YouOke mark: a K whose stem is a singer, with the sing-along ball for a head.
  * `app/icon.svg` and the files in `public/icons` are the same drawing.
  */
 export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
@@ -17,17 +17,21 @@ export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
 export function Logo({
   mark = "h-8 w-8",
   word = "text-[1.375rem]",
-  label = "Karaoke",
+  label,
 }: {
   mark?: string;
   word?: string;
-  /** Pass null for the mark alone. */
+  /** Text to show instead of the wordmark, e.g. a screen title. Pass null for the mark alone. */
   label?: string | null;
 }) {
   return (
     <span className="flex items-center gap-[0.625em]">
       <LogoMark className={mark} />
-      {label ? <span className={`font-display font-extrabold tracking-tight ${word}`}>{label}</span> : null}
+      {label === null ? null : (
+        <span className={`font-display font-extrabold tracking-tight ${word}`}>
+          {label ?? <>You<span className="text-encore">Oke</span></>}
+        </span>
+      )}
     </span>
   );
 }
