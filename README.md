@@ -12,6 +12,9 @@ videos; everyone else scans a QR code and adds songs from their phone.
 - **Phones** (`/join/CODE`): scan the QR code, enter a name, search, tap + to
   add. Guests can remove their own songs; only the main screen can pause, skip,
   reorder or remove other people's songs.
+- **Phones only add songs.** A phone that opens the start page or a main
+  screen link is sent to the add-songs view; sessions are started from a
+  computer, TV or tablet.
 - **Multiple sessions** run independently, each with its own 6-character code.
 
 ## How it works
