@@ -191,7 +191,7 @@ export function HostScreen({ code }: { code: string }) {
       <main className="flex min-w-0 flex-1 flex-col gap-5">
         <header className="flex h-12 shrink-0 items-center gap-6">
           <Link href="/" className="rounded-row">
-            <Logo tile="h-12 w-12 rounded-[0.9375rem]" icon="h-7 w-7" word="text-[2rem]" />
+            <Logo mark="h-12 w-12" word="text-[2rem]" />
           </Link>
           {/* Plain text, not a link: no focus stop that could navigate away mid-party. */}
           <span className="hidden text-[1.25rem] font-medium text-ink-faint sm:inline">by edmel.dev</span>
@@ -566,7 +566,7 @@ export function CenteredMessage({ title, children }: { title: string; children?:
   return (
     <div className="grid min-h-dvh place-items-center p-6 text-center">
       <div className="max-w-md">
-        <span className="inline-flex"><Logo label={null} tile="h-12 w-12 rounded-[0.9375rem]" icon="h-7 w-7" /></span>
+        <span className="inline-flex"><Logo label={null} mark="h-12 w-12" /></span>
         <h1 className="mt-5 font-display text-[2rem] font-extrabold leading-tight tracking-tight">{title}</h1>
         {children ? <p className="mt-2 text-base text-ink-muted">{children}</p> : null}
         <Credit className="mt-8" />
