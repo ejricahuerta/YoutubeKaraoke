@@ -13,6 +13,27 @@ export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
   );
 }
 
+/**
+ * "YouOke" with the k drawn as the singer from the mark: a short stem with the mic dot on top.
+ * The k is sized in em on the font's own grid, so it follows the surrounding text.
+ */
+function Wordmark() {
+  return (
+    <span aria-label="YouOke" role="img" className="whitespace-nowrap">
+      <span aria-hidden>
+        You<span className="text-encore">O</span>
+        <svg viewBox="0 0 640 800" className="mx-[0.02em] inline-block h-[0.8em] w-[0.64em] align-baseline">
+          <clipPath id="youoke-k"><rect x="0" y="290" width="640" height="510" /></clipPath>
+          <circle cx="128" cy="140" r="105" className="fill-spotlight" />
+          <rect x="36" y="290" width="184" height="510" rx="20" className="fill-encore" />
+          <path d="M575 240 262 545l330 320" fill="none" strokeWidth="182" clipPath="url(#youoke-k)" className="stroke-encore" />
+        </svg>
+        <span className="text-encore">e</span>
+      </span>
+    </span>
+  );
+}
+
 /** The mark, optionally followed by the wordmark. Sizes come from the class props. */
 export function Logo({
   mark = "h-8 w-8",
@@ -29,7 +50,7 @@ export function Logo({
       <LogoMark className={mark} />
       {label === null ? null : (
         <span className={`font-display font-extrabold tracking-tight ${word}`}>
-          {label ?? <>You<span className="text-encore">Oke</span></>}
+          {label ?? <Wordmark />}
         </span>
       )}
     </span>
