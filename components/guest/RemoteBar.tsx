@@ -1,16 +1,17 @@
 "use client";
 
-import { sendPlayback } from "@/lib/client/session-api";
+import { freeRemote, sendPlayback } from "@/lib/client/session-api";
 import { failureMessage, isFailure } from "@/lib/domain/messages";
 import { playingLabel } from "@/lib/domain/playback";
 import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { IconButton } from "../IconButton";
-import { NextIcon, PauseIcon, PlayIcon } from "../Icons";
+import { CloseIcon, NextIcon, PauseIcon, PlayIcon } from "../Icons";
 
 /**
  * Play, pause and skip from the phone, for the first guest who joined (the remote,
  * migration 0010). The video itself keeps playing on the main screen, which follows.
+ * The remote can also give the remote up, for another phone to take (migration 0012).
  */
 export function RemoteBar({
   code,
@@ -32,6 +33,12 @@ export function RemoteBar({
     onDone();
   };
 
+  const giveUp = async () => {
+    const outcome = await freeRemote(code);
+    if (isFailure(outcome)) onFailed(failureMessage(outcome, "Couldn't give up the remote. Try again."));
+    onDone();
+  };
+
   return (
     <div className="mx-2 mb-2 flex items-center gap-2.5 rounded-row bg-stage-100 px-3 py-2">
       <div className="min-w-0 flex-1">
@@ -47,6 +54,9 @@ export function RemoteBar({
       </IconButton>
       <IconButton label="Next song" onClick={() => send("next")} disabled={!current}>
         <NextIcon className="h-5 w-5" />
+      </IconButton>
+      <IconButton label="Stop being the remote" onClick={giveUp}>
+        <CloseIcon />
       </IconButton>
     </div>
   );

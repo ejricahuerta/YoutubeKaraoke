@@ -82,6 +82,20 @@ describe("a night of karaoke", () => {
     expect((await screen.state(code)).current?.title).toBe("C1");
   });
 
+  it("hands the remote over: freed by the main screen, taken by the first phone to ask", async () => {
+    expect(await screen.state(code)).toMatchObject({ remote: "taken", remoteName: "Ana" });
+    expect((await ben.freeRemote(code)).status).toBe(403);
+    expect((await ben.takeRemote(code)).status).toBe(403);
+    expect((await screen.freeRemote(code)).status).toBe(200);
+    expect(await ana.state(code)).toMatchObject({ remote: "free", isRemote: false });
+    expect((await ben.takeRemote(code)).status).toBe(200);
+    expect((await cy.takeRemote(code)).status).toBe(403);
+    expect(await ben.state(code)).toMatchObject({ remote: "taken", remoteName: "Ben", isRemote: true });
+    expect((await ben.playback(code, "pause")).status).toBe(200);
+    expect((await ana.playback(code, "play")).status).toBe(403);
+    expect((await ben.playback(code, "play")).status).toBe(200);
+  });
+
   it("lets only the main screen switch taking turns", async () => {
     expect((await ana.settings(code, { takeTurns: false })).status).toBe(403);
     expect((await screen.settings(code, { takeTurns: "no" })).status).toBe(400);

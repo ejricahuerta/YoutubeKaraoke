@@ -32,6 +32,8 @@ export function session(overrides: Partial<SessionState> = {}): SessionState {
     played: [],
     isRemote: false,
     takeTurns: true,
+    remote: "taken",
+    remoteName: null,
     hostAwaySeconds: 10,
     closesInSeconds: 890,
     ...overrides,

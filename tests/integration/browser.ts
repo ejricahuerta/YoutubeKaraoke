@@ -82,6 +82,14 @@ export class Browser {
     return this.answer("POST", `/api/sessions/${code}/playback`, { action, expectedItemId });
   }
 
+  takeRemote(code: string) {
+    return this.answer("POST", `/api/sessions/${code}/remote`);
+  }
+
+  freeRemote(code: string) {
+    return this.answer("DELETE", `/api/sessions/${code}/remote`);
+  }
+
   settings(code: string, settings: Record<string, unknown>) {
     return this.answer("PATCH", `/api/sessions/${code}`, settings);
   }

@@ -318,3 +318,38 @@ test("nobody else is offered a skip", async ({ page }) => {
   await page.getByRole("button", { name: /Queue · 3/ }).click();
   await expect(page.getByRole("button", { name: "Skip your song" })).toHaveCount(0);
 });
+
+test("the remote can give the remote up", async ({ page }) => {
+  const api = await mockSession(page, session({ isRemote: true, remote: "taken" }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  const giveUp = page.getByRole("button", { name: "Stop being the remote" });
+  await expect(giveUp).toBeVisible();
+  // The page refetches right after the change, so the fake answers with the result first.
+  api.state = session({ isRemote: false, remote: "free" });
+  await giveUp.click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "DELETE", path: "/remote" });
+  await expect(page.getByRole("button", { name: "Use this phone as the remote" })).toBeVisible();
+});
+
+test("any phone can take a freed remote", async ({ page }) => {
+  const api = await mockSession(page, session({ remote: "free" }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  const take = page.getByRole("button", { name: "Use this phone as the remote" });
+  await expect(take).toBeVisible();
+  api.state = session({ isRemote: true, remote: "taken", remoteName: "Leo" });
+  await take.click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "POST", path: "/remote" });
+  await expect(page.getByText("You're the remote")).toBeVisible();
+});
+
+test("nobody is offered a remote someone already has", async ({ page }) => {
+  await mockSession(page, session({ remote: "taken", remoteName: "Ana" }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByRole("button", { name: "Leo, change name" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Use this phone as the remote" })).toHaveCount(0);
+});
