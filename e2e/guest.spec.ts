@@ -259,3 +259,38 @@ test("with only two people singing, there is no song limit", async ({ page }) =>
   await expect(page.getByRole("searchbox")).toBeVisible();
   await expect(page.getByText(/songs waiting\. Add more/)).toHaveCount(0);
 });
+
+test("the first guest to join is the remote: play, pause, skip, remove and reorder", async ({ page }) => {
+  const api = await mockSession(page, session({ isRemote: true }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  await expect(page.getByText("You're the remote")).toBeVisible();
+  await page.getByRole("button", { name: "Pause" }).click();
+  expect(api.sent.at(-1)).toMatchObject({ method: "POST", path: "/playback", body: { action: "pause" } });
+  await page.getByRole("button", { name: "Next song" }).click();
+  expect(api.sent.at(-1)).toMatchObject({ path: "/playback", body: { action: "next", expectedItemId: song(1, "", "").id } });
+
+  await page.getByRole("button", { name: /Queue · 3/ }).click();
+  await page.getByRole("button", { name: /^Remove Mr. Brightside/ }).click();
+  expect(api.sent.at(-1)).toMatchObject({ method: "DELETE", path: `/queue/${song(3, "", "").id}` });
+  await page.getByRole("button", { name: "Play Valerie next" }).click();
+  expect(api.sent.at(-1)).toMatchObject({ method: "PATCH", path: `/queue/${song(4, "", "").id}`, body: { afterId: null } });
+});
+
+test("other guests get no remote controls", async ({ page }) => {
+  await mockSession(page, session({ isRemote: false }));
+  await setSingerName(page, "Sam");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByRole("searchbox")).toBeVisible();
+  await expect(page.getByText("You're the remote")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Next song" })).toHaveCount(0);
+});
+
+test("the remote's Play shows Pause while the song plays, and Play once paused", async ({ page }) => {
+  const api = await mockSession(page, session({ isRemote: true, isPlaying: false }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await page.getByRole("button", { name: "Play" }).click();
+  expect(api.sent.at(-1)).toMatchObject({ path: "/playback", body: { action: "play" } });
+});

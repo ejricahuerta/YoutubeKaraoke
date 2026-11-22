@@ -21,6 +21,7 @@ import { SongRow } from "../SongRow";
 import { AddedToast } from "./AddedToast";
 import { MySongs } from "./MySongs";
 import { NameForm } from "./NameForm";
+import { RemoteBar } from "./RemoteBar";
 import { SungTonight } from "./SungTonight";
 import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
 
@@ -31,7 +32,7 @@ const NOTICE_MS = 6000;
 /** The phone view (/join/CODE): pick a name, search, add songs, and watch your place in line. */
 export function GuestScreen({ code }: { code: string }) {
   const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
-  const { state, status, reconnecting, refresh, remove } = useSessionState(code, setNotice);
+  const { state, status, reconnecting, refresh, remove, move } = useSessionState(code, setNotice);
   const [name, setName] = useStoredString(STORAGE_KEYS.name);
   const [editingName, setEditingName] = useState(false);
   const [tab, setTab] = useState<Tab>("search");
@@ -147,8 +148,9 @@ export function GuestScreen({ code }: { code: string }) {
               {current ? <NowRow current={current} playing={state.isPlaying} /> : null}
               <QueuePanel
                 queue={queue}
-                isHost={false}
+                canControl={state.isRemote}
                 onRemove={remove}
+                onMove={state.isRemote ? move : undefined}
                 emptyText={current ? "Nothing queued after this song." : "No songs yet. Be the first to add one."}
               />
             </div>
@@ -175,7 +177,9 @@ export function GuestScreen({ code }: { code: string }) {
         />
       ) : null}
 
-      {current && tab !== "queue" ? (
+      {state.isRemote ? (
+        <RemoteBar code={code} current={current} isPlaying={state.isPlaying} onDone={refresh} onFailed={setNotice} />
+      ) : current && tab !== "queue" ? (
         <div className="mx-2 mb-2 flex items-center gap-2.5 rounded-row bg-stage-100 px-3 py-2">
           <Avatar name={current.addedBy} className="h-8 w-8 text-sm" />
           <div className="min-w-0 flex-1">

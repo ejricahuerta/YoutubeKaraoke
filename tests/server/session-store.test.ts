@@ -4,7 +4,7 @@ import { normalizeSessionCode } from "@/lib/domain/session-code";
 const rpc = vi.fn();
 vi.mock("@/lib/server/supabase", () => ({ getSupabaseServerClient: () => ({ rpc }) }));
 
-const { addQueueItem, createSession, endSession, generateSessionCode, getSessionState, updatePlayback } = await import("@/lib/server/session-store");
+const { addQueueItem, createSession, endSession, generateSessionCode, getSessionState, moveQueueItem, updatePlayback } = await import("@/lib/server/session-store");
 
 const answer = (data: unknown) => ({ data, error: null });
 
@@ -55,8 +55,13 @@ describe("database calls", () => {
     await endSession("ABC234", "hash");
     expect(rpc).toHaveBeenLastCalledWith("end_session", { p_code: "ABC234", p_host_hash: "hash" });
 
-    await updatePlayback("ABC234", "hash", "next", "item");
-    expect(rpc).toHaveBeenLastCalledWith("playback", { p_code: "ABC234", p_host_hash: "hash", p_action: "next", p_expected_item_id: "item" });
+    await updatePlayback("ABC234", "hash", "guest", "next", "item");
+    expect(rpc).toHaveBeenLastCalledWith("playback", {
+      p_code: "ABC234", p_host_hash: "hash", p_guest_id: "guest", p_action: "next", p_expected_item_id: "item",
+    });
+
+    await moveQueueItem("ABC234", "hash", "guest", "item", null);
+    expect(rpc).toHaveBeenLastCalledWith("move_item", { p_code: "ABC234", p_host_hash: "hash", p_guest_id: "guest", p_item_id: "item", p_after_id: null });
   });
 
   it("throws with the function name when the database reports an error", async () => {

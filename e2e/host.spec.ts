@@ -214,3 +214,19 @@ test("without adding a song, the Add a song tab stays open", async ({ page }) =>
   await page.clock.fastForward(60_000);
   await expect(page.getByRole("tab", { name: "Add a song" })).toHaveAttribute("aria-selected", "true");
 });
+
+test("the main screen follows a pause from the phone remote", async ({ page }) => {
+  await page.clock.install();
+  const api = await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Start now" }).first().click();
+  await expect(page.getByRole("button", { name: "Pause" }).first()).toBeVisible();
+
+  api.state = hosting({ isPlaying: false }); // the remote paused
+  await page.clock.fastForward(16_000);
+  await expect(page.getByRole("button", { name: "Play", exact: true }).first()).toBeVisible();
+
+  api.state = hosting({ isPlaying: true }); // and played again
+  await page.clock.fastForward(16_000);
+  await expect(page.getByRole("button", { name: "Pause" }).first()).toBeVisible();
+});

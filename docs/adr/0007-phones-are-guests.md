@@ -29,6 +29,10 @@ Tablets count as big screens.
 - You cannot host from a phone, even on purpose (casting a phone to a TV, say).
 - You cannot use a phone as a remote control for the host screen.
 
+## Update, 2026-11-22
+The first guest to join a session is now its remote and can control playback and the
+queue from their phone: see 0014.
+
 ## Revisit when
 - People ask to host from a phone, or to control playback from one.
 - A phone-sized host layout is designed.

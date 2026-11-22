@@ -22,6 +22,8 @@ export type SessionState = {
   isPlaying: boolean;
   /** The browser asking is the one that started the session. */
   isHost: boolean;
+  /** The browser asking was the first guest to join, so it may control playback and the queue (migration 0010). */
+  isRemote: boolean;
   current: QueueItem | null;
   queue: QueueItem[];
   /** Finished songs, newest first, at most 50. Empty for an archived session. */

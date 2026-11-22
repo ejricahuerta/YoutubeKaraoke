@@ -34,6 +34,10 @@ another's.
 - Cookie names date from before the rename to YouOke; changing them would log
   every host out.
 
+## Update, 2026-11-22
+The first guest to join a session is now its remote and can control playback and the
+queue from their phone: see 0014.
+
 ## Revisit when
 - Hosts ask to move a session to another device, or to have co-hosts.
 - Abuse (fake names, queue flooding) becomes a real problem for real sessions.

@@ -11,21 +11,23 @@ import { CloseIcon, MoveIcon, TopIcon } from "./Icons";
 import { SongRow } from "./SongRow";
 
 /**
- * The full "Up next" list. The host can remove any song, send one to the top, and
- * reorder; guests can remove only the songs they added.
+ * The full "Up next" list. Whoever can control the session (the main screen, or the phone
+ * remote) can remove any song, send one to the top, and reorder; other guests can remove
+ * only the songs they added.
  *
  * Reordering works two ways. Dragging, for a mouse. And "Move", for touch screens, keyboards
  * and TV remotes, where dragging does not work: press Move on a song, then press where it goes.
  */
 export function QueuePanel({
   queue,
-  isHost,
+  canControl,
   onRemove,
   onMove,
   emptyText,
 }: {
   queue: QueueItem[];
-  isHost: boolean;
+  /** The main screen, or the phone remote (migration 0010). */
+  canControl: boolean;
   onRemove: (id: string) => void;
   onMove?: (id: string, afterId: string | null) => void;
   emptyText: string;
@@ -59,12 +61,12 @@ export function QueuePanel({
   return (
     <ol className="space-y-0.5">
       {queue.map((item, index) => {
-        const mine = item.mine && !isHost;
+        const mine = item.mine && !canControl;
         const duration = formatDuration(item.durationSeconds);
         return (
           <li
             key={item.id}
-            draggable={isHost}
+            draggable={canControl}
             onDragStart={(e) => {
               setDragId(item.id);
               e.dataTransfer.effectAllowed = "move";
@@ -82,7 +84,7 @@ export function QueuePanel({
               e.preventDefault();
               drop(dragId, index);
             }}
-            className={`rounded-row ${isHost ? "cursor-grab active:cursor-grabbing" : ""} ${
+            className={`rounded-row ${canControl ? "cursor-grab active:cursor-grabbing" : ""} ${
               dragId === item.id ? "opacity-40" : ""
             } ${(overId === item.id && dragId !== item.id) || movingId === item.id ? "bg-stage-300" : ""}`}
           >
@@ -96,7 +98,7 @@ export function QueuePanel({
                   {duration ? ` · ${duration}` : ""}
                 </>
               }
-              className={`pl-3 ${mine ? "bg-stage-100" : isHost ? "hover:bg-stage-200" : ""}`}
+              className={`pl-3 ${mine ? "bg-stage-100" : canControl ? "hover:bg-stage-200" : ""}`}
               actions={
                 movingId === item.id ? (
                   <IconButton label="Cancel move" onClick={() => setPickedId(null)}>
@@ -113,17 +115,17 @@ export function QueuePanel({
                   </button>
                 ) : (
                   <>
-                    {isHost && onMove && queue.length > 1 ? (
+                    {canControl && onMove && queue.length > 1 ? (
                       <IconButton label={`Move ${item.title}`} onClick={() => setPickedId(item.id)}>
                         <MoveIcon />
                       </IconButton>
                     ) : null}
-                    {isHost && onMove && index > 0 ? (
+                    {canControl && onMove && index > 0 ? (
                       <IconButton label={`Play ${item.title} next`} onClick={() => onMove(item.id, null)}>
                         <TopIcon />
                       </IconButton>
                     ) : null}
-                    {isHost || item.mine ? (
+                    {canControl || item.mine ? (
                       <IconButton label={`Remove ${item.title}`} onClick={() => onRemove(item.id)}>
                         <CloseIcon />
                       </IconButton>

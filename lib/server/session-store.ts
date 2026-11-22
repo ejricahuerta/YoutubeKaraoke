@@ -56,12 +56,16 @@ export function removeQueueItem(code: string, itemId: string, hostTokenHash: str
   return rpc<MutationResult>("remove_item", { p_code: code, p_item_id: itemId, p_host_hash: hostTokenHash, p_guest_id: guestId });
 }
 
-export function moveQueueItem(code: string, hostTokenHash: string | null, itemId: string, afterId: string | null) {
-  return rpc<MutationResult>("move_item", { p_code: code, p_host_hash: hostTokenHash, p_item_id: itemId, p_after_id: afterId });
+/** The main screen or the remote: the database checks which the caller is. */
+export function moveQueueItem(code: string, hostTokenHash: string | null, guestId: string, itemId: string, afterId: string | null) {
+  return rpc<MutationResult>("move_item", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId, p_item_id: itemId, p_after_id: afterId });
 }
 
-export function updatePlayback(code: string, hostTokenHash: string | null, action: PlaybackAction, expectedItemId: string | null) {
-  return rpc<MutationResult>("playback", { p_code: code, p_host_hash: hostTokenHash, p_action: action, p_expected_item_id: expectedItemId });
+/** The main screen or the remote: the database checks which the caller is. */
+export function updatePlayback(code: string, hostTokenHash: string | null, guestId: string, action: PlaybackAction, expectedItemId: string | null) {
+  return rpc<MutationResult>("playback", {
+    p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId, p_action: action, p_expected_item_id: expectedItemId,
+  });
 }
 
 /** Host only: closes the session for good, at once. */
