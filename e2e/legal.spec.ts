@@ -79,3 +79,8 @@ test("the terms cap liability at fifty Canadian dollars", async ({ page }) => {
   await page.goto("/terms");
   await expect(page.getByText(/limited to CAD 50 \(fifty Canadian dollars\)/)).toBeVisible();
 });
+
+test("the terms say YouTube playback is not guaranteed", async ({ page }) => {
+  await page.goto("/terms");
+  await expect(page.getByText(/We do not guarantee that the YouTube player will work/)).toBeVisible();
+});

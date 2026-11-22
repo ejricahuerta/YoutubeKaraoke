@@ -71,9 +71,15 @@ export default function TermsPage() {
 
       <h2>No warranty</h2>
       <p>
-        YouOke is provided <strong>&ldquo;as is&rdquo;</strong> and &ldquo;as available&rdquo;. Searching YouTube depends on
-        services we do not control and can break. To the fullest extent the law allows, we make no promises that YouOke will
-        be available, error-free, or suitable for any purpose.
+        YouOke is provided <strong>&ldquo;as is&rdquo;</strong> and &ldquo;as available&rdquo;. To the fullest extent the law
+        allows, we make no promises that YouOke will be available, uninterrupted, error-free, or suitable for any purpose.
+      </p>
+      <p>
+        Search and playback depend on YouTube, which we do not control. <strong>We do not guarantee that the YouTube player
+        will work all the time, or at all.</strong> YouTube can change, limit or block its player or search without notice. A
+        video may fail to load, stop partway, play with ads, play at lower quality, or be removed or blocked in your country,
+        and search may return no results. We are not responsible for these interruptions or for any event, party or
+        performance affected by them.
       </p>
 
       <h2>Limits on our liability</h2>
