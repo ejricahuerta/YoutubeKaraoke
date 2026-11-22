@@ -55,9 +55,15 @@ export default function CookiesPage() {
 
       <h2>Other companies&apos; cookies</h2>
       <p>
-        The main screen plays videos in <strong>YouTube&apos;s embedded player</strong>, and every screen shows song thumbnails
-        from YouTube. YouTube (Google) may set or read its own cookies and similar storage when that happens, for example to
-        remember player settings, prevent abuse and measure use. We do not control them. See{" "}
+        The main screen plays videos in <strong>YouTube&apos;s embedded player</strong>, in YouTube&apos;s privacy-enhanced mode
+        (youtube-nocookie.com). In that mode YouTube sets no cookies on the main screen until a video plays, and Google says
+        views there do not affect what you are shown on YouTube.
+      </p>
+      <p>
+        Songs start on their own, so YouTube (Google) does set its own cookies on the main screen once the first song plays.
+        Its player also keeps data in the browser&apos;s storage (local storage and IndexedDB) from the moment it loads, and the
+        player&apos;s script is fetched from youtube.com. YouTube uses these, for example, to remember player settings, prevent
+        abuse and measure use. Every screen also shows song thumbnails from YouTube. We do not control any of this. See{" "}
         <a href="https://policies.google.com/technologies/cookies">how Google uses cookies</a>.
       </p>
       <p>Live updates come from our database provider, Supabase, which sets no cookies.</p>

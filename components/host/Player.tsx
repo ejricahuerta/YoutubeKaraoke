@@ -3,12 +3,13 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { readStorage, STORAGE_KEYS, writeStorage } from "@/lib/client/browser-hooks";
 import { resumePosition } from "@/lib/domain/playback";
-import { thumbnailUrl } from "@/lib/domain/video";
+import { thumbnailUrl, YOUTUBE_PLAYER_HOST } from "@/lib/domain/video";
 import { PlayIcon } from "../Icons";
 
 /**
- * The main screen's video: YouTube's IFrame player with its own controls turned off
- * (docs/adr/0005). Play, pause, seek and volume come from the parent through props and `ref`.
+ * The main screen's video: YouTube's IFrame player, in privacy-enhanced mode, with its own
+ * controls turned off (docs/adr/0018). Play, pause, seek and volume come from the parent
+ * through props and `ref`.
  */
 
 // Minimal typing for the parts of the YouTube IFrame Player API we use.
@@ -31,6 +32,8 @@ type YTNamespace = {
   Player: new (
     el: HTMLElement,
     opts: {
+      /** The origin the player's iframe is loaded from. */
+      host: string;
       width: string;
       height: string;
       playerVars: Record<string, number | string>;
@@ -152,6 +155,8 @@ export function Player({
       .then((YT) => {
         if (cancelled) return;
         playerRef.current = new YT.Player(el, {
+          // Privacy-enhanced mode: no YouTube cookies before a video plays (docs/adr/0018).
+          host: YOUTUBE_PLAYER_HOST,
           width: "100%",
           height: "100%",
           // controls/disablekb/fs off: the app provides its own transport controls.

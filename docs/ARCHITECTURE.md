@@ -184,9 +184,10 @@ playing in that browser.
 
 ## Playback
 
-Only the host screen plays video, through YouTube's IFrame player with YouTube's
-controls turned off and the app's own TV-sized controls in their place
-([0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
+Only the host screen plays video, through YouTube's IFrame player in privacy-enhanced
+mode (`youtube-nocookie.com`), with YouTube's controls turned off and the app's own
+TV-sized controls in their place ([0018](adr/0018-privacy-enhanced-youtube-player.md),
+which supersedes [0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
 grid that scales with the window ([0009](adr/0009-tv-scale-grid.md)). Search runs on
 the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 

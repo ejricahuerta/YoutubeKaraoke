@@ -98,10 +98,12 @@ export default function PrivacyPage() {
           </ul>
         </li>
         <li>
-          <strong>YouTube (Google).</strong> The main screen plays videos in YouTube&apos;s embedded player, and every screen
-          loads song thumbnails from YouTube. YouTube receives the IP address and device information of those screens and may
-          set its own cookies. Searches go from our server to YouTube, not from your device. YouTube&apos;s handling is covered by
-          the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.
+          <strong>YouTube (Google).</strong> The main screen plays videos in YouTube&apos;s embedded player, in privacy-enhanced
+          mode (youtube-nocookie.com), and every screen loads song thumbnails from YouTube. YouTube receives the IP address and
+          device information of those screens. It sets no cookies on the main screen until a video plays, but songs start on
+          their own, so it sets its own cookies and browser storage there once the first song plays (see the{" "}
+          <Link href="/cookies">Cookie Policy</Link>). Searches go from our server to YouTube, not from your device.
+          YouTube&apos;s handling is covered by the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.
         </li>
         <li><strong>Authorities</strong>, if the law requires us to share information, or to protect people or the service.</li>
       </ul>

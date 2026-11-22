@@ -2,6 +2,8 @@
  * Response headers that limit what a page may load and who may frame it (issue #18).
  * Imported by next.config.ts, so it must not depend on anything request-time.
  */
+// Relative, not "@/": next.config.ts fails to load this file through the path alias.
+import { YOUTUBE_PLAYER_HOST } from "../domain/video";
 
 type Options = { supabaseUrl: string | undefined; dev: boolean };
 
@@ -25,7 +27,8 @@ export function contentSecurityPolicy({ supabaseUrl, dev }: Options): string {
     // Thumbnails come from YouTube; the QR code is a data URL.
     "img-src 'self' data: blob: https://i.ytimg.com",
     "font-src 'self'",
-    "frame-src https://www.youtube.com",
+    // Only the privacy-enhanced player: a regular youtube.com embed would show up as a report.
+    `frame-src ${YOUTUBE_PLAYER_HOST}`,
     `connect-src 'self'${supabase}`,
     "object-src 'none'",
     "base-uri 'self'",

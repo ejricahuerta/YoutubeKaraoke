@@ -1,6 +1,6 @@
 # 0005. YouTube IFrame player with our own controls
 
-- Status: Accepted
+- Status: Superseded by [0018](0018-privacy-enhanced-youtube-player.md)
 - Date: 2026-11-21 (recorded; in the code since commits `fa72792`, `551bc7b`)
 
 ## Context

@@ -255,3 +255,25 @@ test("the main screen follows a pause from the phone remote", async ({ page }) =
   await page.clock.fastForward(16_000);
   await expect(page.getByRole("button", { name: "Pause" }).first()).toBeVisible();
 });
+
+test("the main screen asks YouTube for its privacy-enhanced player, with YouTube's own controls off", async ({ page }) => {
+  await mockSession(page, hosting());
+  // A stand-in for YouTube's IFrame API that records how the page creates the player.
+  await page.route("https://www.youtube.com/iframe_api", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: `window.YT = { Player: function (el, options) { window.playerOptions = options; return {
+        loadVideoById() {}, cueVideoById() {}, playVideo() {}, pauseVideo() {}, seekTo() {}, setVolume() {},
+        getCurrentTime() { return 0; }, getDuration() { return 0; }, getPlayerState() { return -1; }, destroy() {},
+      }; } }; window.onYouTubeIframeAPIReady();`,
+    }),
+  );
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Start now" }).first().click();
+
+  const options = await page.waitForFunction(() => (window as unknown as { playerOptions?: unknown }).playerOptions).then((h) => h.jsonValue());
+  expect(options).toMatchObject({
+    host: "https://www.youtube-nocookie.com",
+    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0 },
+  });
+});
