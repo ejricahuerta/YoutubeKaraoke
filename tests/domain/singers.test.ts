@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_WAITING_SONGS, normalizeSingerName, SINGER_COLOR_COUNT, SINGER_NAME_MAX_LENGTH, singerColorIndex, singerInitial } from "@/lib/domain/singers";
+import { MAX_WAITING_SONGS, normalizeSingerName, PEOPLE_BEFORE_SONG_LIMIT, SINGER_COLOR_COUNT, SINGER_NAME_MAX_LENGTH, singerColorIndex, singerInitial } from "@/lib/domain/singers";
 
 describe("singerColorIndex", () => {
   it("gives the same colour slot to the same name, ignoring case and spaces", () => {
@@ -41,5 +41,6 @@ describe("normalizeSingerName", () => {
 describe("MAX_WAITING_SONGS", () => {
   it("matches the limit the database enforces in add_item (migration 0006)", () => {
     expect(MAX_WAITING_SONGS).toBe(3);
+    expect(PEOPLE_BEFORE_SONG_LIMIT).toBe(3); // migration 0008
   });
 });

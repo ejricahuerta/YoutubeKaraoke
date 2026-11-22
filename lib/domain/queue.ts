@@ -1,4 +1,5 @@
 /** Questions about the queue that every screen answers the same way. */
+import { MAX_WAITING_SONGS, PEOPLE_BEFORE_SONG_LIMIT } from "./singers";
 import type { QueueItem, SearchResult } from "./types";
 
 /** Used when YouTube gave no duration for a video. */
@@ -69,4 +70,21 @@ export function whereInSession(videoId: string, current: QueueItem | null, queue
 /** The video behind a queue item, as adding it again needs it. */
 export function songOf({ videoId, title, channel, thumbnailUrl, durationSeconds }: QueueItem): SearchResult {
   return { videoId, title, channel, thumbnailUrl, durationSeconds };
+}
+
+/** Stands for this guest among other people's names, so no name can be mistaken for it. */
+const YOU = Symbol("you");
+
+/**
+ * Whether this guest has hit the waiting-songs limit: MAX_WAITING_SONGS of theirs waiting,
+ * with at least PEOPLE_BEFORE_SONG_LIMIT people on the list (singing now or waiting). The
+ * database decides by guest id; the screen only has names, so this is the hint it shows.
+ */
+export function songLimitReached(current: QueueItem | null, queue: QueueItem[]): boolean {
+  if (queue.filter((item) => item.mine).length < MAX_WAITING_SONGS) return false;
+  const people = new Set<string | typeof YOU>();
+  for (const item of [current, ...queue]) {
+    if (item) people.add(item.mine ? YOU : item.addedBy.trim().toLowerCase());
+  }
+  return people.size >= PEOPLE_BEFORE_SONG_LIMIT;
 }

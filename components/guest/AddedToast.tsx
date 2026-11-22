@@ -1,6 +1,6 @@
 import { ordinal } from "@/lib/domain/format";
 import type { QueuedSong } from "@/lib/domain/queue";
-import { CheckIcon } from "../Icons";
+import { CheckIcon, CloseIcon } from "../Icons";
 
 /** Confirms an add and says where it landed, with an undo while it is still queued. */
 export function AddedToast({
@@ -8,6 +8,7 @@ export function AddedToast({
   onNow,
   wait,
   onUndo,
+  onDismiss,
 }: {
   /** The added song in the queue, if it is still waiting. */
   placed: QueuedSong | undefined;
@@ -15,6 +16,7 @@ export function AddedToast({
   onNow: boolean;
   wait: (index: number) => string;
   onUndo: (itemId: string) => void;
+  onDismiss: () => void;
 }) {
   return (
     <div role="status" className="animate-rise mx-4 mb-2 flex items-center gap-3 rounded-full bg-ink py-2 pl-2.5 pr-3 text-sm font-semibold text-stage-000 shadow-lift">
@@ -29,6 +31,9 @@ export function AddedToast({
           Undo
         </button>
       ) : null}
+      <button type="button" onClick={onDismiss} aria-label="Dismiss" className="grid h-11 w-11 shrink-0 place-items-center rounded-full">
+        <CloseIcon className="h-4 w-4" />
+      </button>
     </div>
   );
 }
