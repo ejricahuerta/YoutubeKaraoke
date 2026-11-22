@@ -5,7 +5,7 @@ import { useExpiringState } from "@/lib/client/browser-hooks";
 import { addSong, searchSongs } from "@/lib/client/session-api";
 import { failureMessage } from "@/lib/domain/messages";
 import { SINGING_LABEL } from "@/lib/domain/playback";
-import { whereInSession } from "@/lib/domain/queue";
+import { songLimitReached, whereInSession } from "@/lib/domain/queue";
 import { MAX_WAITING_SONGS } from "@/lib/domain/singers";
 import type { QueueItem, SearchKind, SearchResult } from "@/lib/domain/types";
 import { CheckIcon, PlusIcon, SearchIcon } from "./Icons";
@@ -135,7 +135,7 @@ export function SearchPanel({
         ) : null}
       </div>
 
-      {showWaitingLimit && queue.filter((item) => item.mine).length >= MAX_WAITING_SONGS && !message && !addFailed ? (
+      {showWaitingLimit && songLimitReached(current, queue) && !message && !addFailed ? (
         <p className="mt-3 rounded-row bg-stage-100 px-4 py-3 text-sm font-semibold text-ink-muted">
           You have {MAX_WAITING_SONGS} songs waiting. Add more once one is sung.
         </p>

@@ -1,10 +1,11 @@
 -- The main screen may have any number of songs waiting.
 --
--- Migration 0006 capped every browser at 3 waiting songs, the main screen included,
--- because it adds under its own guest id. But the main screen is where the room adds
--- songs for people without a phone, so after three it refused every song ("guest_limit").
+-- Migration 0006 capped every browser at 3 waiting songs (0008 then held that off until
+-- 3 people have songs on the list). The main screen was capped too, because it adds
+-- under its own guest id. But the main screen is where the room adds songs for people
+-- without a phone, so once the cap applied it refused every song ("guest_limit").
 -- add_item now takes the caller's host token hash, like remove_item does, and the cap
--- applies only when that is not the session's host.
+-- applies only when that is not the session's host. Everything else is as in 0008.
 --
 -- p_host_hash comes last and defaults to null, so an app still calling with the eight
 -- named arguments keeps working (as a guest) while this is rolled out. The old
@@ -19,8 +20,9 @@ create function karaoke.add_item(
 ) returns text
 language plpgsql security definer set search_path = '' as $$
 declare
-  -- Mirrored in lib/domain/singers.ts (MAX_WAITING_SONGS) for the message guests see.
-  c_max_waiting_per_guest constant integer := 3;
+  -- Both mirrored in lib/domain/singers.ts for what guests see.
+  c_max_waiting_per_guest constant integer := 3;  -- MAX_WAITING_SONGS
+  c_people_before_limit constant integer := 3;    -- PEOPLE_BEFORE_SONG_LIMIT
   v_session karaoke.sessions;
   v_position double precision;
 begin
@@ -38,11 +40,15 @@ begin
         where session_id = v_session.id and status = 'queued') >= 200 then
     return 'queue_full';
   end if;
-  -- One guest cannot fill the queue. The song being sung does not count, only waiting ones.
-  -- The main screen adds for the whole room, so it is not held to this.
+  -- One guest cannot fill the queue, once there are enough people for it to matter: the
+  -- cap applies only when at least 3 different guests have a song waiting or being sung.
+  -- The caller's own song on stage does not count towards their 3, only waiting ones.
+  -- The main screen adds for the whole room, so it is never held to this.
   if (p_host_hash is null or v_session.host_token_hash <> p_host_hash)
      and (select count(*) from karaoke.queue_items
-            where session_id = v_session.id and status = 'queued' and guest_id = p_guest_id) >= c_max_waiting_per_guest then
+            where session_id = v_session.id and status = 'queued' and guest_id = p_guest_id) >= c_max_waiting_per_guest
+     and (select count(distinct guest_id) from karaoke.queue_items
+            where session_id = v_session.id and status in ('queued', 'playing')) >= c_people_before_limit then
     return 'guest_limit';
   end if;
   select coalesce(max(position), 0) + 1 into v_position

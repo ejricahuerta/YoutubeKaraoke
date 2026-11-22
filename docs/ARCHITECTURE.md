@@ -61,6 +61,7 @@ Records: [0001 Next.js monolith](adr/0001-nextjs-monolith.md),
 ```
 app/                    Routes only: pages and API route handlers
   api/search            GET   search YouTube (needs a live session code)
+  api/csp-report        POST  browsers report what the Content-Security-Policy would block
   api/sessions          POST  start a session
   api/sessions/[code]   GET   session state, DELETE end it (host)
     playback            POST  play | pause | next        (host)
@@ -181,7 +182,7 @@ the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 | --- | --- | --- |
 | Session code | 6 chars, no 0/O/1/I/L | `lib/domain/session-code.ts` |
 | Waiting songs per session | 200 | `add_item` |
-| Waiting songs per guest (not the main screen) | 3 | `add_item`; mirrored in `lib/domain/singers.ts` |
+| Waiting songs per guest | 3, only once 3 or more people have songs on the list; never for the main screen | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Singer name | 40 chars | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Search query | 120 chars | `lib/domain/video.ts` |
 | Inactivity before archive | 15 min | `idle_limit()` (used by `check_archived`, `cleanup`, `get_state`) |

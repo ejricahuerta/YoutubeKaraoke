@@ -3,7 +3,7 @@ const MAX_KEYS = 5000;
 const hits = new Map<string, number[]>();
 
 /** Calls allowed per minute, per caller. */
-export const RATE_LIMITS = { search: 40, createSession: 10, addSong: 30 } as const;
+export const RATE_LIMITS = { search: 40, createSession: 10, addSong: 30, cspReport: 30 } as const;
 
 /**
  * True when this call may go ahead; false when the key is over its limit for the last minute.

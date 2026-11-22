@@ -32,6 +32,11 @@ const TV_SCALE = "html{font-size:max(10px,min(0.8333vw,1.4815vh))}";
 const NOTICE_MS = 6000;
 /** How long "End session" waits for its second press before going back to normal. */
 const END_CONFIRM_MS = 5000;
+/**
+ * After the host adds a song, the panel goes back to "Up next" once this long passes with no
+ * typing or tapping in it, so the room sees the queue again.
+ */
+const BACK_TO_UP_NEXT_MS = 30_000;
 /** The name songs added from the main screen go under. */
 const HOST_SINGER_NAME = "Host";
 
@@ -49,6 +54,25 @@ export function HostScreen({ code }: { code: string }) {
   const playerRef = useRef<PlayerHandle>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<RailTab>("next");
+  // Bumped by each add, and by activity in the panel after one; 0 means no switch back is due.
+  const [backToUpNext, setBackToUpNext] = useState(0);
+  useEffect(() => {
+    if (!backToUpNext || tab !== "add") return;
+    const timer = setTimeout(() => {
+      setTab("next");
+      setBackToUpNext(0);
+    }, BACK_TO_UP_NEXT_MS);
+    return () => clearTimeout(timer);
+  }, [backToUpNext, tab]);
+  /** A tab the host picks stays put: it cancels any switch back that was due. */
+  function chooseTab(next: RailTab) {
+    setTab(next);
+    setBackToUpNext(0);
+  }
+  /** Still searching after an add: start the wait again. */
+  function keepAddTabOpen() {
+    if (backToUpNext) setBackToUpNext((n) => n + 1);
+  }
   const [progress, setProgress] = useState<Progress>(NO_PROGRESS);
   // The host screen is the authority on play/pause once it has loaded.
   const [localPlaying, setLocalPlaying] = useState<boolean | null>(null);
@@ -307,7 +331,7 @@ export function HostScreen({ code }: { code: string }) {
             e.preventDefault();
             const index = railTabs.findIndex(([id]) => id === shownTab);
             const [nextId] = railTabs[(index + step + railTabs.length) % railTabs.length];
-            setTab(nextId);
+            chooseTab(nextId);
             document.getElementById(`queue-tab-${nextId}`)?.focus();
           }}
         >
@@ -320,7 +344,7 @@ export function HostScreen({ code }: { code: string }) {
               aria-controls="queue-tabpanel"
               aria-selected={shownTab === id}
               tabIndex={shownTab === id ? 0 : -1}
-              onClick={() => setTab(id)}
+              onClick={() => chooseTab(id)}
               className={`h-12 flex-1 rounded-full text-[1.25rem] font-semibold transition ${
                 shownTab === id ? "bg-ink text-stage-000" : "text-ink-muted hover:text-ink"
               }`}
@@ -333,6 +357,8 @@ export function HostScreen({ code }: { code: string }) {
         {/* Rows in the lists bleed past their column; the side padding holds that so no sideways scrollbar appears. */}
         <div
           role="tabpanel"
+          onKeyDown={keepAddTabOpen}
+          onPointerDown={keepAddTabOpen}
           id="queue-tabpanel"
           aria-labelledby={`queue-tab-${shownTab}`}
           className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0"
@@ -351,7 +377,10 @@ export function HostScreen({ code }: { code: string }) {
                   emptyText={current ? "Nothing queued after this song." : "No songs yet. Scan the code to add one."}
                 />
               ) : (
-                <SearchPanel code={code} name={HOST_SINGER_NAME} showWaitingLimit={false} current={current} queue={queue} played={state.played} onAdded={refresh} />
+                <SearchPanel code={code} name={HOST_SINGER_NAME} showWaitingLimit={false} current={current} queue={queue} played={state.played} onAdded={() => {
+                    refresh();
+                    setBackToUpNext((n) => n + 1);
+                  }} />
               )}
             </div>
           )}

@@ -26,7 +26,6 @@ import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
 
 type Tab = "search" | "queue" | "mine";
 const TAB_TITLES: Record<Tab, string> = { search: "Find a song", queue: "Queue", mine: "My songs" };
-const TOAST_MS = 6000;
 const NOTICE_MS = 6000;
 
 /** The phone view (/join/CODE): pick a name, search, add songs, and watch your place in line. */
@@ -36,8 +35,11 @@ export function GuestScreen({ code }: { code: string }) {
   const [name, setName] = useStoredString(STORAGE_KEYS.name);
   const [editingName, setEditingName] = useState(false);
   const [tab, setTab] = useState<Tab>("search");
-  /** Video id of the song this guest just added, while its toast shows. */
-  const [justAdded, setJustAdded] = useExpiringState<string>(TOAST_MS);
+  /**
+   * Video id of the song this guest just added, while its toast shows. It stays until
+   * dismissed or replaced by the next add, so Undo has no time limit (WCAG 2.2.1).
+   */
+  const [justAdded, setJustAdded] = useState<string | null>(null);
 
   const lineup = guestLineup(state?.current ?? null, state?.queue ?? []);
   const alertKey = turnAlertKey(lineup);
@@ -169,6 +171,7 @@ export function GuestScreen({ code }: { code: string }) {
             setJustAdded(null);
             remove(itemId);
           }}
+          onDismiss={() => setJustAdded(null)}
         />
       ) : null}
 
