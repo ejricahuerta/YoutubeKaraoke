@@ -93,3 +93,17 @@ export async function mockSession(page: Page, state: SessionState | null) {
 export async function setSingerName(page: Page, name: string) {
   await page.addInitScript((value) => window.localStorage.setItem("karaoke:name", value), name);
 }
+
+/** Answers GET for another session code: its state, or 404 when null. For tests about more than one room. */
+export async function mockOtherRoom(page: Page, code: string, state: SessionState | null) {
+  await page.route(`**/api/sessions/${code}`, (route) =>
+    state ? route.fulfill({ json: { ...state, code } }) : route.fulfill({ status: 404, json: { ok: false, error: "not_found" } }),
+  );
+}
+
+/** Puts this browser in a room the way the guest screen does, before any page loads. */
+export async function setRoom(page: Page, code: string) {
+  await page.addInitScript((value) => {
+    if (!window.localStorage.getItem("karaoke:room")) window.localStorage.setItem("karaoke:room", value);
+  }, code);
+}
