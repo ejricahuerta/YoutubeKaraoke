@@ -1,5 +1,5 @@
 /** Questions about the queue that every screen answers the same way. */
-import type { QueueItem } from "./types";
+import type { QueueItem, SearchResult } from "./types";
 
 /** Used when YouTube gave no duration for a video. */
 const DEFAULT_SONG_SECONDS = 210;
@@ -52,4 +52,21 @@ export function guestLineup(current: QueueItem | null, queue: QueueItem[]) {
 export function turnAlertKey(lineup: ReturnType<typeof guestLineup>): string | null {
   if (lineup.onNow) return `now:${lineup.onNow.id}`;
   return lineup.next?.index === 0 ? `next:${lineup.next.item.id}` : null;
+}
+
+export type SessionPlace = { place: "singing" | "queued" | "sung"; by: string; mine: boolean };
+
+/** Where a video already is in the session, if anywhere: being sung, waiting, or sung earlier. */
+export function whereInSession(videoId: string, current: QueueItem | null, queue: QueueItem[], played: QueueItem[]): SessionPlace | null {
+  const found = (place: SessionPlace["place"], item: QueueItem | undefined) => (item ? { place, by: item.addedBy, mine: item.mine } : null);
+  return (
+    found("singing", current?.videoId === videoId ? current : undefined) ??
+    found("queued", queue.find((item) => item.videoId === videoId)) ??
+    found("sung", played.find((item) => item.videoId === videoId))
+  );
+}
+
+/** The video behind a queue item, as adding it again needs it. */
+export function songOf({ videoId, title, channel, thumbnailUrl, durationSeconds }: QueueItem): SearchResult {
+  return { videoId, title, channel, thumbnailUrl, durationSeconds };
 }

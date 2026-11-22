@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useCallback, useState, type ReactNode } from "react";
 import { STORAGE_KEYS, useExpiringState, useStoredString, useTurnAlert } from "@/lib/client/browser-hooks";
+import { addSong } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { countSongs, formatWait } from "@/lib/domain/format";
 import { playingLabel } from "@/lib/domain/playback";
-import { guestLineup, turnAlertKey, waitSeconds } from "@/lib/domain/queue";
+import { failureMessage } from "@/lib/domain/messages";
+import { guestLineup, songOf, turnAlertKey, waitSeconds } from "@/lib/domain/queue";
 import type { QueueItem, SearchResult } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
@@ -19,6 +21,7 @@ import { SongRow } from "../SongRow";
 import { AddedToast } from "./AddedToast";
 import { MySongs } from "./MySongs";
 import { NameForm } from "./NameForm";
+import { SungTonight } from "./SungTonight";
 import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
 
 type Tab = "search" | "queue" | "mine";
@@ -46,6 +49,16 @@ export function GuestScreen({ code }: { code: string }) {
       refresh();
     },
     [refresh, setJustAdded],
+  );
+
+  const singAgain = useCallback(
+    async (item: QueueItem) => {
+      const video = songOf(item);
+      const outcome = await addSong(code, video, name ?? "");
+      if (outcome === "ok") onAdded(video);
+      else setNotice(failureMessage(outcome, "Couldn't add that song. Try again."));
+    },
+    [code, name, onAdded, setNotice],
   );
 
   if (status === "archived") {
@@ -114,7 +127,7 @@ export function GuestScreen({ code }: { code: string }) {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-3">
         {tab === "search" ? (
-          <SearchPanel code={code} name={name} current={current} queue={queue} onAdded={onAdded} />
+          <SearchPanel code={code} name={name} current={current} queue={queue} played={state.played} onAdded={onAdded} />
         ) : tab === "queue" ? (
           <>
             {isTurnSoon(onNow, next) ? turnBanner : next ? <NextSongCard next={next} wait={wait(next.index)} /> : null}
@@ -132,6 +145,7 @@ export function GuestScreen({ code }: { code: string }) {
                 emptyText={current ? "Nothing queued after this song." : "No songs yet. Be the first to add one."}
               />
             </div>
+            <SungTonight played={state.played} onSingAgain={singAgain} />
           </>
         ) : (
           <div className="flex flex-col gap-5">

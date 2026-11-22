@@ -140,3 +140,30 @@ test("a guest's phone buzzes when their song becomes next, and once only", async
   await expect(page.getByText("You're on.")).toBeVisible();
   expect(await buzzes()).toBe(2);
 });
+
+test("the queue shows what has been sung tonight, and a song can be added again", async ({ page }) => {
+  const sung = song(7, "Zoë", "Wonderwall (Karaoke)");
+  const api = await mockSession(page, session({ played: [sung, song(6, "Leo", "Hello (Karaoke)", true)] }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await page.getByRole("button", { name: /Queue · 3/ }).click();
+
+  const history = page.getByRole("region", { name: "Sung tonight" });
+  await expect(history.getByText("Wonderwall")).toBeVisible();
+  await expect(history.getByText("Zoë")).toBeVisible();
+  await expect(history.getByText("You")).toBeVisible();
+
+  await history.getByRole("button", { name: "Sing Wonderwall (Karaoke) again" }).click();
+  expect(api.sent.at(-1)).toMatchObject({ method: "POST", path: "/queue", body: { videoId: sung.videoId, name: "Leo" } });
+  await expect(page.getByRole("status")).toContainText("Added");
+});
+
+test("search marks a song that was already sung tonight", async ({ page }) => {
+  await mockSession(page, session({ played: [{ ...song(9, "Zoë", "Result song 9 (Karaoke)") }] }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  await page.getByRole("searchbox").fill("abba");
+  await page.getByRole("searchbox").press("Enter");
+  await expect(page.getByText("Sung earlier · Zoë")).toBeVisible();
+});

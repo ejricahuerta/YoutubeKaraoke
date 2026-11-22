@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { addSong, searchSongs } from "@/lib/client/session-api";
 import { failureMessage } from "@/lib/domain/messages";
 import { SINGING_LABEL } from "@/lib/domain/playback";
+import { whereInSession } from "@/lib/domain/queue";
 import type { QueueItem, SearchKind, SearchResult } from "@/lib/domain/types";
 import { CheckIcon, PlusIcon, SearchIcon } from "./Icons";
 import { SongRow } from "./SongRow";
@@ -14,6 +15,7 @@ export function SearchPanel({
   name,
   current,
   queue,
+  played,
   onAdded,
 }: {
   code: string;
@@ -22,6 +24,7 @@ export function SearchPanel({
   /** The session's songs, to mark results that are already playing or queued. */
   current: QueueItem | null;
   queue: QueueItem[];
+  played: QueueItem[];
   onAdded: (video: SearchResult) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -69,9 +72,11 @@ export function SearchPanel({
 
   /** Where a result already sits in the session, if anywhere. */
   function placement(videoId: string) {
-    if (current?.videoId === videoId) return <span className="text-spotlight">{SINGING_LABEL} · {current.addedBy}</span>;
-    const queued = queue.find((q) => q.videoId === videoId);
-    return queued ? <>In queue · {queued.mine ? "You" : queued.addedBy}</> : null;
+    const found = whereInSession(videoId, current, queue, played);
+    if (!found) return null;
+    const who = found.mine ? "You" : found.by;
+    if (found.place === "singing") return <span className="text-spotlight">{SINGING_LABEL} · {found.by}</span>;
+    return <>{found.place === "queued" ? "In queue" : "Sung earlier"} · {who}</>;
   }
 
   return (

@@ -39,7 +39,9 @@ export function useSessionState(code: string, onActionFailed?: (message: string)
       if (request !== latest.current) return; // a newer request superseded this one
       if (res.status === 404) return setStatus("not_found");
       if (!res.ok) throw new Error(String(res.status));
-      const next = (await res.json()) as SessionState;
+      const body = (await res.json()) as SessionState;
+      // A database without migration 0005 sends no "played"; treat that as nothing sung yet.
+      const next = { ...body, played: body.played ?? [] };
       setFailures(0);
       setState(next);
       setStatus(next.archived ? "archived" : "ready");

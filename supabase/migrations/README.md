@@ -15,6 +15,7 @@ is shared. Every karaoke entry is named `karaoke_<file name without number>`:
 | `0002_archive_sessions.sql` | `20261121084344` | `karaoke_archive_sessions` | Pasted into the SQL editor; recorded in the history afterwards |
 | `0003_keep_queue_order_exact.sql` | `20261122015254` | `karaoke_keep_queue_order_exact` | Applied as a migration |
 | `0004_end_session.sql` | `20261122015304` | `karaoke_end_session` | Applied as a migration |
+| `0005_show_sung_tonight.sql` | `20261122020601` | `karaoke_show_sung_tonight` | Applied as a migration |
 
 The two entries recorded afterwards hold a note naming the file and commit instead of
 the SQL itself.

@@ -118,7 +118,8 @@ Two tables in the `karaoke` schema:
 
 - `sessions`: `code`, `host_token_hash`, `current_item_id`, `is_playing`,
   `last_active_at`, `archived_at`.
-- `queue_items`: one row per added song with `status` `queued` → `playing` → `played`,
+- `queue_items`: one row per added song with `status` `queued` → `playing` → `played`
+  (with `played_at` set when it finishes),
   a floating-point `position` for ordering, the singer's name and the adder's guest id.
 
 Neither table can be read or written directly: row level security is on with no
@@ -127,7 +128,7 @@ policies. The seven public functions are the whole API of the database:
 | Function | Called by | Answers |
 | --- | --- | --- |
 | `create_session(code, host_hash)` | `POST /api/sessions` | `true`, or `false` if the code is taken |
-| `get_state(code, host_hash, guest_id)` | `GET /api/sessions/[code]`, search, start page | The `SessionState` JSON, or null |
+| `get_state(code, host_hash, guest_id)` | `GET /api/sessions/[code]`, search, start page | The `SessionState` JSON (current song, queue, and the last 50 sung), or null |
 | `add_item(...)` | `POST .../queue` | a result code |
 | `remove_item(code, item_id, host_hash, guest_id)` | `DELETE .../queue/[id]` | a result code |
 | `move_item(code, host_hash, item_id, after_id)` | `PATCH .../queue/[id]` | a result code |
