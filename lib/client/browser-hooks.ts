@@ -94,6 +94,8 @@ export function useExpiringState<T>(ms: number): [T | null, (value: T | null) =>
 export const STORAGE_KEYS = {
   /** Guest's singer name. */
   name: "karaoke:name",
+  /** Code of the room this browser is in as a guest: every tab follows it (lib/client/use-room). */
+  room: "karaoke:room",
   /** Main screen volume, 0-100. */
   volume: "karaoke:volume",
   /** "1" when the main screen's queue panel is hidden. */

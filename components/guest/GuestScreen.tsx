@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { STORAGE_KEYS, useExpiringState, useStoredString, useTurnAlert } from "@/lib/client/browser-hooks";
 import { addSong, sendPlayback } from "@/lib/client/session-api";
+import { useRoom } from "@/lib/client/use-room";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { countSongs, formatWait } from "@/lib/domain/format";
 import { playingLabel } from "@/lib/domain/playback";
@@ -22,6 +24,7 @@ import { SongRow } from "../SongRow";
 import { AddedToast } from "./AddedToast";
 import { MySongs } from "./MySongs";
 import { NameForm } from "./NameForm";
+import { OtherRoomMessage } from "./OtherRoomMessage";
 import { RemoteBar } from "./RemoteBar";
 import { SungTonight } from "./SungTonight";
 import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
@@ -30,8 +33,30 @@ type Tab = "search" | "queue" | "mine";
 const TAB_TITLES: Record<Tab, string> = { search: "Find a song", queue: "Queue", mine: "My songs" };
 const NOTICE_MS = 6000;
 
-/** The phone view (/join/CODE): pick a name, search, add songs, and watch your place in line. */
+/**
+ * The phone view (/join/CODE). A browser is in one room at a time (lib/client/use-room):
+ * a tab on another room's link asks first, and loads nothing of this room until then,
+ * since loading it counts as joining.
+ */
 export function GuestScreen({ code }: { code: string }) {
+  const room = useRoom(code);
+  const router = useRouter();
+  if (room.status.kind === "checking") return <SessionLoadingMessage status="loading" />;
+  if (room.status.kind === "elsewhere") return <OtherRoomMessage room={room.status.room} code={code} onSwitch={room.switchHere} />;
+  return (
+    <GuestRoom
+      code={code}
+      onEnded={room.ended}
+      onLeave={() => {
+        room.leave();
+        router.push("/");
+      }}
+    />
+  );
+}
+
+/** Pick a name, search, add songs, and watch your place in line. */
+function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => void; onLeave: () => void }) {
   const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
   const { state, status, reconnecting, refresh, remove, move } = useSessionState(code, setNotice);
   const [name, setName] = useStoredString(STORAGE_KEYS.name);
@@ -75,6 +100,11 @@ export function GuestScreen({ code }: { code: string }) {
     [code, name, onAdded, setNotice],
   );
 
+  const isOver = status === "archived" || status === "not_found";
+  useEffect(() => {
+    if (isOver) onEnded();
+  }, [isOver, onEnded]);
+
   if (status === "archived") {
     return (
       <CenteredMessage title="This session has ended">
@@ -101,6 +131,7 @@ export function GuestScreen({ code }: { code: string }) {
           setEditingName(false);
         }}
         onCancel={name ? () => setEditingName(false) : undefined}
+        onLeave={name ? onLeave : undefined}
       />
     );
   }

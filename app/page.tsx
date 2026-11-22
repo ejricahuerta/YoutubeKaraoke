@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import Link from "next/link";
+import { BackToRoom } from "@/components/BackToRoom";
 import { Credit } from "@/components/Credit";
 import { Logo } from "@/components/Logo";
 import { startErrorMessage } from "@/lib/domain/messages";
@@ -30,6 +31,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-[70rem] flex-col gap-12 px-6 py-8">
+      <BackToRoom />
       <header><Logo mark="h-10 w-10" word="text-[1.625rem]" /></header>
 
       <div className="flex flex-1 flex-wrap items-center gap-x-16 gap-y-12">

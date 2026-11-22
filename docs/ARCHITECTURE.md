@@ -157,6 +157,9 @@ There are no accounts ([0004](adr/0004-anonymous-cookie-identity.md)).
   which queued songs are "mine" and may be removed by that browser.
 - **Singer name**: typed on the phone, kept in localStorage, sent with each add. It
   is a label, not an identity.
+- **Room**: a guest's browser is in one room at a time, kept in localStorage next to the
+  name, so all its tabs share both. A tab on another room's link asks before switching;
+  the start page sends the browser back to its room ([0017](adr/0017-one-room-per-browser.md)).
 
 Phones are always guests: the server sends a phone that opens a host URL to the
 guest view ([0007](adr/0007-phones-are-guests.md)). The exception is the **remote**:
