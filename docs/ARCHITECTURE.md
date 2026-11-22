@@ -63,7 +63,7 @@ app/                    Routes only: pages and API route handlers
   api/search            GET   search YouTube (needs a live session code)
   api/csp-report        POST  browsers report what the Content-Security-Policy would block
   api/sessions          POST  start a session
-  api/sessions/[code]   GET   session state, DELETE end it (host)
+  api/sessions/[code]   GET   session state, PATCH settings (host), DELETE end it (host)
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
     queue/[id]          DELETE remove, PATCH move        (PATCH: host)
@@ -124,10 +124,11 @@ Two tables in the `karaoke` schema:
   (with `played_at` set when it finishes),
   a floating-point `position` for ordering, the singer's name, the adder's guest id, and
   `singer`, who takes turns (`guest:<id>`, or `name:<name>` for songs the main screen adds).
-  `add_item` places each new song by turns (ADR 0016); `move_item` can still put it anywhere.
+  With 3 or more singers, `add_item` places each new song by turns (ADR 0016), unless the
+  session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The seven public functions are the whole API of the database:
+policies. The eight public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -137,6 +138,7 @@ policies. The seven public functions are the whole API of the database:
 | `remove_item(code, item_id, host_hash, guest_id)` | `DELETE .../queue/[id]` | a result code |
 | `move_item(code, host_hash, item_id, after_id, guest_id)` | `PATCH .../queue/[id]` | a result code |
 | `playback(code, host_hash, action, expected_item_id, guest_id)` | `POST .../playback` | a result code |
+| `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
 
 Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`, `guest_limit`,

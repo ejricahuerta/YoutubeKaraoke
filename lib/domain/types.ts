@@ -24,6 +24,8 @@ export type SessionState = {
   isHost: boolean;
   /** The browser asking was the first guest to join, so it may control playback and the queue (migration 0010). */
   isRemote: boolean;
+  /** Once 3 or more people have songs on the list, each sings once per round; the main screen can switch it off (migration 0011). */
+  takeTurns: boolean;
   current: QueueItem | null;
   queue: QueueItem[];
   /** Finished songs, newest first, at most 50. Empty for an archived session. */

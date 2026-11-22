@@ -95,31 +95,36 @@ begin
     'no two waiting songs ever share a position';
 end $$;
 
--- Singers take turns (migration 0011): a new song goes after the last song of its singer's
--- round, so one keen guest cannot make everyone else wait.
+-- Singers take turns (migration 0011), once 3 or more people have songs on the list: a new
+-- song goes after the last song of its singer's round, so one keen guest cannot make
+-- everyone else wait. The host can switch it off.
 do $$
 begin
   assert karaoke.create_session('TURN22', 'host-hash');
-  -- The example from issue #21.
+  assert (karaoke.get_state('TURN22', null, null)->>'takeTurns')::boolean, 'taking turns is on for a new session';
+
+  -- The example from issue #21. With one or two people there is nobody to keep waiting.
   assert pg_temp.add('TURN22', 'ana', 'Ana1') = 'ok';
   assert pg_temp.add('TURN22', 'ana', 'Ana2') = 'ok';
   assert pg_temp.add('TURN22', 'ana', 'Ana3') = 'ok';
   assert pg_temp.add('TURN22', 'ben', 'Ben1') = 'ok';
-  assert pg_temp.add('TURN22', 'cy', 'Cy1') = 'ok';
-  assert pg_temp.add('TURN22', 'ben', 'Ben2') = 'ok';
   assert karaoke.get_state('TURN22', null, null)->'current'->>'title' = 'Ana1', 'the first song still starts right away';
+  assert pg_temp.queue_titles('TURN22') = 'Ana2,Ana3,Ben1', 'with two people, songs wait in the order they were added';
+  -- The third person arrives: the waiting songs are put in turns, and new ones fit in.
+  assert pg_temp.add('TURN22', 'cy', 'Cy1') = 'ok';
+  assert pg_temp.queue_titles('TURN22') = 'Ben1,Cy1,Ana2,Ana3', 'with three people, the list is put in turns';
+  assert pg_temp.add('TURN22', 'ben', 'Ben2') = 'ok';
   assert pg_temp.queue_titles('TURN22') = 'Ben1,Cy1,Ana2,Ben2,Ana3', 'one song per singer per round';
 
   -- A newcomer's first song goes ahead of everyone's second.
   assert pg_temp.add('TURN22', 'dee', 'Dee1') = 'ok';
   assert pg_temp.queue_titles('TURN22') = 'Ben1,Cy1,Dee1,Ana2,Ben2,Ana3';
 
-  -- The singer on stage has used this round's turn: Cy's next song waits for round 2.
+  -- The singer on stage has used this round's turn.
   assert karaoke.playback('TURN22', 'host-hash', 'next', pg_temp.item_id('TURN22', 'Ana1')) = 'ok';
   assert karaoke.get_state('TURN22', null, null)->'current'->>'title' = 'Ben1';
   assert pg_temp.add('TURN22', 'ben', 'Ben3') = 'ok';
   assert pg_temp.queue_titles('TURN22') = 'Cy1,Dee1,Ana2,Ben2,Ana3,Ben3', 'Ben is singing, so Ben3 is his third round';
-
   assert pg_temp.add('TURN22', 'ana', 'Ana4') = 'ok';
   assert pg_temp.queue_titles('TURN22') = 'Cy1,Dee1,Ana2,Ben2,Ana3,Ben3,Ana4';
 
@@ -140,6 +145,20 @@ begin
   -- The main screen and the remote can still put any song anywhere; new songs fit around that.
   assert karaoke.move_item('TURN22', 'host-hash', pg_temp.item_id('TURN22', 'Ana4'), null) = 'ok';
   assert pg_temp.queue_titles('TURN22') = 'Ana4,Cy1,Dee1,Ana2,Eve1,Fay1,Ben2,Ana3,Eve2,Cy2,Ben3';
+
+  -- The host can switch it off: new songs go to the end, and nothing else moves.
+  assert karaoke.set_take_turns('TURN22', null, false) = 'forbidden', 'only the main screen changes the setting';
+  assert karaoke.set_take_turns('TURN22', 'wrong', false) = 'forbidden';
+  assert karaoke.set_take_turns('TURN22', 'host-hash', false) = 'ok';
+  assert not (karaoke.get_state('TURN22', null, null)->>'takeTurns')::boolean;
+  assert pg_temp.add('TURN22', 'dee', 'Dee2') = 'ok';
+  assert pg_temp.queue_titles('TURN22') = 'Ana4,Cy1,Dee1,Ana2,Eve1,Fay1,Ben2,Ana3,Eve2,Cy2,Ben3,Dee2', 'off: first come, first served';
+
+  -- Switching it back on puts the whole list in turns again, in place of any manual order.
+  assert karaoke.set_take_turns('TURN22', 'host-hash', true) = 'ok';
+  assert pg_temp.queue_titles('TURN22') = 'Ana4,Cy1,Dee1,Eve1,Fay1,Ana2,Ben2,Eve2,Cy2,Dee2,Ana3,Ben3',
+    'on again: everyone''s first round, then second, keeping the order within each round';
+  assert karaoke.set_take_turns('TURN22', 'host-hash', true) = 'ok', 'switching on when already on is harmless';
 end $$;
 
 -- The queue is capped at 200 waiting songs.

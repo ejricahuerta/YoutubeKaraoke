@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
-import { endSession, sendPlayback, type MutationOutcome } from "@/lib/client/session-api";
+import { endSession, sendPlayback, setTakeTurns, type MutationOutcome } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatWait } from "@/lib/domain/format";
 import { failureMessage, isFailure } from "@/lib/domain/messages";
@@ -19,6 +19,7 @@ import { HostLobby } from "./HostLobby";
 import { JoinCard, JoinCorner } from "./JoinCard";
 import { Player, savedPosition, type PlayerHandle, type Progress } from "./Player";
 import { SingerIntro } from "./SingerIntro";
+import { TakeTurnsSwitch } from "./TakeTurnsSwitch";
 import { OVERLINE } from "./styles";
 import { SeekBar, TransportControls } from "./TransportControls";
 import { UpNextBanner, UpNextList } from "./UpNext";
@@ -144,6 +145,11 @@ export function HostScreen({ code }: { code: string }) {
     refresh();
   };
 
+  const onTakeTurns = async (on: boolean) => {
+    reportIfFailed(await setTakeTurns(code, on), "Couldn't change taking turns. Try again.");
+    refresh();
+  };
+
   // A sleeping screen stops polling, and fifteen minutes of that ends the session.
   useWakeLock(!!state?.isHost);
 
@@ -209,11 +215,13 @@ export function HostScreen({ code }: { code: string }) {
           {reconnecting ? (
             <span role="status" className="rounded-full bg-notice-ground px-5 py-2 text-[1.25rem] font-semibold text-notice">Reconnecting…</span>
           ) : null}
+          <span className="ml-auto" />
+          {isHost ? <TakeTurnsSwitch on={state.takeTurns} onChange={onTakeTurns} /> : null}
           {isHost ? (
             <button
               type="button"
               onClick={onEndSession}
-              className={`ml-auto h-14 rounded-full px-7 text-[1.375rem] font-semibold transition active:scale-[0.97] ${
+              className={`h-14 rounded-full px-7 text-[1.375rem] font-semibold transition active:scale-[0.97] ${
                 endArmed ? "bg-encore text-on-encore hover:bg-encore-hover" : "text-ink-muted hover:bg-stage-200 hover:text-ink"
               }`}
             >
@@ -225,7 +233,7 @@ export function HostScreen({ code }: { code: string }) {
             aria-expanded={showQueue}
             aria-controls="queue-panel"
             onClick={() => setQueueHidden(showQueue ? "1" : null)}
-            className={`${isHost ? "" : "ml-auto"} h-14 rounded-full bg-stage-200 px-7 text-[1.375rem] font-semibold transition hover:bg-stage-300 active:scale-[0.97]`}
+            className={`h-14 rounded-full bg-stage-200 px-7 text-[1.375rem] font-semibold transition hover:bg-stage-300 active:scale-[0.97]`}
           >
             {showQueue ? "Hide queue" : `Show queue (${queue.length})`}
           </button>

@@ -3,7 +3,7 @@
 export const SINGER_COLOR_COUNT = 8;
 /** Songs one guest may have waiting at once. The database enforces it in add_item (migrations 0006, 0008, 0009). */
 export const MAX_WAITING_SONGS = 3;
-/** The waiting-songs limit applies only once this many people have songs on the list (migration 0008). */
+/** The waiting-songs limit, and taking turns, apply only once this many people have songs on the list (migrations 0008, 0011). */
 export const PEOPLE_BEFORE_SONG_LIMIT = 3;
 
 /** Matches the cut-off in the database's add_item function. */

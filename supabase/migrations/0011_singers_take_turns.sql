@@ -1,16 +1,23 @@
--- Singers take turns (issue #21).
+-- Singers take turns (issue #21), once 3 or more people have songs on the list.
 --
 -- Songs used to play strictly in the order they were added, so one keen guest could
--- queue ten songs and keep everyone else waiting. Now a new song goes after the last
--- waiting song of its singer's round: a singer's first waiting or current song is
--- round 1, their second round 2, and so on. Each singer gets one song per round:
+-- queue ten songs and keep everyone else waiting. Now, with 3 or more singers waiting or
+-- on stage, each gets one song per round: a singer's waiting or current songs are
+-- rounds 1, 2, 3, ... in queue order, and a new song goes after the last waiting song
+-- of its round.
 --
 --   added:   Ana1 Ana2 Ana3 Ben1 Cy1 Ben2
 --   played:  Ana1 Ben1 Cy1 Ana2 Ben2 Ana3
 --
--- Only waiting and current songs count, not ones sung earlier tonight. Songs keep an
--- explicit position, so the main screen and the remote can still move any song
--- anywhere; later songs fit around what they did.
+-- With 1 or 2 people there is nobody to keep waiting, so songs go to the end as before.
+-- When the third person's song arrives (Cy1 above), the whole waiting list is put in
+-- turns once, so songs queued before do not keep their head start; after that each new
+-- song is placed in its turn. Only waiting and current songs count, not ones sung
+-- earlier tonight. Songs keep an explicit position, so the main screen and the remote
+-- can still move any song anywhere, and later songs fit around that.
+--
+-- It is on for every session; the main screen can switch it off (set_take_turns), and
+-- switching it back on puts the waiting list in turns again.
 --
 -- Who the singer is: a guest's phone (its guest id), whatever name it types, so renaming
 -- does not buy a new first turn. The main screen adds for people without a phone under
@@ -20,6 +27,8 @@
 -- add_item. The host-only playback and move_item signatures that 0010 kept for the app
 -- deployed then are dropped (the live app uses the ones with p_guest_id), and
 -- p_guest_id now defaults to null, so a call without it is a call without a guest.
+
+alter table karaoke.sessions add column take_turns boolean not null default true;
 
 alter table karaoke.queue_items add column singer text;
 update karaoke.queue_items set singer = 'guest:' || guest_id where singer is null;
@@ -74,6 +83,46 @@ begin
 end $$;
 revoke execute on function karaoke.place_item(uuid, uuid, uuid) from public, anon, authenticated;
 
+-- Internal: each waiting song with its round. A song's round is its place among its
+-- singer's waiting songs, plus one if that singer is on stage now.
+create function karaoke.waiting_rounds(p_session_id uuid)
+returns table (item_id uuid, item_position double precision, round bigint)
+language sql stable security definer set search_path = '' as $$
+  select q.id, q.position,
+         row_number() over (partition by q.singer order by q.position)
+           + case when q.singer = c.singer then 1 else 0 end
+  from karaoke.queue_items q
+  join karaoke.sessions s on s.id = q.session_id
+  left join karaoke.queue_items c on c.id = s.current_item_id
+  where q.session_id = p_session_id and q.status = 'queued'
+$$;
+revoke execute on function karaoke.waiting_rounds(uuid) from public, anon, authenticated;
+
+-- Internal: whether turns apply, i.e. the session takes turns and at least 3 different
+-- singers have a song waiting or on stage.
+create function karaoke.turns_apply(p_session_id uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select s.take_turns and (
+    select count(distinct q.singer) from karaoke.queue_items q
+    where q.session_id = s.id and q.status in ('queued', 'playing')
+  ) >= 3  -- PEOPLE_BEFORE_SONG_LIMIT in lib/domain/singers.ts, as for the song limit
+  from karaoke.sessions s where s.id = p_session_id
+$$;
+revoke execute on function karaoke.turns_apply(uuid) from public, anon, authenticated;
+
+-- Internal: puts the whole waiting list in turns: round 1 first, then round 2, and so on,
+-- keeping the current order within a round.
+create function karaoke.arrange_turns(p_session_id uuid) returns void
+language sql security definer set search_path = '' as $$
+  update karaoke.queue_items q set position = r.place
+  from (
+    select item_id, row_number() over (order by round, item_position) as place
+    from karaoke.waiting_rounds(p_session_id)
+  ) r
+  where q.id = r.item_id
+$$;
+revoke execute on function karaoke.arrange_turns(uuid) from public, anon, authenticated;
+
 create or replace function karaoke.add_item(
   p_code text, p_guest_id text, p_name text, p_video_id text, p_title text,
   p_channel text, p_thumbnail_url text, p_duration_seconds integer, p_host_hash text default null
@@ -87,7 +136,8 @@ declare
   v_is_host boolean;
   v_name text;
   v_singer text;
-  v_round integer;
+  v_round bigint;
+  v_turns_before boolean;
   v_item_id uuid;
   v_after_id uuid;
 begin
@@ -120,9 +170,7 @@ begin
 
   v_name := left(coalesce(nullif(btrim(p_name), ''), 'Guest'), 40);
   v_singer := case when v_is_host then 'name:' || lower(v_name) else 'guest:' || p_guest_id end;
-  -- This song's round: one more than the singer's songs already waiting or on stage.
-  select count(*) + 1 into v_round from karaoke.queue_items
-    where session_id = v_session.id and status in ('queued', 'playing') and singer = v_singer;
+  v_turns_before := karaoke.turns_apply(v_session.id);
 
   insert into karaoke.queue_items
     (session_id, video_id, title, channel, thumbnail_url, duration_seconds, added_by_name, guest_id, singer, position)
@@ -133,21 +181,20 @@ begin
      (select coalesce(max(position), 0) + 1 from karaoke.queue_items where session_id = v_session.id))
   returning id into v_item_id;
 
-  -- It goes after the last waiting song whose round is no later than its own. A waiting
-  -- song's round is its place among its singer's waiting songs, plus one if that singer
-  -- is on stage now. With none, it goes first.
-  select r.id into v_after_id from (
-    select q.id, q.position,
-           row_number() over (partition by q.singer order by q.position)
-             + case when q.singer = c.singer then 1 else 0 end as round
-    from karaoke.queue_items q
-    left join karaoke.queue_items c on c.id = v_session.current_item_id
-    where q.session_id = v_session.id and q.status = 'queued' and q.id <> v_item_id
-  ) r
-  where r.round <= v_round
-  order by r.position desc
-  limit 1;
-  perform karaoke.place_item(v_session.id, v_item_id, v_after_id);
+  -- Without turns the song stays at the end. When this song brings in the third singer,
+  -- the whole list is put in turns; otherwise it goes after the last waiting song whose
+  -- round is no later than its own (first, when there is none).
+  if karaoke.turns_apply(v_session.id) then
+    if not v_turns_before then
+      perform karaoke.arrange_turns(v_session.id);
+    else
+      select round into v_round from karaoke.waiting_rounds(v_session.id) where item_id = v_item_id;
+      select item_id into v_after_id from karaoke.waiting_rounds(v_session.id)
+        where item_id <> v_item_id and round <= v_round
+        order by item_position desc limit 1;
+      perform karaoke.place_item(v_session.id, v_item_id, v_after_id);
+    end if;
+  end if;
 
   perform karaoke.ensure_current(v_session.id);
   update karaoke.sessions set last_active_at = now() where id = v_session.id;
@@ -219,4 +266,113 @@ begin
   end if;
   perform karaoke.notify(p_code);
   return 'ok';
+end $$;
+
+-- The main screen switches taking turns on or off. Switching it on puts the waiting list
+-- in turns (when 3 or more people are singing); switching it off leaves the order as it is.
+create function karaoke.set_take_turns(p_code text, p_host_hash text, p_on boolean) returns text
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_session karaoke.sessions;
+begin
+  select * into v_session from karaoke.sessions where code = p_code for update;
+  if not found then
+    return 'not_found';
+  end if;
+  if karaoke.check_archived(v_session.id) then
+    return 'archived';
+  end if;
+  if p_host_hash is null or v_session.host_token_hash <> p_host_hash then
+    return 'forbidden';
+  end if;
+  if p_on is null then
+    return 'invalid';
+  end if;
+  if p_on is distinct from v_session.take_turns then
+    update karaoke.sessions set take_turns = p_on, last_active_at = now() where id = v_session.id;
+    if p_on and karaoke.turns_apply(v_session.id) then
+      perform karaoke.arrange_turns(v_session.id);
+    end if;
+    perform karaoke.notify(p_code);
+  end if;
+  return 'ok';
+end $$;
+revoke execute on function karaoke.set_take_turns(text, text, boolean) from public, anon, authenticated;
+grant execute on function karaoke.set_take_turns(text, text, boolean) to anon, authenticated, service_role;
+
+create or replace function karaoke.get_state(p_code text, p_host_hash text, p_guest_id text) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_session karaoke.sessions;
+  v_is_host boolean;
+  v_archived boolean;
+begin
+  select * into v_session from karaoke.sessions where code = p_code;
+  if not found then
+    return null;
+  end if;
+  v_is_host := p_host_hash is not null and v_session.host_token_hash = p_host_hash;
+  v_archived := karaoke.check_archived(v_session.id);
+  if v_archived then
+    return jsonb_build_object(
+      'code', v_session.code, 'archived', true, 'isPlaying', false, 'isHost', v_is_host,
+      'current', null, 'queue', '[]'::jsonb, 'played', '[]'::jsonb,
+      'hostAwaySeconds', null, 'closesInSeconds', null, 'isRemote', false,
+      'takeTurns', v_session.take_turns);
+  end if;
+  -- Heartbeat: an open main screen polls this, keeps its session alive and counts as seen.
+  -- Written at most once a minute; host_seen_at is checked too, because guests adding
+  -- songs keep last_active_at fresh while the main screen is closed.
+  if v_is_host and (v_session.last_active_at < now() - interval '1 minute'
+                    or v_session.host_seen_at < now() - interval '1 minute') then
+    update karaoke.sessions set last_active_at = now(), host_seen_at = now() where id = v_session.id
+      returning * into v_session;
+  end if;
+  -- The first guest to join becomes the remote. The main screen's own browser never does,
+  -- and a call without a guest id (the search route) is not joining.
+  if not v_is_host and coalesce(p_guest_id, '') <> '' and v_session.remote_guest_id is null then
+    update karaoke.sessions set remote_guest_id = p_guest_id
+      where id = v_session.id and remote_guest_id is null;
+    select remote_guest_id into v_session.remote_guest_id from karaoke.sessions where id = v_session.id;
+  end if;
+  return jsonb_build_object(
+    'code', v_session.code,
+    'archived', false,
+    'isPlaying', v_session.is_playing,
+    'isHost', v_is_host,
+    'takeTurns', v_session.take_turns,
+    'isRemote', not v_is_host and v_session.remote_guest_id is not distinct from p_guest_id and p_guest_id is not null,
+    -- How long since the main screen last polled, and how long until the session closes
+    -- if nothing happens. Guests use these to warn that the main screen has gone.
+    'hostAwaySeconds', floor(extract(epoch from now() - v_session.host_seen_at))::int,
+    'closesInSeconds', greatest(0, floor(extract(epoch from v_session.last_active_at + karaoke.idle_limit() - now())))::int,
+    'current', (
+      select jsonb_build_object(
+        'id', i.id, 'videoId', i.video_id, 'title', i.title, 'channel', i.channel,
+        'thumbnailUrl', i.thumbnail_url, 'durationSeconds', i.duration_seconds,
+        'addedBy', i.added_by_name, 'mine', i.guest_id = p_guest_id)
+      from karaoke.queue_items i where i.id = v_session.current_item_id
+    ),
+    'queue', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', i.id, 'videoId', i.video_id, 'title', i.title, 'channel', i.channel,
+        'thumbnailUrl', i.thumbnail_url, 'durationSeconds', i.duration_seconds,
+        'addedBy', i.added_by_name, 'mine', i.guest_id = p_guest_id) order by i.position)
+      from karaoke.queue_items i
+      where i.session_id = v_session.id and i.status = 'queued'
+    ), '[]'::jsonb),
+    -- Finished songs, newest first. Capped so the state stays small on a long night.
+    'played', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', p.id, 'videoId', p.video_id, 'title', p.title, 'channel', p.channel,
+        'thumbnailUrl', p.thumbnail_url, 'durationSeconds', p.duration_seconds,
+        'addedBy', p.added_by_name, 'mine', p.guest_id = p_guest_id) order by p.played_at desc nulls last, p.position desc)
+      from (
+        select * from karaoke.queue_items
+        where session_id = v_session.id and status = 'played'
+        order by played_at desc nulls last, position desc
+        limit 50
+      ) p
+    ), '[]'::jsonb)
+  );
 end $$;
