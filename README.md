@@ -101,6 +101,7 @@ it, a broken keyless search means no search. See `docs/adr/0013`.
 | `npm test` / `npm run test:watch` | Unit tests (Vitest) |
 | `npm run test:db` | Database function tests (needs a local Postgres, below) |
 | `npm run test:e2e` | Browser tests for the screens (first time: `npx playwright install chromium`) |
+| `npm run test:integration` | The built app against a real database and API, in Docker (below) |
 
 ### Database tests
 
@@ -112,6 +113,15 @@ it only accepts a local server:
 docker run --rm -d --name youoke-test-db -e POSTGRES_HOST_AUTH_METHOD=trust -p 127.0.0.1:5432:5432 postgres:16
 TEST_DATABASE_URL=postgres://postgres@localhost:5432/postgres npm run test:db
 ```
+
+### Integration tests
+
+`npm run test:integration` runs the app the way production does, against a real
+database: Postgres, PostgREST (what Supabase serves the database with) and an nginx
+proxy start in Docker (`docker/compose.test.yml`), the migrations are applied with the
+production runner, and `tests/integration` drives the built app over HTTP as a main
+screen and several phones. It needs Docker running and ports 3230, 54321 and 54329
+free, and cleans up after itself.
 
 CI runs all of the above on every pull request.
 

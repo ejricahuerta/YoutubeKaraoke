@@ -71,3 +71,16 @@ jobs:
       - run: npm run test:db
         env:
           TEST_DATABASE_URL: postgres://postgres@localhost:5432/postgres
+
+  integration:
+    name: App against a real database
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Postgres, PostgREST and nginx in Docker (docker/compose.test.yml); see docs/adr/0018.
+      - run: npm run test:integration

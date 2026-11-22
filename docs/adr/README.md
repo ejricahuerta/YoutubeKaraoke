@@ -28,6 +28,7 @@ at that point. Later records are written when the decision is made.
 | [0015](0015-migrate-on-production-build.md) | Production builds apply pending migrations first | Accepted |
 | [0016](0016-singers-take-turns.md) | Singers take turns, one song per round | Accepted |
 | [0017](0017-one-room-per-browser.md) | One room per browser, shared by its tabs | Accepted |
+| [0018](0018-integration-tests-in-docker.md) | Test the built app against a real database in Docker | Accepted |
 
 ## Template
 
