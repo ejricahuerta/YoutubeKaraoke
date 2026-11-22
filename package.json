@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:db": "node scripts/dev-db.mjs",
     "build": "node scripts/migrate.mts --on-deploy && next build",
     "start": "next start",
     "lint": "eslint .",

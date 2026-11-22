@@ -80,6 +80,22 @@ More detail, and the reasons behind each of these choices:
    be able to reach the same address, so for a real party deploy it (below) or
    use your computer's LAN address.
 
+### Local database (Docker)
+
+To develop without a Supabase project, run the database in Docker instead of steps 1 to 3:
+
+```bash
+npm install
+npm run dev:db
+npm run dev
+```
+
+`npm run dev:db` starts Postgres, PostgREST and a `/rest/v1` proxy
+(`docker/compose.dev.yml`, ports 54429 and 54421), applies pending migrations and
+writes `.env.local` to point at it. Data is kept between runs; `npm run dev:db -- down`
+stops it and `npm run dev:db -- reset` deletes its data. It has no Realtime, so screens
+update through the 15 s poll and the browser logs a failed websocket.
+
 ## Deploy
 
 Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL` and
@@ -94,6 +110,7 @@ it, a broken keyless search means no search. See `docs/adr/0013`.
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Development server |
+| `npm run dev:db` | Local database in Docker for `npm run dev` (above) |
 | `npm run build` / `npm start` | Production build and server |
 | `npm run check` | Lint, types and unit tests: run before pushing |
 | `npm run lint` | ESLint, including the layer rules in `docs/ARCHITECTURE.md` |
