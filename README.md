@@ -85,6 +85,10 @@ More detail, and the reasons behind each of these choices:
 Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL` and
 `NEXT_PUBLIC_SUPABASE_ANON_KEY` in the project's environment variables.
 
+Optionally also set `YOUTUBE_API_KEY` (a YouTube Data API v3 key from Google Cloud).
+Search then falls back to YouTube's official API when the keyless search breaks; without
+it, a broken keyless search means no search. See `docs/adr/0013`.
+
 ## Scripts
 
 | Command | What it does |

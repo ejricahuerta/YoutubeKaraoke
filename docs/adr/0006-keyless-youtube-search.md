@@ -36,6 +36,10 @@ The search route only answers callers who give the code of a live session.
 - Each search makes up to 20 extra oEmbed requests (cached per video afterwards).
 - The library is large; it is kept out of the bundle with `serverExternalPackages`.
 
+## Update, 2026-11-22
+The fallback named below now exists: see 0013. With `YOUTUBE_API_KEY` set, a failed
+keyless search is retried through the official Data API.
+
 ## Revisit when
 - Search breaks or is throttled often enough to spoil sessions. The fallback is
   the official Data API behind the same `searchVideos` signature.
