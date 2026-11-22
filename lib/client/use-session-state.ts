@@ -40,8 +40,8 @@ export function useSessionState(code: string, onActionFailed?: (message: string)
       if (res.status === 404) return setStatus("not_found");
       if (!res.ok) throw new Error(String(res.status));
       const body = (await res.json()) as SessionState;
-      // A database without migration 0005 sends no "played"; treat that as nothing sung yet.
-      const next = { ...body, played: body.played ?? [] };
+      // A database without migrations 0005 and 0007 leaves these out: nothing sung yet, nothing to warn about.
+      const next = { ...body, played: body.played ?? [], hostAwaySeconds: body.hostAwaySeconds ?? null, closesInSeconds: body.closesInSeconds ?? null };
       setFailures(0);
       setState(next);
       setStatus(next.archived ? "archived" : "ready");

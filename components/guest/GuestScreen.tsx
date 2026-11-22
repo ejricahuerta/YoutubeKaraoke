@@ -7,7 +7,7 @@ import { addSong } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { countSongs, formatWait } from "@/lib/domain/format";
 import { playingLabel } from "@/lib/domain/playback";
-import { failureMessage } from "@/lib/domain/messages";
+import { failureMessage, mainScreenGoneNotice } from "@/lib/domain/messages";
 import { guestLineup, songOf, turnAlertKey, waitSeconds } from "@/lib/domain/queue";
 import type { QueueItem, SearchResult } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
@@ -93,6 +93,7 @@ export function GuestScreen({ code }: { code: string }) {
 
   const { current, queue } = state;
   const { onNow, queued, next, songCount } = lineup;
+  const awayNotice = mainScreenGoneNotice(state);
   const wait = (index: number) => formatWait(waitSeconds(current, queue, index));
   const turnBanner = <TurnBanner onNow={onNow} next={next} hasCurrent={!!current} />;
 
@@ -116,6 +117,10 @@ export function GuestScreen({ code }: { code: string }) {
           <span className="truncate">{name}</span>
         </button>
       </header>
+
+      {awayNotice ? (
+        <p role="status" className="mx-4 mb-2 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{awayNotice}</p>
+      ) : null}
 
       {notice ? (
         <p role="alert" className="animate-rise mx-4 mb-2 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{notice}</p>

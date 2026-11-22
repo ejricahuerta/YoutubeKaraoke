@@ -54,6 +54,49 @@ begin
   assert not exists (select 1 from karaoke.sessions where code = 'OLD222');
 end $$;
 
+-- Guests can tell when the main screen has gone, and how long before the session closes.
+do $$
+declare
+  v_state jsonb;
+begin
+  assert karaoke.create_session('AWAY22', 'host-hash');
+  v_state := karaoke.get_state('AWAY22', null, 'ana');
+  assert (v_state->>'hostAwaySeconds')::int < 5, 'a new session counts its host as just seen';
+  assert (v_state->>'closesInSeconds')::int between 895 and 900, 'and closes 15 minutes after the last activity';
+
+  -- The main screen closes; guests keep looking.
+  update karaoke.sessions set host_seen_at = now() - interval '5 minutes', last_active_at = now() - interval '5 minutes' where code = 'AWAY22';
+  v_state := karaoke.get_state('AWAY22', null, 'ana');
+  assert (v_state->>'hostAwaySeconds')::int between 299 and 301, 'guests see how long the main screen has been gone';
+  assert (v_state->>'closesInSeconds')::int between 599 and 601, 'and how long until the session closes';
+
+  -- A guest adding a song keeps the session alive, but does not bring the main screen back.
+  perform karaoke.add_item('AWAY22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
+  v_state := karaoke.get_state('AWAY22', null, 'ana');
+  assert (v_state->>'hostAwaySeconds')::int >= 299, 'adding a song is not the main screen';
+  assert (v_state->>'closesInSeconds')::int >= 895, 'but it does put off closing';
+
+  -- The main screen comes back: its poll counts as seen at once, even though the session was recently active.
+  perform karaoke.get_state('AWAY22', 'host-hash', null);
+  v_state := karaoke.get_state('AWAY22', null, 'ana');
+  assert (v_state->>'hostAwaySeconds')::int < 5, 'the host poll marks the main screen as seen';
+
+  -- Ended sessions report nothing to count down.
+  perform karaoke.end_session('AWAY22', 'host-hash');
+  v_state := karaoke.get_state('AWAY22', null, 'ana');
+  assert v_state->'hostAwaySeconds' = 'null'::jsonb and v_state->'closesInSeconds' = 'null'::jsonb;
+end $$;
+
+-- The 15-minute window is written once.
+do $$
+begin
+  assert karaoke.idle_limit() = interval '15 minutes';
+  assert not exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'karaoke' and p.proname <> 'idle_limit' and p.prosrc like '%15 minutes%'
+  ), 'no other function writes 15 minutes itself';
+end $$;
+
 -- The host can end a session on purpose, at once, for everyone.
 do $$
 declare

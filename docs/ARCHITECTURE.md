@@ -117,7 +117,7 @@ Record: [0011 layered lib](adr/0011-layered-lib.md).
 Two tables in the `karaoke` schema:
 
 - `sessions`: `code`, `host_token_hash`, `current_item_id`, `is_playing`,
-  `last_active_at`, `archived_at`.
+  `last_active_at`, `host_seen_at` (last poll from the main screen), `archived_at`.
 - `queue_items`: one row per added song with `status` `queued` → `playing` → `played`
   (with `played_at` set when it finishes),
   a floating-point `position` for ordering, the singer's name and the adder's guest id.
@@ -184,7 +184,7 @@ the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 | Waiting songs per guest | 3 | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Singer name | 40 chars | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Search query | 120 chars | `lib/domain/video.ts` |
-| Inactivity before archive | 15 min | `check_archived`, `cleanup` |
+| Inactivity before archive | 15 min | `idle_limit()` (used by `check_archived`, `cleanup`, `get_state`) |
 | Archive kept for | 24 h | `cleanup` |
 | Requests per minute | search 40/IP, start 10/IP, add 30/guest | `lib/server/rate-limit.ts` ([0010](adr/0010-in-memory-limits-and-caches.md)) |
 

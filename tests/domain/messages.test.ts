@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { failureMessage, isFailure, startErrorMessage } from "@/lib/domain/messages";
+import { failureMessage, isFailure, mainScreenGoneNotice, startErrorMessage } from "@/lib/domain/messages";
 import { MAX_WAITING_SONGS } from "@/lib/domain/singers";
 
 describe("isFailure", () => {
@@ -42,5 +42,26 @@ describe("startErrorMessage", () => {
   it("is null for no error or one it does not know, so a crafted link shows nothing", () => {
     expect(startErrorMessage(undefined)).toBeNull();
     expect(startErrorMessage("<script>")).toBeNull();
+  });
+});
+
+describe("mainScreenGoneNotice", () => {
+  it("says nothing while the main screen is polling", () => {
+    expect(mainScreenGoneNotice({ hostAwaySeconds: 20, closesInSeconds: 880 })).toBeNull();
+    // The main screen's poll is only written once a minute, so a gap of a minute or two is normal.
+    expect(mainScreenGoneNotice({ hostAwaySeconds: 140, closesInSeconds: 800 })).toBeNull();
+  });
+
+  it("warns once the main screen has been gone a few minutes, with the time left", () => {
+    expect(mainScreenGoneNotice({ hostAwaySeconds: 300, closesInSeconds: 600 })).toBe(
+      "The main screen seems to be closed, so nothing will play. If it stays closed, this session ends in about 10 min.",
+    );
+    expect(mainScreenGoneNotice({ hostAwaySeconds: 300, closesInSeconds: 61 })).toContain("ends in about 2 min");
+    expect(mainScreenGoneNotice({ hostAwaySeconds: 900, closesInSeconds: 20 })).toContain("ends in under a minute");
+  });
+
+  it("says nothing when the database does not report it", () => {
+    expect(mainScreenGoneNotice({ hostAwaySeconds: null, closesInSeconds: null })).toBeNull();
+    expect(mainScreenGoneNotice({})).toBeNull();
   });
 });

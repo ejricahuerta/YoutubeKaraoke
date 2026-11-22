@@ -189,3 +189,16 @@ test("a guest with fewer than three songs waiting sees no limit notice", async (
   await expect(page.getByRole("searchbox")).toBeVisible();
   await expect(page.getByText(/songs waiting\. Add more/)).toHaveCount(0);
 });
+
+test("guests are warned when the main screen has been closed for a while", async ({ page }) => {
+  const api = await mockSession(page, session());
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByRole("searchbox")).toBeVisible();
+  await expect(page.getByText(/main screen seems to be closed/)).toHaveCount(0);
+
+  api.state = session({ hostAwaySeconds: 300, closesInSeconds: 600 });
+  await page.getByRole("button", { name: /Queue · 3/ }).click(); // any refetch will do; focus is one
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(page.getByRole("status").filter({ hasText: "main screen seems to be closed" })).toContainText("about 10 min");
+});
