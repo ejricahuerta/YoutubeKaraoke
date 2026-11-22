@@ -1,5 +1,5 @@
 /** Every call a screen makes to the app's API. Nothing here throws: failures come back as codes. */
-import type { ApiError, MutationResult, PlaybackAction, SearchKind, SearchResult } from "@/lib/domain/types";
+import type { ApiError, MutationResult, PlaybackAction, RecentSong, SearchKind, SearchResult } from "@/lib/domain/types";
 
 /** What a change to a session came to: the database's answer, or why there was none. */
 export type MutationOutcome = MutationResult | ApiError | "network_error";
@@ -59,5 +59,16 @@ export async function searchSongs(code: string, query: string, kind: SearchKind)
     return res.ok ? { results: data?.results ?? [] } : { error: data?.error ?? "server_error" };
   } catch {
     return { error: "network_error" };
+  }
+}
+
+/** Songs sung lately in any session, for the start page; none when they cannot be fetched. */
+export async function fetchRecentSongs(): Promise<RecentSong[]> {
+  try {
+    const res = await fetch("/api/recent-songs");
+    const data = res.ok ? await res.json().catch(() => null) : null;
+    return Array.isArray(data?.songs) ? data.songs : [];
+  } catch {
+    return [];
   }
 }

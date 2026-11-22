@@ -11,6 +11,33 @@ test("a big screen can start a session or join one by code", async ({ page }) =>
   await expect(page).toHaveURL("/join/ABC234");
 });
 
+test("songs sung lately in any session rise behind the cards, without getting in the way", async ({ page }) => {
+  await page.route(/ytimg\.com/, (route) => route.abort());
+  await page.route("**/api/recent-songs", (route) =>
+    route.fulfill({ json: { songs: [{ videoId: "video000001", title: "Valerie (Karaoke Version)" }, { videoId: "video000002", title: "Dancing Queen | Lyrics" }] } }),
+  );
+  await page.goto("/");
+  const sungLately = page.getByRole("list", { name: "Sung lately" });
+  await expect(sungLately.getByRole("listitem")).toHaveText(["Valerie", "Dancing Queen"]);
+
+  // They pass behind the join card, so typing a code and joining still work.
+  await page.getByLabel("Session code").fill("abc234");
+  await page.getByRole("button", { name: "Join" }).click();
+  await expect(page).toHaveURL("/join/ABC234");
+});
+
+test("with nothing sung lately, or no answer, the start page shows no such list", async ({ page }) => {
+  await page.route("**/api/recent-songs", (route) => route.fulfill({ json: { songs: [] } }));
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Start a session" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Sung lately" })).toHaveCount(0);
+
+  await page.route("**/api/recent-songs", (route) => route.abort());
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Start a session" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Sung lately" })).toHaveCount(0);
+});
+
 test("when a session cannot be started, the start page says so", async ({ page }) => {
   // The test server's database address is a placeholder, so starting a session really fails.
   await page.goto("/");

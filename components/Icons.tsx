@@ -43,3 +43,6 @@ export const Forward10Icon = ({ className = "h-6 w-6" }: Props) => (
 export const QueueIcon = ({ className = "h-5 w-5" }: Props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className={className}><path d="M4 6h16M4 12h16M4 18h10" /></svg>
 );
+export const NoteIcon = ({ className = "h-5 w-5" }: Props) => (
+  <svg {...base} className={className}><path d="M19 3.5v11.25a3.25 3.25 0 1 1-2-3V7.3l-7 1.56v7.9A3.25 3.25 0 1 1 8 13.76V6.3a1 1 0 0 1 .78-.98l9-2a1 1 0 0 1 1.22.98z" /></svg>
+);

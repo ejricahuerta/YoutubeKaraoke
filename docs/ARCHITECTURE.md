@@ -62,6 +62,7 @@ Records: [0001 Next.js monolith](adr/0001-nextjs-monolith.md),
 app/                    Routes only: pages and API route handlers
   api/search            GET   search YouTube (needs a live session code)
   api/csp-report        POST  browsers report what the Content-Security-Policy would block
+  api/recent-songs      GET   songs sung lately in any session, for the start page (titles from YouTube)
   api/sessions          POST  start a session
   api/sessions/[code]   GET   session state, PATCH settings (host), DELETE end it (host)
     playback            POST  play | pause | next        (host)
@@ -130,7 +131,7 @@ Two tables in the `karaoke` schema:
   session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The eight public functions are the whole API of the database:
+policies. The nine public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -142,6 +143,7 @@ policies. The eight public functions are the whole API of the database:
 | `playback(code, host_hash, action, expected_item_id, guest_id)` | `POST .../playback` | a result code |
 | `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
+| `recently_played()` | `GET /api/recent-songs` | Video ids of songs finished in the last day, in any session, newest first, at most 24 ([0019](adr/0019-recently-sung-songs-on-the-start-page.md)) |
 
 Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`, `guest_limit`,
 `archived` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
