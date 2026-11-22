@@ -43,8 +43,15 @@ Migration 0004 adds `end_session`, behind an "End session" button on the host sc
 that needs two presses. It archives the session at once and by the same means as a
 timeout, so everything above about archived sessions still holds: final, refused by
 every entry point, deleted 24 hours later. The first "Revisit when" item below is
-only half answered: there is still no warning before a session times out, and no way
-to pause one.
+only half answered: there is still no way to pause one.
+
+## Update, 2026-11-22: guests are warned
+
+Migration 0007 adds `host_seen_at`, set by the main screen's poll. `get_state` reports
+how long the main screen has been gone and how long until the session closes, and guests
+see a warning after about two and a half minutes without it. Guests adding songs still
+count as activity, so they can keep a session open while nothing plays; the warning says
+so. The 15-minute window is now written once, in `karaoke.idle_limit()`.
 
 ## Revisit when
 - Hosts lose sessions they wanted to keep (ask for pause, or a longer window).

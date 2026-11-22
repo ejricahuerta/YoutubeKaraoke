@@ -30,6 +30,8 @@ export function session(overrides: Partial<SessionState> = {}): SessionState {
     current: song(1, "Maya", "Never Gonna Give You Up (Karaoke)"),
     queue: [song(2, "Leo", "Dancing Queen (Karaoke Version)", true), song(3, "Sam", "Mr. Brightside - Karaoke"), song(4, "Ana", "Valerie")],
     played: [],
+    hostAwaySeconds: 10,
+    closesInSeconds: 890,
     ...overrides,
   };
 }

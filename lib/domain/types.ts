@@ -26,6 +26,10 @@ export type SessionState = {
   queue: QueueItem[];
   /** Finished songs, newest first, at most 50. Empty for an archived session. */
   played: QueueItem[];
+  /** Seconds since the main screen last polled; null when archived or not reported. */
+  hostAwaySeconds: number | null;
+  /** Seconds until the session closes if nothing happens; null when archived or not reported. */
+  closesInSeconds: number | null;
 };
 
 export type SearchResult = Pick<QueueItem, "videoId" | "title" | "channel" | "thumbnailUrl" | "durationSeconds">;
