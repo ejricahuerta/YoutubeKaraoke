@@ -5,6 +5,9 @@ test("a big screen can start a session or join one by code", async ({ page }) =>
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Not okay? Hit start. Kara-OK.");
   await expect(page.getByRole("button", { name: "Start a session" })).toBeVisible();
+  // No small print under the button or in the join card: the heading and intro say it all.
+  await expect(page.getByText(/Closes itself/)).toHaveCount(0);
+  await expect(page.getByText("Scan the QR code on the karaoke screen, or type its code.")).toHaveCount(0);
 
   await page.getByLabel("Session code").fill("abc234");
   await page.getByRole("button", { name: "Join" }).click();

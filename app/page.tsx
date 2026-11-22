@@ -61,7 +61,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
               <button type="submit" className="h-16 rounded-full bg-encore px-10 text-xl font-bold text-on-encore transition hover:bg-encore-hover active:scale-[0.98]">
                 Start a session
               </button>
-              <span className="text-[0.9375rem] text-ink-faint">Free. Closes itself 15 minutes after the party ends.</span>
             </form>
             <AgreementNotice action="starting a session" className="mt-4" />
             </>
@@ -96,9 +95,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
             <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-ink-muted">
               {phone ? "Session code" : "Joining a party?"}
             </h2>
-            {phone ? null : (
-              <p className="mt-3 text-[0.9375rem] leading-relaxed text-ink-muted">Scan the QR code on the karaoke screen, or type its code.</p>
-            )}
             <form action="/join" method="get" className="mt-3 flex flex-wrap gap-2">
               <input
                 name="code"
