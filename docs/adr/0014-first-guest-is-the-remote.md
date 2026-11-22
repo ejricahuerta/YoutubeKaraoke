@@ -19,6 +19,8 @@ QR code; the owner asked for something simpler.
 - Ending the session stays with the main screen. The video still plays only there; the
   main screen follows play and pause set from the phone.
 - There is one remote per session, and it does not change.
+- Separately, whoever added the song being sung may skip it, and do nothing else: no
+  pause, no queue changes. It is checked in `playback` beside `can_control`.
 
 ## Why
 - No setup and nothing to explain: the person who opens the link first, usually the

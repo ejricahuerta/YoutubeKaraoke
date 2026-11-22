@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { useCallback, useState, type ReactNode } from "react";
 import { STORAGE_KEYS, useExpiringState, useStoredString, useTurnAlert } from "@/lib/client/browser-hooks";
-import { addSong } from "@/lib/client/session-api";
+import { addSong, sendPlayback } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { countSongs, formatWait } from "@/lib/domain/format";
 import { playingLabel } from "@/lib/domain/playback";
-import { failureMessage, mainScreenGoneNotice } from "@/lib/domain/messages";
+import { failureMessage, isFailure, mainScreenGoneNotice } from "@/lib/domain/messages";
 import { guestLineup, songOf, turnAlertKey, waitSeconds } from "@/lib/domain/queue";
 import type { QueueItem, SearchResult } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
 import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
-import { MicIcon, QueueIcon, SearchIcon } from "../Icons";
+import { IconButton } from "../IconButton";
+import { MicIcon, NextIcon, QueueIcon, SearchIcon } from "../Icons";
 import { Logo } from "../Logo";
 import { QueuePanel } from "../QueuePanel";
 import { SearchPanel } from "../SearchPanel";
@@ -52,6 +53,16 @@ export function GuestScreen({ code }: { code: string }) {
       refresh();
     },
     [refresh, setJustAdded],
+  );
+
+  // Whoever added the song being sung may skip it (migration 0010). The remote has its own skip.
+  const skipOwnSong = useCallback(
+    async (itemId: string) => {
+      const outcome = await sendPlayback(code, "next", itemId);
+      if (isFailure(outcome)) setNotice(failureMessage(outcome, "Couldn't skip your song. Try again."));
+      refresh();
+    },
+    [code, refresh, setNotice],
   );
 
   const singAgain = useCallback(
@@ -145,7 +156,7 @@ export function GuestScreen({ code }: { code: string }) {
               </p>
             ) : null}
             <div className="-mx-2">
-              {current ? <NowRow current={current} playing={state.isPlaying} /> : null}
+              {current ? <NowRow current={current} playing={state.isPlaying} onSkip={state.isRemote ? undefined : skipOwnSong} /> : null}
               <QueuePanel
                 queue={queue}
                 canControl={state.isRemote}
@@ -188,6 +199,7 @@ export function GuestScreen({ code }: { code: string }) {
             </p>
             <p className="truncate text-sm font-semibold leading-5">{current.addedBy} · {displayTitle(current.title)}</p>
           </div>
+          {current.mine ? <SkipOwnSongButton onSkip={() => skipOwnSong(current.id)} /> : null}
         </div>
       ) : null}
 
@@ -213,8 +225,17 @@ export function GuestScreen({ code }: { code: string }) {
   );
 }
 
-/** The song being sung, at the top of the guest's queue list. */
-function NowRow({ current, playing }: { current: QueueItem; playing: boolean }) {
+/** For the singer only: skips the song they added while it is being sung. */
+function SkipOwnSongButton({ onSkip }: { onSkip: () => void }) {
+  return (
+    <IconButton label="Skip your song" onClick={onSkip}>
+      <NextIcon className="h-5 w-5" />
+    </IconButton>
+  );
+}
+
+/** The song being sung, at the top of the guest's queue list. `onSkip` is offered only to its singer. */
+function NowRow({ current, playing, onSkip }: { current: QueueItem; playing: boolean; onSkip?: (itemId: string) => void }) {
   return (
     <SongRow
       leading={<Avatar name={current.addedBy} />}
@@ -226,6 +247,7 @@ function NowRow({ current, playing }: { current: QueueItem; playing: boolean }) 
         </>
       }
       className="mb-0.5 bg-stage-200 pl-3"
+      actions={current.mine && onSkip ? <SkipOwnSongButton onSkip={() => onSkip(current.id)} /> : undefined}
     />
   );
 }

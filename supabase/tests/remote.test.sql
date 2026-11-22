@@ -54,6 +54,23 @@ begin
   assert karaoke.end_session('REMO22', null) = 'forbidden';
 end $$;
 
+-- Whoever added the song that is playing may skip it, and only that.
+do $$
+begin
+  assert karaoke.create_session('OWNS22', 'host-hash');
+  perform karaoke.get_state('OWNS22', null, 'remote-phone');
+  perform karaoke.add_item('OWNS22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A1', '', '', 200);
+  perform karaoke.add_item('OWNS22', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B1', '', '', 200);
+  assert karaoke.get_state('OWNS22', null, null)->'current'->>'title' = 'A1';
+
+  assert karaoke.playback('OWNS22', null, 'next', pg_temp.item_id('OWNS22', 'A1'), 'ben') = 'forbidden', 'nobody else may skip it';
+  assert karaoke.playback('OWNS22', null, 'pause', null, 'ana') = 'forbidden', 'the singer may not pause';
+  assert karaoke.playback('OWNS22', null, 'next', pg_temp.item_id('OWNS22', 'A1'), 'ana') = 'ok', 'the singer may skip their own song';
+  assert karaoke.get_state('OWNS22', null, null)->'current'->>'title' = 'B1';
+  assert karaoke.playback('OWNS22', null, 'next', pg_temp.item_id('OWNS22', 'A1'), 'ana') = 'forbidden', 'and only while it is theirs that is playing';
+  assert (karaoke.get_state('OWNS22', null, 'ana')->'current'->>'mine')::boolean is false;
+end $$;
+
 -- The previous signatures keep working, host only, for an app that does not send a guest id yet.
 do $$
 begin

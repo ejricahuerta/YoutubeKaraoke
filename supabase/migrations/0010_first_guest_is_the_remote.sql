@@ -2,7 +2,7 @@
 --
 -- The host often sits across the room from the main screen. Whoever opens the session on
 -- a phone first can now play, pause, skip, remove and reorder from that phone, like the
--- main screen. Nothing to set up: get_state records the first guest id it sees (never
+-- main screen. And whoever added the song being sung may skip it, but nothing more. Nothing to set up: get_state records the first guest id it sees (never
 -- the main screen's own browser) in sessions.remote_guest_id, and reports isRemote.
 -- Ending the session stays with the main screen.
 --
@@ -136,6 +136,7 @@ create function karaoke.playback(
 language plpgsql security definer set search_path = '' as $$
 declare
   v_session karaoke.sessions;
+  v_skipping_own_song boolean;
 begin
   select * into v_session from karaoke.sessions where code = p_code for update;
   if not found then
@@ -144,7 +145,10 @@ begin
   if karaoke.check_archived(v_session.id) then
     return 'archived';
   end if;
-  if not karaoke.can_control(v_session, p_host_hash, p_guest_id) then
+  -- Whoever added the song being sung may skip it, and do nothing else.
+  v_skipping_own_song := p_action = 'next' and coalesce(p_guest_id, '') <> '' and exists (
+    select 1 from karaoke.queue_items where id = v_session.current_item_id and guest_id = p_guest_id);
+  if not karaoke.can_control(v_session, p_host_hash, p_guest_id) and not v_skipping_own_song then
     return 'forbidden';
   end if;
   if p_action = 'play' then
