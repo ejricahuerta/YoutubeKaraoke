@@ -232,3 +232,12 @@ test("the Added message and its Undo stay until dismissed", async ({ page }) => 
   await page.getByRole("button", { name: "Dismiss" }).click();
   await expect(page.getByRole("button", { name: "Undo" })).toHaveCount(0);
 });
+
+test("with only two people singing, there is no song limit", async ({ page }) => {
+  const mine = [song(2, "Leo", "One", true), song(5, "Leo", "Two", true), song(6, "Leo", "Three", true)];
+  await mockSession(page, session({ queue: mine })); // Maya singing, Leo waiting: two people
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByRole("searchbox")).toBeVisible();
+  await expect(page.getByText(/songs waiting\. Add more/)).toHaveCount(0);
+});

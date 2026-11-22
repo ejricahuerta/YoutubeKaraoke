@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dropAfterId, guestLineup, songOf, turnAlertKey, waitSeconds, whereInSession } from "@/lib/domain/queue";
+import { dropAfterId, guestLineup, songLimitReached, songOf, turnAlertKey, waitSeconds, whereInSession } from "@/lib/domain/queue";
 import type { QueueItem } from "@/lib/domain/types";
 
 describe("waitSeconds", () => {
@@ -127,5 +127,34 @@ describe("songOf", () => {
   it("keeps only what adding the song again needs", () => {
     const item: QueueItem = { id: "x", videoId: "v", title: "t", channel: "c", thumbnailUrl: "u", durationSeconds: 9, addedBy: "Ana", mine: true };
     expect(songOf(item)).toEqual({ videoId: "v", title: "t", channel: "c", thumbnailUrl: "u", durationSeconds: 9 });
+  });
+});
+
+describe("songLimitReached", () => {
+  const item = (id: string, addedBy: string, mine = false): QueueItem => ({
+    id, videoId: `v-${id}`, title: id, channel: "", thumbnailUrl: "", durationSeconds: 100, addedBy, mine,
+  });
+  const mine = [item("m1", "Leo", true), item("m2", "Leo", true), item("m3", "Leo", true)];
+
+  it("is reached with 3 of your songs waiting and 3 people on the list", () => {
+    expect(songLimitReached(item("now", "Maya"), [item("s", "Sam"), ...mine])).toBe(true);
+  });
+
+  it("counts the person singing now", () => {
+    expect(songLimitReached(item("now", "Maya"), [...mine])).toBe(false);
+    expect(songLimitReached(item("now", "Maya"), [item("s", "Sam"), ...mine])).toBe(true);
+  });
+
+  it("is not reached with only 1 or 2 people, however many songs you have", () => {
+    expect(songLimitReached(null, [...mine, item("m4", "Leo", true)])).toBe(false);
+    expect(songLimitReached(item("now", "Maya"), [...mine, item("m4", "Leo", true)])).toBe(false);
+  });
+
+  it("is not reached with fewer than 3 of your songs waiting", () => {
+    expect(songLimitReached(item("now", "Maya"), [item("s", "Sam"), mine[0], mine[1]])).toBe(false);
+  });
+
+  it("counts other people by name, ignoring case and spaces", () => {
+    expect(songLimitReached(item("now", "Maya"), [item("a", " maya "), ...mine])).toBe(false);
   });
 });
