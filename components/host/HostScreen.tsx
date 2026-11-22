@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
-import { endSession, freeRemote, sendPlayback, setTakeTurns, type MutationOutcome } from "@/lib/client/session-api";
+import { endSession, freeRemote, sendPlayback, setTakeTurns, takeOver, type MutationOutcome } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatWait } from "@/lib/domain/format";
-import { failureMessage, isFailure } from "@/lib/domain/messages";
+import { failureMessage, idleNotice, isFailure } from "@/lib/domain/messages";
 import { clampVolume, playingLabel, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
 import { waitSeconds } from "@/lib/domain/queue";
 import { displayTitle } from "@/lib/domain/video";
@@ -48,7 +49,7 @@ type RailTab = (typeof RAIL_TABS)[number][0];
 const NO_PROGRESS: Progress = { seconds: 0, duration: 0 };
 
 /** The main screen (/s/CODE): the video with the host's controls, and the queue beside it. */
-export function HostScreen({ code }: { code: string }) {
+export function HostScreen({ code, takeover }: { code: string; takeover?: string }) {
   const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
   const { state, status, reconnecting, refresh, remove, move } = useSessionState(code, setNotice);
   const origin = useOrigin();
@@ -114,6 +115,21 @@ export function HostScreen({ code }: { code: string }) {
     },
     [setNotice],
   );
+
+  // Opened from a "move the main screen" link (migration 0013): become the main screen once,
+  // then drop the secret from the address so a reload or a shared screenshot cannot reuse it.
+  const router = useRouter();
+  const tookOver = useRef(false);
+  useEffect(() => {
+    if (!takeover || tookOver.current) return;
+    tookOver.current = true;
+    takeOver(code, takeover).then((outcome) => {
+      router.replace(`/s/${code}`);
+      if (outcome === "forbidden") setNotice("That link has expired or was already used. Ask the remote for a new one.");
+      else if (isFailure(outcome)) setNotice(failureMessage(outcome, "Couldn't move the main screen here. Try the link again."));
+      refresh();
+    });
+  }, [code, takeover, router, refresh, setNotice]);
 
   const setPlaying = useCallback(
     async (next: boolean) => {
@@ -197,6 +213,7 @@ export function HostScreen({ code }: { code: string }) {
   if (!state) return <SessionLoadingMessage status={status} />;
 
   const { isHost, queue } = state;
+  const idle = idleNotice({ hasSongs: !!current || queue.length > 0, closesInSeconds: state.closesInSeconds });
   // Only the host adds songs here: anyone else on this page has no name yet, and goes to the guest screen for one.
   const railTabs = RAIL_TABS.filter(([id]) => isHost || id !== "add");
   const shownTab = railTabs.some(([id]) => id === tab) ? tab : "next";
@@ -246,6 +263,9 @@ export function HostScreen({ code }: { code: string }) {
 
         {notice ? (
           <p role="status" className="animate-rise rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{notice}</p>
+        ) : null}
+        {isHost && idle ? (
+          <p role="status" className="rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{idle}</p>
         ) : null}
 
         <div ref={stageRef} className="relative aspect-video w-full overflow-hidden rounded-card bg-stage-100 lg:aspect-auto lg:min-h-0 lg:flex-1">

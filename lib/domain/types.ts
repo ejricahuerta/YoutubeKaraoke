@@ -33,6 +33,11 @@ export type SessionState = {
   remote: RemoteStatus;
   /** The remote's singer name, once it has added a song. */
   remoteName: string | null;
+  /**
+   * No heartbeat from the main screen for 150 seconds (migration 0013): nothing is playing,
+   * phones cannot play, and the session ends 15 minutes after it was last seen.
+   */
+  mainScreenAway: boolean;
   /** Once 3 or more people have songs on the list, each sings once per round; the main screen can switch it off (migration 0011). */
   takeTurns: boolean;
   current: QueueItem | null;
@@ -53,7 +58,17 @@ export type PlaybackAction = "play" | "pause" | "next";
 
 /** What a database function that changes a session answers with. */
 export type MutationResult = "ok" | "stale" | MutationError;
-export type MutationError = "not_found" | "forbidden" | "invalid" | "queue_full" | "guest_limit" | "archived";
+export type MutationError =
+  | "not_found"
+  | "forbidden"
+  | "invalid"
+  | "queue_full"
+  | "guest_limit"
+  | "archived"
+  /** A phone tried to play, pause or skip with no main screen to play on (migration 0013). */
+  | "main_screen_away"
+  /** The main screen cannot be moved while it is there. */
+  | "main_screen_here";
 
 /** Every error code the API can put in `{ ok: false, error }`. */
 export type ApiError = MutationError | "rate_limited" | "search_unavailable" | "server_error";

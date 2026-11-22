@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { failureMessage, isFailure, mainScreenGoneNotice, startErrorMessage } from "@/lib/domain/messages";
+import { failureMessage, idleNotice, isFailure, mainScreenGoneNotice, startErrorMessage } from "@/lib/domain/messages";
 import { MAX_WAITING_SONGS } from "@/lib/domain/singers";
 
 describe("isFailure", () => {
@@ -46,22 +46,37 @@ describe("startErrorMessage", () => {
 });
 
 describe("mainScreenGoneNotice", () => {
-  it("says nothing while the main screen is polling", () => {
-    expect(mainScreenGoneNotice({ hostAwaySeconds: 20, closesInSeconds: 880 })).toBeNull();
-    // The main screen's poll is only written once a minute, so a gap of a minute or two is normal.
-    expect(mainScreenGoneNotice({ hostAwaySeconds: 140, closesInSeconds: 800 })).toBeNull();
+  it("says nothing while the main screen is there", () => {
+    expect(mainScreenGoneNotice({ mainScreenAway: false, closesInSeconds: 880 })).toBeNull();
   });
 
-  it("warns once the main screen has been gone a few minutes, with the time left", () => {
-    expect(mainScreenGoneNotice({ hostAwaySeconds: 300, closesInSeconds: 600 })).toBe(
-      "The main screen seems to be closed, so nothing will play. If it stays closed, this session ends in about 10 min.",
+  it("says nothing is playing, and when the session ends, once the database says the main screen is away", () => {
+    expect(mainScreenGoneNotice({ mainScreenAway: true, closesInSeconds: 600 })).toBe(
+      "The main screen is away, so nothing is playing. If it doesn't come back, this session ends in about 10 min.",
     );
-    expect(mainScreenGoneNotice({ hostAwaySeconds: 300, closesInSeconds: 61 })).toContain("ends in about 2 min");
-    expect(mainScreenGoneNotice({ hostAwaySeconds: 900, closesInSeconds: 20 })).toContain("ends in under a minute");
+    expect(mainScreenGoneNotice({ mainScreenAway: true, closesInSeconds: 61 })).toContain("ends in about 2 min");
+    expect(mainScreenGoneNotice({ mainScreenAway: true, closesInSeconds: 20 })).toContain("ends in under a minute");
   });
 
   it("says nothing when the database does not report it", () => {
-    expect(mainScreenGoneNotice({ hostAwaySeconds: null, closesInSeconds: null })).toBeNull();
+    expect(mainScreenGoneNotice({ mainScreenAway: undefined, closesInSeconds: null })).toBeNull();
     expect(mainScreenGoneNotice({})).toBeNull();
+  });
+});
+
+describe("idleNotice", () => {
+  it("warns the main screen when an idle session is about to end, and only then", () => {
+    expect(idleNotice({ hasSongs: false, closesInSeconds: 540 })).toBe("Nothing's queued. This session ends in about 9 min unless someone adds a song.");
+    expect(idleNotice({ hasSongs: false, closesInSeconds: 30 })).toContain("ends in under a minute");
+    expect(idleNotice({ hasSongs: false, closesInSeconds: 1200 })).toBeNull();
+    expect(idleNotice({ hasSongs: true, closesInSeconds: 300 })).toBeNull();
+    expect(idleNotice({ hasSongs: false, closesInSeconds: null })).toBeNull();
+  });
+});
+
+describe("main screen results", () => {
+  it("explain why a phone cannot play, or why the main screen cannot be moved", () => {
+    expect(failureMessage("main_screen_away", "x")).toMatch(/main screen is away/i);
+    expect(failureMessage("main_screen_here", "x")).toMatch(/main screen is back/i);
   });
 });

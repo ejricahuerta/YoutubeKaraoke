@@ -10,10 +10,18 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
   return { title: `YouOke · ${(await params).code.toUpperCase().slice(0, SESSION_CODE_LENGTH)}` };
 }
 
-export default async function HostPage({ params }: { params: Promise<{ code: string }> }) {
+export default async function HostPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ code: string }>;
+  /** takeover: the secret of a "move the main screen" link (migration 0013). */
+  searchParams: Promise<{ takeover?: string }>;
+}) {
   const code = normalizeSessionCode((await params).code);
   if (!code) return <CenteredMessage title="That session code doesn't look right" />;
   // Phones never get the main screen, only the page for adding songs.
   if (isPhone(await headers())) redirect(`/join/${code}`);
-  return <HostScreen code={code} />;
+  const { takeover } = await searchParams;
+  return <HostScreen code={code} takeover={typeof takeover === "string" ? takeover : undefined} />;
 }

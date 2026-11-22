@@ -4,7 +4,8 @@ import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 
 /** QR code for a URL, always dark-on-white so phone cameras read it reliably. Size comes from `className`. */
-export function QrCode({ url, className = "" }: { url: string; className?: string }) {
+/** `alt` says what scanning it does; most QR codes on screen are for joining the session. */
+export function QrCode({ url, className = "", alt = "QR code to join this karaoke session" }: { url: string; className?: string; alt?: string }) {
   const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export function QrCode({ url, className = "" }: { url: string; className?: strin
 
   return (
     <div className={`aspect-square shrink-0 overflow-hidden bg-white ${className}`}>
-      {src && url ? <img src={src} alt="QR code to join this karaoke session" className="h-full w-full" /> : null}
+      {src && url ? <img src={src} alt={alt} className="h-full w-full" /> : null}
     </div>
   );
 }

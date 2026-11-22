@@ -83,6 +83,16 @@ export function freeRemote(code: string, hostTokenHash: string | null, guestId: 
   return rpc<MutationResult>("free_remote", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId });
 }
 
+/** The remote, while the main screen is away: stores the hash of a one-time link to move it. */
+export function startHandoff(code: string, guestId: string, linkHash: string) {
+  return rpc<MutationResult>("start_handoff", { p_code: code, p_guest_id: guestId, p_link_hash: linkHash });
+}
+
+/** The device that opened the link becomes the main screen. */
+export function takeOver(code: string, linkHash: string, newHostTokenHash: string) {
+  return rpc<MutationResult>("take_over", { p_code: code, p_link_hash: linkHash, p_new_host_hash: newHostTokenHash });
+}
+
 /** Host only: closes the session for good, at once. */
 export function endSession(code: string, hostTokenHash: string | null) {
   return rpc<MutationResult>("end_session", { p_code: code, p_host_hash: hostTokenHash });

@@ -18,7 +18,7 @@ at that point. Later records are written when the decision is made.
 | [0005](0005-youtube-iframe-player.md) | YouTube IFrame player with our own controls | Superseded by 0018 |
 | [0006](0006-keyless-youtube-search.md) | Keyless search through youtubei.js, behind one module | Accepted |
 | [0007](0007-phones-are-guests.md) | Phones only ever get the guest view | Accepted |
-| [0008](0008-archive-on-access.md) | Sessions archive after 15 idle minutes, checked on access | Accepted |
+| [0008](0008-archive-on-access.md) | Sessions archive after 15 idle minutes, checked on access | Accepted, amended by 0021 |
 | [0009](0009-tv-scale-grid.md) | Host screen drawn on a scaling 1920 × 1080 grid | Accepted |
 | [0010](0010-in-memory-limits-and-caches.md) | Rate limits and caches live in server memory | Accepted |
 | [0011](0011-layered-lib.md) | `lib` split into domain, server and client, enforced by lint | Accepted |
@@ -31,6 +31,7 @@ at that point. Later records are written when the decision is made.
 | [0018](0018-privacy-enhanced-youtube-player.md) | YouTube's privacy-enhanced player, with our own controls | Accepted |
 | [0019](0019-integration-tests-in-docker.md) | Test the built app against a real database in Docker | Accepted |
 | [0020](0020-hand-over-the-remote.md) | The remote can be freed and taken by another phone | Accepted |
+| [0021](0021-when-the-main-screen-is-away.md) | When the main screen is away: pause, end after 15 minutes, move it | Accepted |
 
 ## Template
 

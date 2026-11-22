@@ -11,6 +11,8 @@ const FAILURE_MESSAGES: Record<string, string> = {
   queue_full: "The queue is full. Wait for a few songs to finish.",
   guest_limit: `You already have ${MAX_WAITING_SONGS} songs waiting. Add another once one is sung.`,
   forbidden: "Only the main screen can do that.",
+  main_screen_away: "The main screen is away, so nothing can play. Open it again, or move it to another screen.",
+  main_screen_here: "The main screen is back, so it can't be moved.",
   network_error: "You seem to be offline. Check your connection and try again.",
 };
 
@@ -34,17 +36,22 @@ export function startErrorMessage(code: string | undefined): string | null {
   return (code && Object.hasOwn(START_ERRORS, code) ? START_ERRORS[code] : null) ?? null;
 }
 
-/**
- * After how long without a poll from the main screen guests are warned. The main screen
- * polls every 15 seconds but its poll is only written once a minute, so a gap of up to
- * about 75 seconds is normal.
- */
-const HOST_AWAY_NOTICE_SECONDS = 150;
+/** "about 9 min" or "under a minute": the time left before a session ends. */
+function timeLeft(seconds: number): string {
+  return seconds < 60 ? "under a minute" : `about ${Math.ceil(seconds / 60)} min`;
+}
 
-/** A warning for guests when the main screen has gone; null while it is there or unknown. */
-export function mainScreenGoneNotice(state: { hostAwaySeconds?: number | null; closesInSeconds?: number | null }): string | null {
-  const { hostAwaySeconds, closesInSeconds } = state;
-  if (hostAwaySeconds == null || closesInSeconds == null || hostAwaySeconds < HOST_AWAY_NOTICE_SECONDS) return null;
-  const left = closesInSeconds < 60 ? "under a minute" : `about ${Math.ceil(closesInSeconds / 60)} min`;
-  return `The main screen seems to be closed, so nothing will play. If it stays closed, this session ends in ${left}.`;
+/** For guests while the main screen is away (the database decides when, migration 0013); null otherwise. */
+export function mainScreenGoneNotice(state: { mainScreenAway?: boolean; closesInSeconds?: number | null }): string | null {
+  if (!state.mainScreenAway || state.closesInSeconds == null) return null;
+  return `The main screen is away, so nothing is playing. If it doesn't come back, this session ends in ${timeLeft(state.closesInSeconds)}.`;
+}
+
+/** Warn the main screen this long before an idle session (nothing playing or queued) ends. */
+const IDLE_NOTICE_SECONDS = 10 * 60;
+
+/** For the main screen when nothing is playing or queued and the session ends soon; null otherwise. */
+export function idleNotice({ hasSongs, closesInSeconds }: { hasSongs: boolean; closesInSeconds: number | null }): string | null {
+  if (hasSongs || closesInSeconds == null || closesInSeconds > IDLE_NOTICE_SECONDS) return null;
+  return `Nothing's queued. This session ends in ${timeLeft(closesInSeconds)} unless someone adds a song.`;
 }

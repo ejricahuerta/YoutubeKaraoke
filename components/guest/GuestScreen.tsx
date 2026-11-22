@@ -194,7 +194,7 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
               </p>
             ) : null}
             <div className="-mx-2">
-              {current ? <NowRow current={current} playing={state.isPlaying} onSkip={state.isRemote ? undefined : skipOwnSong} /> : null}
+              {current ? <NowRow current={current} playing={state.isPlaying} onSkip={state.isRemote || state.mainScreenAway ? undefined : skipOwnSong} /> : null}
               <QueuePanel
                 queue={queue}
                 canControl={state.isRemote}
@@ -227,7 +227,7 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
       ) : null}
 
       {state.isRemote ? (
-        <RemoteBar code={code} current={current} isPlaying={state.isPlaying} onDone={refresh} onFailed={setNotice} />
+        <RemoteBar code={code} current={current} isPlaying={state.isPlaying} mainScreenAway={state.mainScreenAway} onDone={refresh} onFailed={setNotice} />
       ) : state.remote === "free" ? (
         <TakeRemoteBar code={code} onDone={refresh} onFailed={setNotice} />
       ) : current && tab !== "queue" ? (
@@ -239,7 +239,7 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
             </p>
             <p className="truncate text-sm font-semibold leading-5">{current.addedBy} · {displayTitle(current.title)}</p>
           </div>
-          {current.mine ? <SkipOwnSongButton onSkip={() => skipOwnSong(current.id)} /> : null}
+          {current.mine && !state.mainScreenAway ? <SkipOwnSongButton onSkip={() => skipOwnSong(current.id)} /> : null}
         </div>
       ) : null}
 

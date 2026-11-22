@@ -9,7 +9,8 @@ export function sessionStateUrl(code: string): string {
   return `/api/sessions/${code}`;
 }
 
-async function mutate(path: string, method: string, body?: unknown): Promise<MutationOutcome> {
+/** A change sent to the API: its outcome, and the rest of the answer for the few that carry more. */
+async function send(path: string, method: string, body?: unknown): Promise<{ outcome: MutationOutcome; data: Record<string, unknown> | null }> {
   let res: Response;
   try {
     res = await fetch(path, {
@@ -18,10 +19,14 @@ async function mutate(path: string, method: string, body?: unknown): Promise<Mut
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    return "network_error";
+    return { outcome: "network_error", data: null };
   }
   const data = await res.json().catch(() => null);
-  return (res.ok ? data?.result : data?.error) ?? "server_error";
+  return { outcome: (res.ok ? data?.result : data?.error) ?? "server_error", data };
+}
+
+async function mutate(path: string, method: string, body?: unknown): Promise<MutationOutcome> {
+  return (await send(path, method, body)).outcome;
 }
 
 export function addSong(code: string, video: SearchResult, singerName: string) {
@@ -55,6 +60,25 @@ export function claimRemote(code: string) {
 /** The main screen or the remote itself: lets the remote go, for another phone to take. */
 export function freeRemote(code: string) {
   return mutate(`${sessionStateUrl(code)}/remote`, "DELETE");
+}
+
+/**
+ * The remote, while the main screen is away: a one-time secret for a link that moves the
+ * main screen to another device. Null with the reason when the server refuses.
+ */
+export async function startHandoff(code: string): Promise<{ outcome: MutationOutcome; token: string | null }> {
+  const { outcome, data } = await send(`${sessionStateUrl(code)}/handoff`, "POST");
+  return { outcome, token: outcome === "ok" && typeof data?.token === "string" ? data.token : null };
+}
+
+/** The address of the page that, opened on a big screen, makes it the main screen. */
+export function takeOverUrl(origin: string, code: string, token: string): string {
+  return `${origin}/s/${code}?takeover=${encodeURIComponent(token)}`;
+}
+
+/** Opening that link: makes this browser the main screen. */
+export function takeOver(code: string, token: string) {
+  return mutate(`${sessionStateUrl(code)}/host`, "POST", { token });
 }
 
 /** Host only: closes the session for everyone. It cannot be reopened. */
