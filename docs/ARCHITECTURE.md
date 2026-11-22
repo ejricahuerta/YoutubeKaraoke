@@ -65,6 +65,7 @@ app/                    Routes only: pages and API route handlers
   api/recent-songs      GET   songs sung lately in any session, for the start page (titles from YouTube)
   api/sessions          POST  start a session
   api/sessions/[code]   GET   session state, PATCH settings (host), DELETE end it (host)
+    remote              POST  take a freed remote, DELETE free it (host or remote)
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
     queue/[id]          DELETE remove, PATCH move        (PATCH: host)
@@ -131,7 +132,7 @@ Two tables in the `karaoke` schema:
   session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The nine public functions are the whole API of the database:
+policies. The eleven public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -142,8 +143,10 @@ policies. The nine public functions are the whole API of the database:
 | `move_item(code, host_hash, item_id, after_id, guest_id)` | `PATCH .../queue/[id]` | a result code |
 | `playback(code, host_hash, action, expected_item_id, guest_id)` | `POST .../playback` | a result code |
 | `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
+| `free_remote(code, host_hash, guest_id)` | `DELETE .../remote` | a result code |
+| `claim_remote(code, guest_id)` | `POST .../remote` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
-| `recently_played()` | `GET /api/recent-songs` | Video ids of songs finished in the last day, in any session, newest first, at most 24 ([0019](adr/0019-recently-sung-songs-on-the-start-page.md)) |
+| `recently_played()` | `GET /api/recent-songs` | Video ids of songs finished in the last day, in any session, newest first, at most 24 ([0021](adr/0021-recently-sung-songs-on-the-start-page.md)) |
 
 Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`, `guest_limit`,
 `archived` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
@@ -170,6 +173,8 @@ guest view ([0007](adr/0007-phones-are-guests.md)). The exception is the **remot
 the first guest whose phone loads the session may play, pause, skip, remove and reorder
 like the main screen, from the guest view. Ending the session stays with the main
 screen. It is stored as `sessions.remote_guest_id` ([0014](adr/0014-first-guest-is-the-remote.md)).
+The main screen or the remote can free it; then the first phone to ask takes it
+([0020](adr/0020-hand-over-the-remote.md)).
 Any guest may also skip their own song while it is being sung.
 
 ## How a change reaches every screen

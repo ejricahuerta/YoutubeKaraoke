@@ -43,7 +43,7 @@ function launchStyle(n: number): CSSProperties {
 }
 
 /**
- * Songs sung lately in any session (docs/adr/0019), going up behind the start page's cards
+ * Songs sung lately in any session (docs/adr/0021), going up behind the start page's cards
  * and bursting like fireworks. Screen readers get them as a plain list; the motion is decoration.
  */
 export function RecentSongs() {

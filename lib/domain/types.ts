@@ -14,6 +14,8 @@ export type QueueItem = {
   mine: boolean;
 };
 
+export type RemoteStatus = "unclaimed" | "taken" | "free";
+
 /** Everything a screen needs to draw one session; returned by the get_state database function. */
 export type SessionState = {
   code: string;
@@ -24,6 +26,13 @@ export type SessionState = {
   isHost: boolean;
   /** The browser asking was the first guest to join, so it may control playback and the queue (migration 0010). */
   isRemote: boolean;
+  /**
+   * Who has the remote (migration 0012): "unclaimed" until a phone joins and takes it,
+   * "taken", or "free" after the main screen or the remote let it go, until a phone asks for it.
+   */
+  remote: RemoteStatus;
+  /** The remote's singer name, once it has added a song. */
+  remoteName: string | null;
   /** Once 3 or more people have songs on the list, each sings once per round; the main screen can switch it off (migration 0011). */
   takeTurns: boolean;
   current: QueueItem | null;

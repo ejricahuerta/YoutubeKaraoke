@@ -78,6 +78,16 @@ export function setTakeTurns(code: string, hostTokenHash: string | null, on: boo
   return rpc<MutationResult>("set_take_turns", { p_code: code, p_host_hash: hostTokenHash, p_on: on });
 }
 
+/** A phone takes the remote, if it has been freed: the first to ask gets it. */
+export function claimRemote(code: string, guestId: string) {
+  return rpc<MutationResult>("claim_remote", { p_code: code, p_guest_id: guestId });
+}
+
+/** The main screen or the remote itself: frees the remote for another phone to take. */
+export function freeRemote(code: string, hostTokenHash: string | null, guestId: string) {
+  return rpc<MutationResult>("free_remote", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId });
+}
+
 /** Host only: closes the session for good, at once. */
 export function endSession(code: string, hostTokenHash: string | null) {
   return rpc<MutationResult>("end_session", { p_code: code, p_host_hash: hostTokenHash });

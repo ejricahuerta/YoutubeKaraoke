@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
-import { endSession, sendPlayback, setTakeTurns, type MutationOutcome } from "@/lib/client/session-api";
+import { endSession, freeRemote, sendPlayback, setTakeTurns, type MutationOutcome } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatWait } from "@/lib/domain/format";
 import { failureMessage, isFailure } from "@/lib/domain/messages";
@@ -18,6 +18,7 @@ import { SearchPanel } from "../SearchPanel";
 import { HostLobby } from "./HostLobby";
 import { JoinCard, JoinCorner } from "./JoinCard";
 import { Player, savedPosition, type PlayerHandle, type Progress } from "./Player";
+import { RemoteIndicator } from "./RemoteIndicator";
 import { SingerIntro } from "./SingerIntro";
 import { TakeTurnsSwitch } from "./TakeTurnsSwitch";
 import { OVERLINE } from "./styles";
@@ -145,6 +146,11 @@ export function HostScreen({ code }: { code: string }) {
     refresh();
   };
 
+  const onFreeRemote = async () => {
+    reportIfFailed(await freeRemote(code), "Couldn't free the remote. Try again.");
+    refresh();
+  };
+
   const onTakeTurns = async (on: boolean) => {
     reportIfFailed(await setTakeTurns(code, on), "Couldn't change taking turns. Try again.");
     refresh();
@@ -216,7 +222,6 @@ export function HostScreen({ code }: { code: string }) {
             <span role="status" className="rounded-full bg-notice-ground px-5 py-2 text-[1.25rem] font-semibold text-notice">Reconnecting…</span>
           ) : null}
           <span className="ml-auto" />
-          {isHost ? <TakeTurnsSwitch on={state.takeTurns} onChange={onTakeTurns} /> : null}
           {isHost ? (
             <button
               type="button"
@@ -379,6 +384,13 @@ export function HostScreen({ code }: { code: string }) {
           aria-labelledby={`queue-tab-${shownTab}`}
           className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0"
         >
+          {shownTab === "edit" && isHost ? (
+            // The night's settings sit with the queue they change, which keeps the header short.
+            <div className="-ml-6 mb-3 flex flex-wrap items-center gap-x-2 border-b border-line pb-3">
+              <TakeTurnsSwitch on={state.takeTurns} onChange={onTakeTurns} />
+              <RemoteIndicator remote={state.remote} name={state.remoteName} onFree={onFreeRemote} />
+            </div>
+          ) : null}
           {shownTab === "next" ? (
             <UpNextList queue={queue} hasCurrent={!!current} queueWait={queueWait} />
           ) : (

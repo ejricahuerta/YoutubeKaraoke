@@ -10,7 +10,7 @@ const CACHE_SECONDS = 60;
 const STALE_SECONDS = 600;
 
 /**
- * Songs sung lately in any session, for the start page (docs/adr/0019). Only video ids
+ * Songs sung lately in any session, for the start page (docs/adr/0021). Only video ids
  * come from the database; each title is YouTube's, and a video YouTube no longer plays is left out.
  */
 export async function GET(): Promise<Response> {

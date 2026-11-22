@@ -1,4 +1,4 @@
--- Show songs sung recently, in any session, on the start page (docs/adr/0019).
+-- Show songs sung recently, in any session, on the start page (docs/adr/0021).
 --
 -- recently_played() answers the YouTube video ids of songs finished in the last day,
 -- newest first, each video once, at most 24. Only the ids: never who sang them, in which
