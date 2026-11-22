@@ -127,7 +127,7 @@ describe("/api/sessions/[code]/queue/[id]", () => {
   it("moves a song after another, or to the top", async () => {
     store.moveQueueItem.mockResolvedValue("ok");
     await itemRoute.PATCH(json("PATCH", { afterId: null }), ctx({ code: "ABC234", id: ITEM_ID }));
-    expect(store.moveQueueItem).toHaveBeenCalledWith("ABC234", "host-hash", ITEM_ID, null);
+    expect(store.moveQueueItem).toHaveBeenCalledWith("ABC234", "host-hash", "guest-1", ITEM_ID, null);
   });
 
   it("answers 404 for an id that is not a UUID and 400 for a bad target", async () => {
@@ -142,7 +142,7 @@ describe("POST /api/sessions/[code]/playback", () => {
     store.updatePlayback.mockResolvedValue("stale");
     const res = await playbackRoute.POST(json("POST", { action: "next", expectedItemId: ITEM_ID }), ctx({ code: "ABC234" }));
     expect(await res.json()).toEqual({ ok: true, result: "stale" });
-    expect(store.updatePlayback).toHaveBeenCalledWith("ABC234", "host-hash", "next", ITEM_ID);
+    expect(store.updatePlayback).toHaveBeenCalledWith("ABC234", "host-hash", "guest-1", "next", ITEM_ID);
   });
 
   it("rejects an unknown action", async () => {

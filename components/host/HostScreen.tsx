@@ -74,8 +74,16 @@ export function HostScreen({ code }: { code: string }) {
     if (backToUpNext) setBackToUpNext((n) => n + 1);
   }
   const [progress, setProgress] = useState<Progress>(NO_PROGRESS);
-  // The host screen is the authority on play/pause once it has loaded.
+  // The host screen acts on its own play/pause at once rather than waiting for the server...
   const [localPlaying, setLocalPlaying] = useState<boolean | null>(null);
+  // ...but the phone remote can play and pause too (migration 0010), so when the server's
+  // value changes, follow it. A stale poll repeats the old value and changes nothing.
+  const serverPlaying = state?.isPlaying;
+  const [seenServerPlaying, setSeenServerPlaying] = useState<boolean | undefined>(undefined);
+  if (serverPlaying !== undefined && serverPlaying !== seenServerPlaying) {
+    setSeenServerPlaying(serverPlaying);
+    if (seenServerPlaying !== undefined) setLocalPlaying(serverPlaying);
+  }
   const [storedVolume, setStoredVolume] = useStoredString(STORAGE_KEYS.volume);
   const [queueHidden, setQueueHidden] = useStoredString(STORAGE_KEYS.queueHidden);
   const fullscreen = useFullscreen();
@@ -371,7 +379,7 @@ export function HostScreen({ code }: { code: string }) {
               {shownTab === "edit" ? (
                 <QueuePanel
                   queue={queue}
-                  isHost={isHost}
+                  canControl={isHost}
                   onRemove={remove}
                   onMove={isHost ? move : undefined}
                   emptyText={current ? "Nothing queued after this song." : "No songs yet. Scan the code to add one."}

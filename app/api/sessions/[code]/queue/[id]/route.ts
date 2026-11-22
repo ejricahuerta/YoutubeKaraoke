@@ -13,10 +13,10 @@ export const DELETE = sessionRoute<Params>(async (_req, { code, params }) => {
   return resultResponse(await removeQueueItem(code, params.id, await getHostTokenHash(code), await getOrCreateGuestId()));
 });
 
-/** Host only: moves a song to just after `afterId` (null = top of the queue). */
+/** The main screen or the remote: moves a song to just after `afterId` (null = top of the queue). */
 export const PATCH = sessionRoute<Params>(async (req, { code, params }) => {
   if (!isUuid(params.id)) return errorResponse("not_found", 404);
   const request = parseMoveRequest(await readJsonBody(req));
   if (!request) return errorResponse("invalid", 400);
-  return resultResponse(await moveQueueItem(code, await getHostTokenHash(code), params.id, request.afterId));
+  return resultResponse(await moveQueueItem(code, await getHostTokenHash(code), await getOrCreateGuestId(), params.id, request.afterId));
 });

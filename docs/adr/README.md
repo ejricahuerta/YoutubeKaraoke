@@ -24,6 +24,8 @@ at that point. Later records are written when the decision is made.
 | [0011](0011-layered-lib.md) | `lib` split into domain, server and client, enforced by lint | Accepted |
 | [0012](0012-testing-strategy.md) | Test-first; pure logic unit-tested, database tested in Postgres | Accepted |
 | [0013](0013-optional-youtube-api-fallback.md) | Official YouTube API as a fallback when a key is set | Accepted |
+| [0014](0014-first-guest-is-the-remote.md) | The first guest to join is the remote | Accepted |
+| [0015](0015-migrate-on-production-build.md) | Production builds apply pending migrations first | Accepted |
 
 ## Template
 

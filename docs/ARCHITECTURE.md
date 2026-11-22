@@ -79,6 +79,7 @@ lib/
 supabase/
   migrations/           The schema and every database function
   tests/                SQL tests for those functions
+scripts/                migrate.mts (applies migrations on a production build) and test-db.sh
 tests/                  Unit tests, mirroring lib/ (plus tests/api for the route handlers)
 e2e/                    Browser tests for the screens, with the session API faked
 docs/                   This page, conventions, decision records
@@ -154,7 +155,11 @@ There are no accounts ([0004](adr/0004-anonymous-cookie-identity.md)).
   is a label, not an identity.
 
 Phones are always guests: the server sends a phone that opens a host URL to the
-guest view ([0007](adr/0007-phones-are-guests.md)).
+guest view ([0007](adr/0007-phones-are-guests.md)). The exception is the **remote**:
+the first guest whose phone loads the session may play, pause, skip, remove and reorder
+like the main screen, from the guest view. Ending the session stays with the main
+screen. It is stored as `sessions.remote_guest_id` ([0014](adr/0014-first-guest-is-the-remote.md)).
+Any guest may also skip their own song while it is being sung.
 
 ## How a change reaches every screen
 

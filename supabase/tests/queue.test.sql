@@ -22,6 +22,9 @@ begin
   -- Sessions
   assert karaoke.create_session('TEST22', 'host-hash'), 'a new code creates a session';
   assert not karaoke.create_session('TEST22', 'other-hash'), 'a taken code is refused, so the app retries with another';
+  -- Someone else's phone joins first and becomes the remote (migration 0010), so the
+  -- guests below are ordinary guests.
+  perform karaoke.get_state('TEST22', null, 'first-phone');
   assert karaoke.get_state('NOPE22', null, null) is null, 'an unknown code has no state';
   assert (karaoke.get_state('TEST22', 'host-hash', null)->>'isHost')::boolean, 'the host token makes the caller host';
   assert not (karaoke.get_state('TEST22', 'wrong', null)->>'isHost')::boolean, 'any other token does not';
