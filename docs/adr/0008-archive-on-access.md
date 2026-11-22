@@ -40,7 +40,8 @@ reused by a stranger.
 ## Update, 2026-11-22: the host can end a session
 
 Migration 0004 adds `end_session`, behind an "End session" button on the host screen
-that needs two presses. It archives the session at once and by the same means as a
+that needs two presses (since [0019](0019-main-screen-controls.md), an item in the Settings
+menu that asks first). It archives the session at once and by the same means as a
 timeout, so everything above about archived sessions still holds: final, refused by
 every entry point, deleted 24 hours later. The first "Revisit when" item below is
 only half answered: there is still no way to pause one.

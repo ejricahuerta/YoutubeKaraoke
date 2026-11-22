@@ -1,4 +1,4 @@
-import { countSongs, formatDuration } from "@/lib/domain/format";
+import { formatDuration } from "@/lib/domain/format";
 import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
@@ -7,15 +7,9 @@ import { Avatar } from "../Avatar";
 const UP_NEXT_ROWS = 4;
 
 /** The queue as the room reads it from the sofa: the next few singers, large, with no controls. */
-export function UpNextList({ queue, hasCurrent, queueWait }: { queue: QueueItem[]; hasCurrent: boolean; queueWait: string }) {
+export function UpNextList({ queue, hasCurrent }: { queue: QueueItem[]; hasCurrent: boolean }) {
   return (
     <>
-      <div className="mb-3 flex items-baseline justify-between gap-4 px-1">
-        <h2 className="font-display text-[2.5rem] font-bold leading-none tracking-tight">Up next</h2>
-        {queue.length > 0 ? (
-          <span className="text-[1.5rem] font-medium text-ink-muted">{countSongs(queue.length)} · {queueWait}</span>
-        ) : null}
-      </div>
       {queue.length === 0 ? (
         <p className="px-1 py-6 text-[1.5rem] font-medium leading-snug text-ink-muted">
           {hasCurrent ? "Nobody is waiting. Scan the code to sing next." : "No songs yet. Scan the code to add the first one."}

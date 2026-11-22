@@ -7,13 +7,16 @@ import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "./Avatar";
 import { IconButton } from "./IconButton";
-import { CloseIcon, MoveIcon, TopIcon } from "./Icons";
+import { CloseIcon, MoveIcon, PlayIcon, TopIcon } from "./Icons";
 import { SongRow } from "./SongRow";
 
 /**
  * The full "Up next" list. Whoever can control the session (the main screen, or the phone
  * remote) can remove any song, send one to the top, and reorder; other guests can remove
  * only the songs they added.
+ *
+ * The main screen can also play any waiting song now (`onPlayNow`, which asks first); there
+ * it takes the place of "Play next", which Move covers (docs/adr/0019).
  *
  * Reordering works two ways. Dragging, for a mouse. And "Move", for touch screens, keyboards
  * and TV remotes, where dragging does not work: press Move on a song, then press where it goes.
@@ -23,6 +26,7 @@ export function QueuePanel({
   canControl,
   onRemove,
   onMove,
+  onPlayNow,
   emptyText,
 }: {
   queue: QueueItem[];
@@ -30,6 +34,8 @@ export function QueuePanel({
   canControl: boolean;
   onRemove: (id: string) => void;
   onMove?: (id: string, afterId: string | null) => void;
+  /** Main screen only: play this song now, in place of the one being sung. */
+  onPlayNow?: (item: QueueItem) => void;
   emptyText: string;
 }) {
   const [dragId, setDragId] = useState<string | null>(null);
@@ -115,12 +121,17 @@ export function QueuePanel({
                   </button>
                 ) : (
                   <>
+                    {canControl && onPlayNow ? (
+                      <IconButton primary label={`Play ${item.title} now`} onClick={() => onPlayNow(item)}>
+                        <PlayIcon className="h-5 w-5" />
+                      </IconButton>
+                    ) : null}
                     {canControl && onMove && queue.length > 1 ? (
                       <IconButton label={`Move ${item.title}`} onClick={() => setPickedId(item.id)}>
                         <MoveIcon />
                       </IconButton>
                     ) : null}
-                    {canControl && onMove && index > 0 ? (
+                    {canControl && onMove && !onPlayNow && index > 0 ? (
                       <IconButton label={`Play ${item.title} next`} onClick={() => onMove(item.id, null)}>
                         <TopIcon />
                       </IconButton>

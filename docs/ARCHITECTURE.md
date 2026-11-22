@@ -188,7 +188,9 @@ playing in that browser.
 Only the host screen plays video, through YouTube's IFrame player in privacy-enhanced
 mode (`youtube-nocookie.com`), with YouTube's controls turned off and the app's own
 TV-sized controls in their place ([0018](adr/0018-privacy-enhanced-youtube-player.md),
-which supersedes [0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
+which supersedes [0005](adr/0005-youtube-iframe-player.md)). Four buttons sit under the
+video and the rest is in a Settings menu; playing a picked song and ending the session
+both ask first ([0019](adr/0019-main-screen-controls.md)). The screen is drawn on a 1920 × 1080
 grid that scales with the window ([0009](adr/0009-tv-scale-grid.md)). Search runs on
 the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 

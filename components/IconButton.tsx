@@ -7,11 +7,11 @@ export function IconButton({
   children,
   className = "",
   disabled,
-  size = "md",
+  primary = false,
 }: {
-  /** "lg" is for the main-screen transport controls, sized to be hit from across a room. */
-  size?: "md" | "lg";
   label: string;
+  /** Filled with the brand colour, for the one action a row most invites. */
+  primary?: boolean;
   onClick: () => void;
   children: ReactNode;
   className?: string;
@@ -24,8 +24,8 @@ export function IconButton({
       title={label}
       onClick={onClick}
       disabled={disabled}
-      className={`grid shrink-0 place-items-center rounded-full text-ink transition active:scale-95 disabled:opacity-40 ${
-        size === "lg" ? "h-24 w-24 hover:bg-stage-200 disabled:hover:bg-transparent" : "h-11 w-11 bg-stage-200 hover:bg-stage-300"
+      className={`grid h-11 w-11 shrink-0 place-items-center rounded-full transition active:scale-95 disabled:opacity-40 ${
+        primary ? "bg-encore text-on-encore hover:bg-encore-hover" : "bg-stage-200 text-ink hover:bg-stage-300"
       } ${className}`}
     >
       {children}
