@@ -66,7 +66,7 @@ app/                    Routes only: pages and API route handlers
   api/sessions/[code]   GET   session state, PATCH settings (host), DELETE end it (host)
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
-    queue/[id]          DELETE remove, PATCH move        (PATCH: host)
+    queue/[id]          DELETE remove, PATCH move, POST play it now  (PATCH, POST: host)
   s/[code]              Host screen
   join/[code]           Guest screen
   (legal)/              Terms, privacy policy and cookie policy: /terms, /privacy, /cookies
@@ -130,7 +130,7 @@ Two tables in the `karaoke` schema:
   session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The eight public functions are the whole API of the database:
+policies. The nine public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -140,6 +140,7 @@ policies. The eight public functions are the whole API of the database:
 | `remove_item(code, item_id, host_hash, guest_id)` | `DELETE .../queue/[id]` | a result code |
 | `move_item(code, host_hash, item_id, after_id, guest_id)` | `PATCH .../queue/[id]` | a result code |
 | `playback(code, host_hash, action, expected_item_id, guest_id)` | `POST .../playback` | a result code |
+| `play_item(code, host_hash, item_id, expected_item_id, guest_id)` | `POST .../queue/[id]` | a result code |
 | `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
 
