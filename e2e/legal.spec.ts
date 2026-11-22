@@ -1,0 +1,62 @@
+import { expect, test } from "@playwright/test";
+import { CODE, mockSession, PHONE, session } from "./session";
+
+test("the start page links to the terms, the privacy policy and the cookie policy", async ({ page }) => {
+  for (const [link, heading] of [
+    ["Terms", "Terms of Use"],
+    ["Privacy", "Privacy Policy"],
+    ["Cookies", "Cookie Policy"],
+  ]) {
+    await page.goto("/");
+    await page.getByRole("navigation", { name: "Legal" }).getByRole("link", { name: link, exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(heading);
+  }
+});
+
+test("starting a session says it accepts the terms", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("By starting a session you agree to the Terms of Use")).toBeVisible();
+});
+
+test("the privacy policy says the app collects IP addresses and device information", async ({ page }) => {
+  await page.goto("/privacy");
+  await expect(page.getByRole("heading", { name: "What we collect" })).toBeVisible();
+  await expect(page.getByText(/IP address/).first()).toBeVisible();
+  await expect(page.getByText(/user agent/i).first()).toBeVisible();
+});
+
+test("the cookie policy lists the guest and host cookies and how long they last", async ({ page }) => {
+  await page.goto("/cookies");
+  const table = page.getByRole("table", { name: "Cookies and storage YouOke sets" });
+  await expect(table.getByRole("row", { name: /^kg .*1 year/ })).toBeVisible();
+  await expect(table.getByRole("row", { name: /^kh_<CODE> .*30 days/ })).toBeVisible();
+});
+
+test("each legal page links to the other two and back to the start page", async ({ page }) => {
+  await page.goto("/terms");
+  await page.getByRole("link", { name: "Privacy", exact: true }).click();
+  await expect(page).toHaveURL("/privacy");
+  await page.getByRole("link", { name: "Cookies", exact: true }).click();
+  await expect(page).toHaveURL("/cookies");
+  await page.getByRole("link", { name: "YouOke home" }).click();
+  await expect(page).toHaveURL("/");
+});
+
+test.describe("on a phone", () => {
+  test.use({ ...PHONE });
+
+  test("a new guest is told joining accepts the terms, and can read them without losing the party", async ({ page }) => {
+    await mockSession(page, session());
+    await page.goto(`/join/${CODE}`);
+    await expect(page.getByText("By joining you agree to the Terms of Use")).toBeVisible();
+    const terms = page.getByRole("link", { name: "Terms of Use" });
+    await expect(terms).toHaveAttribute("href", "/terms");
+    await expect(terms).toHaveAttribute("target", "_blank");
+  });
+
+  test("the legal pages fit a phone screen", async ({ page }) => {
+    await page.goto("/privacy");
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+});

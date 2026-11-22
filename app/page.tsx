@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { Credit } from "@/components/Credit";
+import { AgreementNotice, LegalLinks } from "@/components/LegalLinks";
 import { Logo } from "@/components/Logo";
 import { startErrorMessage } from "@/lib/domain/messages";
 import { normalizeSessionCode, SESSION_CODE_LENGTH } from "@/lib/domain/session-code";
@@ -59,6 +60,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
               </button>
               <span className="text-[0.9375rem] text-ink-faint">Free. Closes itself 15 minutes after the party ends.</span>
             </form>
+            <AgreementNotice action="starting a session" className="mt-4" />
             </>
           )}
         </div>
@@ -113,6 +115,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
 
       <footer className="flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-line pt-6 text-sm text-ink-faint">
         <span>Plays karaoke and lyrics videos from YouTube.</span>
+        <LegalLinks />
         <Credit className="text-sm" />
       </footer>
     </main>
