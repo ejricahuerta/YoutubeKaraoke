@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dropAfterId, guestLineup, waitSeconds } from "@/lib/domain/queue";
+import { dropAfterId, guestLineup, turnAlertKey, waitSeconds } from "@/lib/domain/queue";
 import type { QueueItem } from "@/lib/domain/types";
 
 describe("waitSeconds", () => {
@@ -70,5 +70,31 @@ describe("guestLineup", () => {
   it("is empty for a guest with no songs", () => {
     const lineup = guestLineup(null, [song("a", false)]);
     expect(lineup).toEqual({ onNow: null, queued: [], next: undefined, songCount: 0 });
+  });
+});
+
+describe("turnAlertKey", () => {
+  const song = (id: string, mine: boolean): QueueItem => ({
+    id, videoId: `video-${id}`, title: id, channel: "", thumbnailUrl: "", durationSeconds: 100, addedBy: "x", mine,
+  });
+
+  it("names the moment a guest's song is first in line", () => {
+    expect(turnAlertKey(guestLineup(song("now", false), [song("a", true), song("b", false)]))).toBe("next:a");
+  });
+
+  it("names the moment a guest's song starts", () => {
+    expect(turnAlertKey(guestLineup(song("a", true), [song("b", true)]))).toBe("now:a");
+  });
+
+  it("is null while the guest is further back or has no songs", () => {
+    expect(turnAlertKey(guestLineup(song("now", false), [song("a", false), song("b", true)]))).toBeNull();
+    expect(turnAlertKey(guestLineup(null, []))).toBeNull();
+  });
+
+  it("changes when the same guest's next song comes up, so each turn alerts once", () => {
+    const first = turnAlertKey(guestLineup(null, [song("a", true), song("b", true)]));
+    const second = turnAlertKey(guestLineup(song("a", true), [song("b", true)]));
+    const third = turnAlertKey(guestLineup(song("b", true), []));
+    expect(new Set([first, second, third]).size).toBe(3);
   });
 });

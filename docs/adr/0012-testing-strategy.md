@@ -19,7 +19,7 @@ had no tests. Route handlers had none either.
   rolls back. The runner refuses any non-local database because it drops the schema.
 - CI (`.github/workflows/ci.yml`) runs lint, types, unit tests, a production build
   and the database tests on every pull request.
-- Components and whole flows are not automated yet.
+- Components and whole flows were not automated at first; see the update below.
 
 ## Why
 - Each rule is tested where it lives. Faking the database in a unit test would
@@ -39,6 +39,23 @@ had no tests. Route handlers had none either.
 - A change that breaks how a component wires things together can pass every test.
   During the 2026-11 restructure this gap was covered by hand, by comparing
   screenshots of every screen before and after.
+
+## Update, 2026-11-21: browser tests added
+
+The "Revisit when" condition below was met within a day: checking screens by hand
+was done twice for two changes. `e2e/` now holds Playwright tests that run the
+production build with the session API answered by fixtures (`e2e/session.ts`) and
+YouTube blocked, so they need no Supabase project. They cover the flows of both
+screens and the start page, and run in CI as a third job (`npm run test:e2e`).
+
+- The session API is faked at the network layer, not inside the app, so the tests
+  exercise the real components, hooks and API client.
+- The test server's database address is a closed local port. The one test that
+  needs the server to really fail ("a session cannot be started") relies on that.
+- `@playwright/test` is pinned to an exact version, because the browser build it
+  downloads is tied to it.
+- Still not covered: the app against a real Supabase project, Realtime, and real
+  YouTube playback.
 
 ## Revisit when
 - A regression ships that a browser-level test would have caught. Add Playwright

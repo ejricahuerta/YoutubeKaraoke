@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const noopSubscribe = () => () => {};
 
@@ -17,6 +17,66 @@ function subscribeFullscreen(onChange: () => void) {
 /** Whether any element is in full screen. */
 export function useFullscreen(): boolean {
   return useSyncExternalStore(subscribeFullscreen, () => document.fullscreenElement !== null, () => false);
+}
+
+/**
+ * Keeps the screen from dimming or sleeping while `enabled`, where the browser can.
+ * The host screen needs this: a sleeping laptop stops polling and its session is archived (docs/adr/0008).
+ */
+export function useWakeLock(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled || !("wakeLock" in navigator)) return;
+    let lock: WakeLockSentinel | null = null;
+    let cancelled = false;
+    const acquire = async () => {
+      try {
+        const next = await navigator.wakeLock.request("screen");
+        if (cancelled) next.release();
+        else lock = next;
+      } catch {
+        // Refused (low battery, tab not visible): the screen just behaves as it always did.
+      }
+    };
+    // The browser drops the lock whenever the tab is hidden, so take it again on return.
+    const onVisible = () => document.visibilityState === "visible" && acquire();
+    acquire();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      lock?.release().catch(() => {});
+    };
+  }, [enabled]);
+}
+
+const TURN_VIBRATION_MS = [200, 100, 200];
+
+/**
+ * Gets a guest's attention when `alertKey` changes to a new value: the phone vibrates where
+ * it can, and a tab in the background shows `title` until it is looked at. The value present
+ * when the page opens is not alerted: the person is already looking at it.
+ */
+export function useTurnAlert(alertKey: string | null, title: string) {
+  const last = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const previous = last.current;
+    last.current = alertKey;
+    if (previous === undefined || alertKey === null || alertKey === previous) return;
+    try {
+      navigator.vibrate?.(TURN_VIBRATION_MS);
+    } catch {
+      // Not allowed before the first tap on some browsers; the banner on screen still shows.
+    }
+    if (document.visibilityState === "visible") return;
+    const original = document.title;
+    document.title = title;
+    const restore = () => {
+      if (document.visibilityState !== "visible") return;
+      document.title = original;
+      document.removeEventListener("visibilitychange", restore);
+    };
+    document.addEventListener("visibilitychange", restore);
+  }, [alertKey, title]);
 }
 
 /** State that clears itself after `ms`: for toasts and notices. */

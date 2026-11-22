@@ -44,3 +44,12 @@ export function guestLineup(current: QueueItem | null, queue: QueueItem[]) {
   const onNow = current?.mine ? current : null;
   return { onNow, queued, next: queued[0] as QueuedSong | undefined, songCount: queued.length + (onNow ? 1 : 0) };
 }
+
+/**
+ * Names the turn a guest should be told about: "next:<id>" when their song is first in
+ * line, "now:<id>" when it starts, null otherwise. A new value means a new moment to alert.
+ */
+export function turnAlertKey(lineup: ReturnType<typeof guestLineup>): string | null {
+  if (lineup.onNow) return `now:${lineup.onNow.id}`;
+  return lineup.next?.index === 0 ? `next:${lineup.next.item.id}` : null;
+}

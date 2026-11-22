@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString } from "@/lib/client/browser-hooks";
-import { sendPlayback } from "@/lib/client/session-api";
+import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
+import { sendPlayback, type MutationOutcome } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatWait } from "@/lib/domain/format";
+import { failureMessage, isFailure } from "@/lib/domain/messages";
 import { clampVolume, playingLabel, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
 import { waitSeconds } from "@/lib/domain/queue";
 import { displayTitle } from "@/lib/domain/video";
@@ -39,13 +40,13 @@ const NO_PROGRESS: Progress = { seconds: 0, duration: 0 };
 
 /** The main screen (/s/CODE): the video with the host's controls, and the queue beside it. */
 export function HostScreen({ code }: { code: string }) {
-  const { state, status, refresh, remove, move } = useSessionState(code);
+  const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
+  const { state, status, reconnecting, refresh, remove, move } = useSessionState(code, setNotice);
   const origin = useOrigin();
   const join = { joinUrl: origin ? `${origin}/join/${code}` : "", joinHost: origin.replace(/^https?:\/\//, ""), code };
   const playerRef = useRef<PlayerHandle>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<RailTab>("next");
-  const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
   const [progress, setProgress] = useState<Progress>(NO_PROGRESS);
   // The host screen is the authority on play/pause once it has loaded.
   const [localPlaying, setLocalPlaying] = useState<boolean | null>(null);
@@ -70,12 +71,20 @@ export function HostScreen({ code }: { code: string }) {
   const playing = localPlaying ?? state?.isPlaying ?? true;
   const intro = current !== null && introId === current.id;
 
-  const setPlaying = useCallback(
-    (next: boolean) => {
-      setLocalPlaying(next);
-      sendPlayback(code, next ? "play" : "pause");
+  // Says so when a playback change did not reach the server, which is what the phones follow.
+  const reportIfFailed = useCallback(
+    (outcome: MutationOutcome, fallback: string) => {
+      if (isFailure(outcome)) setNotice(failureMessage(outcome, fallback));
     },
-    [code],
+    [setNotice],
+  );
+
+  const setPlaying = useCallback(
+    async (next: boolean) => {
+      setLocalPlaying(next);
+      reportIfFailed(await sendPlayback(code, next ? "play" : "pause"), "Couldn't tell the phones. They may show the wrong thing for a moment.");
+    },
+    [code, reportIfFailed],
   );
 
   const startNow = useCallback(() => {
@@ -86,11 +95,14 @@ export function HostScreen({ code }: { code: string }) {
   const skip = useCallback(
     async (itemId: string) => {
       setLocalPlaying(true);
-      await sendPlayback(code, "next", itemId);
+      reportIfFailed(await sendPlayback(code, "next", itemId), "Couldn't move on to the next song. Try again.");
       refresh();
     },
-    [code, refresh],
+    [code, refresh, reportIfFailed],
   );
+
+  // A sleeping screen stops polling, and fifteen minutes of that ends the session.
+  useWakeLock(!!state?.isHost);
 
   const seekForward = () => playerRef.current?.seekBy(SEEK_STEP_SECONDS);
 
@@ -130,6 +142,9 @@ export function HostScreen({ code }: { code: string }) {
   if (!state) return <SessionLoadingMessage status={status} />;
 
   const { isHost, queue } = state;
+  // Only the host adds songs here: anyone else on this page has no name yet, and goes to the guest screen for one.
+  const railTabs = RAIL_TABS.filter(([id]) => isHost || id !== "add");
+  const shownTab = railTabs.some(([id]) => id === tab) ? tab : "next";
   const duration = progress.duration || current?.durationSeconds || 0;
   const upNext = queue[0];
   const showBanner = upNextBannerVisible({ hasNext: !!upNext, intro, duration: progress.duration, seconds: progress.seconds });
@@ -148,6 +163,9 @@ export function HostScreen({ code }: { code: string }) {
           </Link>
           {/* Plain text, not a link: no focus stop that could navigate away mid-party. */}
           <span className="hidden text-[1.25rem] font-medium text-ink-faint sm:inline">by edmel.dev</span>
+          {reconnecting ? (
+            <span role="status" className="rounded-full bg-notice-ground px-5 py-2 text-[1.25rem] font-semibold text-notice">Reconnecting…</span>
+          ) : null}
           <button
             type="button"
             aria-expanded={showQueue}
@@ -256,16 +274,33 @@ export function HostScreen({ code }: { code: string }) {
         hidden={!showQueue}
         className={`${showQueue ? "flex" : ""} min-h-0 w-full shrink-0 flex-col gap-4 rounded-panel bg-stage-100 p-8 lg:w-[32.5rem]`}
       >
-        <div className="flex gap-1 rounded-full bg-stage-000 p-1.5" role="tablist">
-          {RAIL_TABS.map(([id, label]) => (
+        <div
+          className="flex gap-1 rounded-full bg-stage-000 p-1.5"
+          role="tablist"
+          aria-label="Queue panel"
+          onKeyDown={(e) => {
+            // Left and right move between tabs, as on any tab list and as a TV remote expects.
+            const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+            if (!step) return;
+            e.preventDefault();
+            const index = railTabs.findIndex(([id]) => id === shownTab);
+            const [nextId] = railTabs[(index + step + railTabs.length) % railTabs.length];
+            setTab(nextId);
+            document.getElementById(`queue-tab-${nextId}`)?.focus();
+          }}
+        >
+          {railTabs.map(([id, label]) => (
             <button
               key={id}
               type="button"
               role="tab"
-              aria-selected={tab === id}
+              id={`queue-tab-${id}`}
+              aria-controls="queue-tabpanel"
+              aria-selected={shownTab === id}
+              tabIndex={shownTab === id ? 0 : -1}
               onClick={() => setTab(id)}
               className={`h-12 flex-1 rounded-full text-[1.25rem] font-semibold transition ${
-                tab === id ? "bg-ink text-stage-000" : "text-ink-muted hover:text-ink"
+                shownTab === id ? "bg-ink text-stage-000" : "text-ink-muted hover:text-ink"
               }`}
             >
               {label}
@@ -274,13 +309,18 @@ export function HostScreen({ code }: { code: string }) {
         </div>
 
         {/* Rows in the lists bleed past their column; the side padding holds that so no sideways scrollbar appears. */}
-        <div className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0">
-          {tab === "next" ? (
+        <div
+          role="tabpanel"
+          id="queue-tabpanel"
+          aria-labelledby={`queue-tab-${shownTab}`}
+          className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0"
+        >
+          {shownTab === "next" ? (
             <UpNextList queue={queue} hasCurrent={!!current} queueWait={queueWait} />
           ) : (
             // Phone-sized controls, enlarged a step: these are used up close, not read from the sofa.
             <div className="flex min-h-0 flex-1 flex-col lg:[zoom:1.3]">
-              {tab === "edit" ? (
+              {shownTab === "edit" ? (
                 <QueuePanel
                   queue={queue}
                   isHost={isHost}

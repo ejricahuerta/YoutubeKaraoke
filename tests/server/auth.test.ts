@@ -7,10 +7,11 @@ vi.mock("next/headers", () => ({
     get: (name: string) => (jar.has(name) ? { name, value: jar.get(name)! } : undefined),
     getAll: () => [...jar].map(([name, value]) => ({ name, value })),
     set,
+    delete: (name: string) => void jar.delete(name),
   }),
 }));
 
-const { createHostToken, getHostedSessionCodes, getHostTokenHash, getOrCreateGuestId, hashHostToken, setHostCookie } = await import("@/lib/server/auth");
+const { clearHostCookie, createHostToken, getHostedSessionCodes, getHostTokenHash, getOrCreateGuestId, hashHostToken, setHostCookie } = await import("@/lib/server/auth");
 
 beforeEach(() => {
   jar.clear();
@@ -32,6 +33,14 @@ describe("host tokens", () => {
     expect(await getHostTokenHash("ABC234")).toBe(hashHostToken(token));
     expect(await getHostTokenHash("XYZ789")).toBeNull();
     expect(await getHostedSessionCodes()).toEqual(["ABC234"]);
+  });
+
+  it("can be dropped once the session is over", async () => {
+    await setHostCookie("ABC234", "token");
+    await setHostCookie("XYZ789", "token");
+    await clearHostCookie("ABC234");
+    expect(await getHostTokenHash("ABC234")).toBeNull();
+    expect(await getHostedSessionCodes()).toEqual(["XYZ789"]);
   });
 
   it("are kept out of reach of page scripts", async () => {

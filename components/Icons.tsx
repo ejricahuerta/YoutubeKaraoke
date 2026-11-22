@@ -22,6 +22,9 @@ export const CheckIcon = ({ className = "h-5 w-5" }: Props) => (
 export const TopIcon = ({ className = "h-5 w-5" }: Props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}><path d="M5 5h14M12 20V9M7 14l5-5 5 5" /></svg>
 );
+export const MoveIcon = ({ className = "h-5 w-5" }: Props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}><path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4" /></svg>
+);
 export const SearchIcon = ({ className = "h-5 w-5" }: Props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden className={className}><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
 );

@@ -2,21 +2,11 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { addSong, searchSongs } from "@/lib/client/session-api";
+import { failureMessage } from "@/lib/domain/messages";
 import { SINGING_LABEL } from "@/lib/domain/playback";
 import type { QueueItem, SearchKind, SearchResult } from "@/lib/domain/types";
 import { CheckIcon, PlusIcon, SearchIcon } from "./Icons";
 import { SongRow } from "./SongRow";
-
-const SESSION_ENDED = "This session has ended.";
-/** What to tell the person for each way a search or an add can fail. */
-const MESSAGES: Record<string, string> = {
-  search_unavailable: "YouTube search isn't responding right now. Try again in a moment.",
-  rate_limited: "Too many requests. Wait a few seconds and try again.",
-  not_found: SESSION_ENDED,
-  archived: SESSION_ENDED,
-  queue_full: "The queue is full. Wait for a few songs to finish.",
-  network_error: "You seem to be offline. Check your connection and try again.",
-};
 
 /** Search YouTube for karaoke or lyrics videos and add them to the session queue. */
 export function SearchPanel({
@@ -56,7 +46,7 @@ export function SearchPanel({
     } else {
       // Offline keeps the last results on screen; a refusal from the server clears them.
       if (outcome.error !== "network_error") setResults(null);
-      setMessage(MESSAGES[outcome.error] ?? "Search failed. Try again.");
+      setMessage(failureMessage(outcome.error, "Search failed. Try again."));
     }
   }
 
@@ -73,7 +63,7 @@ export function SearchPanel({
       onAdded(video);
     } else {
       setAdded((a) => Object.fromEntries(Object.entries(a).filter(([id]) => id !== video.videoId)));
-      setMessage(MESSAGES[outcome] ?? "Couldn't add that song. Try again.");
+      setMessage(failureMessage(outcome, "Couldn't add that song. Try again."));
     }
   }
 

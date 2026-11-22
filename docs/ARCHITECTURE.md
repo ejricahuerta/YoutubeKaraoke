@@ -79,6 +79,7 @@ supabase/
   migrations/           The schema and every database function
   tests/                SQL tests for those functions
 tests/                  Unit tests, mirroring lib/ (plus tests/api for the route handlers)
+e2e/                    Browser tests for the screens, with the session API faked
 docs/                   This page, conventions, decision records
 ```
 
@@ -193,4 +194,5 @@ See [0012](adr/0012-testing-strategy.md) and [CONVENTIONS.md](CONVENTIONS.md#tes
 | `lib/domain`, `lib/server`, `lib/client/session-api` | Vitest unit tests | `npm test` |
 | Route handlers | Vitest, with the database and cookies faked (`tests/api`) | `npm test` |
 | Database functions | SQL assertions against a real Postgres (`supabase/tests`) | `npm run test:db` |
-| Components and whole flows | Not automated yet | tracked in GitHub issues |
+| Screens and whole flows | Playwright against a production build, with the session API answered by fixtures (`e2e`) | `npm run test:e2e` |
+| The app against a real Supabase project and real YouTube | Not automated | by hand, on a preview deploy |

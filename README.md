@@ -94,6 +94,7 @@ Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL` and
 | `npm run typecheck` | TypeScript |
 | `npm test` / `npm run test:watch` | Unit tests (Vitest) |
 | `npm run test:db` | Database function tests (needs a local Postgres, below) |
+| `npm run test:e2e` | Browser tests for the screens (first time: `npx playwright install chromium`) |
 
 ### Database tests
 

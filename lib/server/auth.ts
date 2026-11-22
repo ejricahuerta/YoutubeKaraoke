@@ -26,6 +26,11 @@ export async function setHostCookie(code: string, token: string) {
   (await cookies()).set(HOST_COOKIE_PREFIX + code, token, { ...COOKIE_OPTIONS, maxAge: HOST_COOKIE_MAX_AGE });
 }
 
+/** Forgets host rights for a session that is over, so its cookie stops riding on every request. */
+export async function clearHostCookie(code: string) {
+  (await cookies()).delete(HOST_COOKIE_PREFIX + code);
+}
+
 /** Hash of this browser's host token for the session, or null if it is not the host. */
 export async function getHostTokenHash(code: string): Promise<string | null> {
   const token = (await cookies()).get(HOST_COOKIE_PREFIX + code)?.value;

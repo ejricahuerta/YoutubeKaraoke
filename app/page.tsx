@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { Credit } from "@/components/Credit";
 import { Logo } from "@/components/Logo";
+import { startErrorMessage } from "@/lib/domain/messages";
 import { normalizeSessionCode, SESSION_CODE_LENGTH } from "@/lib/domain/session-code";
 import { getHostedSessionCodes, getHostTokenHash } from "@/lib/server/auth";
 import { isPhone } from "@/lib/server/device";
@@ -19,8 +20,10 @@ async function hostedSessions() {
   return states.filter((s) => s?.isHost && !s.archived).map((s) => s!);
 }
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const configured = isSupabaseConfigured();
+  // Set by POST /api/sessions when "Start a session" could not start one.
+  const startError = startErrorMessage((await searchParams).error);
   // Phones only join sessions; starting one and the main screen are for big screens.
   const phone = isPhone(await headers());
   const sessions = configured && !phone ? await hostedSessions() : [];
@@ -46,12 +49,17 @@ export default async function Home() {
               restart the app. See the README.
             </p>
           ) : phone ? null : (
+            <>
+            {startError ? (
+              <p role="alert" className="mt-8 max-w-[34rem] rounded-row bg-notice-ground p-4 text-sm font-semibold text-notice">{startError}</p>
+            ) : null}
             <form action="/api/sessions" method="post" className="mt-8 flex flex-wrap items-center gap-4">
               <button type="submit" className="h-16 rounded-full bg-encore px-10 text-xl font-bold text-on-encore transition hover:bg-encore-hover active:scale-[0.98]">
                 Start a session
               </button>
               <span className="text-[0.9375rem] text-ink-faint">Free. Closes itself 15 minutes after the party ends.</span>
             </form>
+            </>
           )}
         </div>
 
