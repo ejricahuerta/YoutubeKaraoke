@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { normalizeSingerName, SINGER_NAME_MAX_LENGTH } from "@/lib/domain/singers";
 import { Avatar } from "../Avatar";
 import { Credit } from "../Credit";
+import { AgreementNotice } from "../LegalLinks";
 import { Logo } from "../Logo";
 
 /** The first thing a guest sees: pick the name the room will read on the main screen. */
@@ -68,13 +69,15 @@ export function NameForm({
           <button type="button" onClick={onCancel} className="mt-2 h-12 w-full rounded-full text-base font-semibold text-ink-muted transition hover:text-ink">
             Keep {initialName}
           </button>
-        ) : null}
+        ) : (
+          <AgreementNotice action="joining" className="mt-4 text-center" />
+        )}
         {onLeave ? (
           <button type="button" onClick={onLeave} className="mt-2 h-12 w-full rounded-full text-base font-semibold text-ink-muted transition hover:text-ink">
             Leave room {code}
           </button>
         ) : null}
-        <Credit className="mt-4 text-center" />
+        <Credit className="mt-2 text-center" />
       </div>
     </form>
   );

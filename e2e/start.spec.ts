@@ -52,7 +52,7 @@ test("every response carries the security headers", async ({ page, request }) =>
 test("pages carry the full policy as report-only, and reports are accepted", async ({ page, request }) => {
   const response = await page.goto("/");
   const policy = response!.headers()["content-security-policy-report-only"];
-  expect(policy).toContain("frame-src https://www.youtube.com");
+  expect(policy).toContain("frame-src https://www.youtube-nocookie.com;");
   expect(policy).toContain("report-uri /api/csp-report");
 
   const report = await request.post("/api/csp-report", {

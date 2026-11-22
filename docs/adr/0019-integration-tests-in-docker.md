@@ -1,4 +1,4 @@
-# 0018. Test the built app against a real database in Docker
+# 0019. Test the built app against a real database in Docker
 
 - Status: Accepted
 - Date: 2026-11-22

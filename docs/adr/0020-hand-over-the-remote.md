@@ -1,4 +1,4 @@
-# 0019. The remote can be freed and taken by another phone
+# 0020. The remote can be freed and taken by another phone
 
 - Status: Accepted
 - Date: 2026-11-22

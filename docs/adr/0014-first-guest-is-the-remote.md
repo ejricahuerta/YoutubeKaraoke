@@ -1,6 +1,6 @@
 # 0014. The first guest to join is the remote
 
-- Status: Accepted, amended by 0019 (the remote can be freed and taken by another phone)
+- Status: Accepted, amended by 0020 (the remote can be freed and taken by another phone)
 - Date: 2026-11-22
 - Amends: 0004 (one browser holds host rights), 0007 (phones are only ever guests)
 

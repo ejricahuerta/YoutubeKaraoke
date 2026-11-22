@@ -70,6 +70,7 @@ app/                    Routes only: pages and API route handlers
     queue/[id]          DELETE remove, PATCH move        (PATCH: host)
   s/[code]              Host screen
   join/[code]           Guest screen
+  (legal)/              Terms, privacy policy and cookie policy: /terms, /privacy, /cookies
 components/             React components shared by both screens
   host/                 Only on the host screen
   guest/                Only on the guest screen
@@ -113,7 +114,8 @@ Record: [0011 layered lib](adr/0011-layered-lib.md).
 | A new API call | Route handler in `app/api`, body parser in `lib/server/request-parsers.ts`, database call in `lib/server/session-store.ts`, browser call in `lib/client/session-api.ts` |
 | Anything that touches YouTube search | `lib/server/youtube-search.ts` only |
 | A piece of one screen | `components/host` or `components/guest` |
-| A value kept in the browser | A key in `STORAGE_KEYS` (`lib/client/browser-hooks.ts`) |
+| A value kept in the browser | A key in `STORAGE_KEYS` (`lib/client/browser-hooks.ts`), and a row in `BROWSER_STORAGE` (`lib/domain/legal.ts`) for the cookie policy |
+| A cookie, a new kind of personal data, or a new service that sees visitors' requests | The matching section of `app/(legal)`, and a new `LEGAL_UPDATED_ON` in `lib/domain/legal.ts` |
 
 ## Data
 
@@ -170,7 +172,7 @@ the first guest whose phone loads the session may play, pause, skip, remove and 
 like the main screen, from the guest view. Ending the session stays with the main
 screen. It is stored as `sessions.remote_guest_id` ([0014](adr/0014-first-guest-is-the-remote.md)).
 The main screen or the remote can free it; then the first phone to ask takes it
-([0019](adr/0019-hand-over-the-remote.md)).
+([0020](adr/0020-hand-over-the-remote.md)).
 Any guest may also skip their own song while it is being sung.
 
 ## How a change reaches every screen
@@ -187,9 +189,10 @@ playing in that browser.
 
 ## Playback
 
-Only the host screen plays video, through YouTube's IFrame player with YouTube's
-controls turned off and the app's own TV-sized controls in their place
-([0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
+Only the host screen plays video, through YouTube's IFrame player in privacy-enhanced
+mode (`youtube-nocookie.com`), with YouTube's controls turned off and the app's own
+TV-sized controls in their place ([0018](adr/0018-privacy-enhanced-youtube-player.md),
+which supersedes [0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
 grid that scales with the window ([0009](adr/0009-tv-scale-grid.md)). Search runs on
 the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 

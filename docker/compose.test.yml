@@ -1,5 +1,5 @@
 # The app's database and API, as Supabase runs them, for the integration tests
-# (scripts/test-integration.sh, docs/adr/0018). Nothing here is for production.
+# (scripts/test-integration.sh, docs/adr/0019). Nothing here is for production.
 name: youoke-test
 
 services:

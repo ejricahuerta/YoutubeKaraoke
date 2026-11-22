@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs the app for real against a real database, the way production runs it, and drives
-# it over HTTP (tests/integration, docs/adr/0018). Needs Docker.
+# it over HTTP (tests/integration, docs/adr/0019). Needs Docker.
 #
 #   npm run test:integration
 #

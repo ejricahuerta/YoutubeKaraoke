@@ -82,5 +82,5 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Postgres, PostgREST and nginx in Docker (docker/compose.test.yml); see docs/adr/0018.
+      # Postgres, PostgREST and nginx in Docker (docker/compose.test.yml); see docs/adr/0019.
       - run: npm run test:integration
