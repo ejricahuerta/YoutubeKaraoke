@@ -55,7 +55,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           Session activity: the session code, when songs were added and played, which guest id added each song, which phone
-          is the session&apos;s remote, and when the main screen last checked in.
+          is the session&apos;s remote, and when the main screen last checked in. If the remote moves the main screen to
+          another device, the one-time link it creates is stored only as a hash and expires after 10 minutes.
         </li>
       </ul>
       <h3>What you enter</h3>
@@ -119,8 +120,9 @@ export default function PrivacyPage() {
       <h2>How long we keep it</h2>
       <ul>
         <li>
-          <strong>Sessions, singer names and songs</strong>: a session closes when the main screen ends it or after 15 minutes
-          with no activity. It and everything in it are deleted 24 hours later.
+          <strong>Sessions, singer names and songs</strong>: a session closes when the main screen ends it, 15 minutes after the
+          main screen was last open, or after 30 minutes with nothing playing or queued. It and everything in it are deleted
+          24 hours later.
         </li>
         <li><strong>IP addresses for rate limits</strong>: held in server memory for about a minute, never saved to the database.</li>
         <li><strong>Request logs and security reports</strong>: only for the limited time our hosting provider keeps them.</li>
