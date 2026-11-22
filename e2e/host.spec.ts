@@ -126,3 +126,35 @@ test("the queue panel's tabs work from the keyboard and name their panel", async
   await page.keyboard.press("ArrowLeft"); // wraps round to the last tab
   await expect(page.getByRole("tab", { name: "Add a song" })).toBeFocused();
 });
+
+test("the host ends the session with two presses, and everyone is told it ended", async ({ page }) => {
+  const api = await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+
+  await page.getByRole("button", { name: "End session" }).click();
+  expect(api.sent.filter((request) => request.method === "DELETE")).toHaveLength(0); // one press is never enough
+
+  api.state = session({ isHost: true, archived: true, current: null, queue: [] });
+  await page.getByRole("button", { name: "End for everyone?" }).click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "DELETE", path: "" });
+  await expect(page.getByRole("heading", { name: "This session has ended" })).toBeVisible();
+});
+
+test("an unconfirmed End session goes back to normal by itself", async ({ page }) => {
+  await page.clock.install();
+  const api = await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+
+  await page.getByRole("button", { name: "End session" }).click();
+  await expect(page.getByRole("button", { name: "End for everyone?" })).toBeVisible();
+  await page.clock.fastForward(6_000);
+  await expect(page.getByRole("button", { name: "End session" })).toBeVisible();
+  expect(api.sent).toHaveLength(0);
+});
+
+test("only the host is offered End session", async ({ page }) => {
+  await mockSession(page, session());
+  await page.goto(`/s/${CODE}`);
+  await expect(page.getByRole("button", { name: "Hide queue" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "End session" })).toHaveCount(0);
+});

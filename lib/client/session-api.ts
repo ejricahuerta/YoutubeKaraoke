@@ -42,6 +42,11 @@ export function sendPlayback(code: string, action: PlaybackAction, expectedItemI
   return mutate(`${sessionStateUrl(code)}/playback`, "POST", { action, expectedItemId });
 }
 
+/** Host only: closes the session for everyone. It cannot be reopened. */
+export function endSession(code: string) {
+  return mutate(sessionStateUrl(code), "DELETE");
+}
+
 export async function searchSongs(code: string, query: string, kind: SearchKind): Promise<SearchOutcome> {
   try {
     const res = await fetch(`/api/search?${new URLSearchParams({ code, kind, q: query })}`);

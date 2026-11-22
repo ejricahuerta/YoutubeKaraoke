@@ -13,8 +13,9 @@ hold: `NEXT_PUBLIC_` keys are public by definition.
 - Everything lives in a dedicated `karaoke` schema.
 - Both tables have row level security **on with no policies**, so no API role can
   read or write them directly.
-- Six `security definer` functions (`create_session`, `get_state`, `add_item`,
-  `remove_item`, `move_item`, `playback`) are the only way in. Each locks the
+- A handful of `security definer` functions (`create_session`, `get_state`, `add_item`,
+  `remove_item`, `move_item`, `playback`, and since migration 0004 `end_session`) are
+  the only way in. Each locks the
   session row, checks the host token hash or guest id itself, makes the change,
   and returns a result code.
 - The server uses only the publishable (anon) key. There is no service-role key

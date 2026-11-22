@@ -1,6 +1,6 @@
-import { errorResponse, sessionRoute } from "@/lib/server/api";
+import { errorResponse, resultResponse, sessionRoute } from "@/lib/server/api";
 import { clearHostCookie, getHostTokenHash, getOrCreateGuestId } from "@/lib/server/auth";
-import { getSessionState } from "@/lib/server/session-store";
+import { endSession, getSessionState } from "@/lib/server/session-store";
 
 export const dynamic = "force-dynamic";
 
@@ -13,3 +13,6 @@ export const GET = sessionRoute(async (_req, { code }) => {
   if (!state) return errorResponse("not_found", 404);
   return Response.json(state, { headers: { "Cache-Control": "no-store" } });
 });
+
+/** Host only: ends the session for everyone, for good. */
+export const DELETE = sessionRoute(async (_req, { code }) => resultResponse(await endSession(code, await getHostTokenHash(code))));

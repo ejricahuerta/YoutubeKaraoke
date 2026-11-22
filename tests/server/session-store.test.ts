@@ -4,7 +4,7 @@ import { normalizeSessionCode } from "@/lib/domain/session-code";
 const rpc = vi.fn();
 vi.mock("@/lib/server/supabase", () => ({ getSupabaseServerClient: () => ({ rpc }) }));
 
-const { addQueueItem, createSession, generateSessionCode, getSessionState, updatePlayback } = await import("@/lib/server/session-store");
+const { addQueueItem, createSession, endSession, generateSessionCode, getSessionState, updatePlayback } = await import("@/lib/server/session-store");
 
 const answer = (data: unknown) => ({ data, error: null });
 
@@ -51,6 +51,9 @@ describe("database calls", () => {
       p_code: "ABC234", p_guest_id: "guest", p_name: "Maya",
       p_video_id: "v", p_title: "t", p_channel: "c", p_thumbnail_url: "u", p_duration_seconds: 9,
     });
+
+    await endSession("ABC234", "hash");
+    expect(rpc).toHaveBeenLastCalledWith("end_session", { p_code: "ABC234", p_host_hash: "hash" });
 
     await updatePlayback("ABC234", "hash", "next", "item");
     expect(rpc).toHaveBeenLastCalledWith("playback", { p_code: "ABC234", p_host_hash: "hash", p_action: "next", p_expected_item_id: "item" });

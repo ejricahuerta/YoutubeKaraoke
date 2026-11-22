@@ -61,3 +61,8 @@ export function moveQueueItem(code: string, hostTokenHash: string | null, itemId
 export function updatePlayback(code: string, hostTokenHash: string | null, action: PlaybackAction, expectedItemId: string | null) {
   return rpc<MutationResult>("playback", { p_code: code, p_host_hash: hostTokenHash, p_action: action, p_expected_item_id: expectedItemId });
 }
+
+/** Host only: closes the session for good, at once. */
+export function endSession(code: string, hostTokenHash: string | null) {
+  return rpc<MutationResult>("end_session", { p_code: code, p_host_hash: hostTokenHash });
+}

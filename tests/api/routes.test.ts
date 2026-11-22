@@ -7,6 +7,7 @@ const store = {
   removeQueueItem: vi.fn(),
   moveQueueItem: vi.fn(),
   updatePlayback: vi.fn(),
+  endSession: vi.fn(),
   createSession: vi.fn(),
 };
 vi.mock("@/lib/server/session-store", () => store);
@@ -74,6 +75,20 @@ describe("GET /api/sessions/[code]", () => {
     const res = await sessionRoute.GET(json("GET"), ctx({ code: "ABC234" }));
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ ok: false, error: "server_error" });
+  });
+});
+
+describe("DELETE /api/sessions/[code]", () => {
+  it("ends the session with this browser's host token, and lets the database decide", async () => {
+    store.endSession.mockResolvedValue("ok");
+    const res = await sessionRoute.DELETE(json("DELETE"), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok" });
+    expect(store.endSession).toHaveBeenCalledWith("ABC234", "host-hash");
+  });
+
+  it("passes a refusal on", async () => {
+    store.endSession.mockResolvedValue("forbidden");
+    expect((await sessionRoute.DELETE(json("DELETE"), ctx({ code: "ABC234" }))).status).toBe(403);
   });
 });
 

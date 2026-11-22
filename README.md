@@ -45,7 +45,8 @@ scales with the window, so it reads the same on a laptop and a 4K TV.
 
 The browser that starts a session gets an httpOnly host cookie for it.
 
-A session is archived, and closed for good, after 15 minutes of inactivity.
+The host can end a session from the main screen. Otherwise a session is archived,
+and closed for good, after 15 minutes of inactivity.
 Activity means the main screen is open, or someone adds a song or uses a control,
 so a long song never ends a session but closing the main screen does.
 Archived sessions and their songs are deleted 24 hours later.

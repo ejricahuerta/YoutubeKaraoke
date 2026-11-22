@@ -48,6 +48,10 @@ export async function mockSession(page: Page, state: SessionState | null) {
   const control = { state, stateFails: false, mutationsFail: false, sent: [] as SentRequest[] };
   await page.route(/youtube\.com|ytimg\.com/, (route) => route.abort());
   await page.route(`**/api/sessions/${CODE}`, (route) => {
+    if (route.request().method() !== "GET") {
+      control.sent.push({ method: route.request().method(), path: "", body: route.request().postDataJSON() });
+      return control.mutationsFail ? route.abort() : route.fulfill({ json: { ok: true, result: "ok" } });
+    }
     if (control.stateFails) return route.abort();
     if (!control.state) return route.fulfill({ status: 404, json: { ok: false, error: "not_found" } });
     return route.fulfill({ json: control.state });
