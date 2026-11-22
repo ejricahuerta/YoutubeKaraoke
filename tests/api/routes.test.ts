@@ -99,7 +99,7 @@ describe("POST /api/sessions/[code]/queue", () => {
     store.addQueueItem.mockResolvedValue("ok");
     const res = await queueRoute.POST(json("POST", song), ctx({ code: "ABC234" }));
     expect(res.status).toBe(200);
-    expect(store.addQueueItem).toHaveBeenCalledWith("ABC234", "guest-1", "Maya", expect.objectContaining({ videoId: "dQw4w9WgXcQ", title: "Song" }));
+    expect(store.addQueueItem).toHaveBeenCalledWith("ABC234", "host-hash", "guest-1", "Maya", expect.objectContaining({ videoId: "dQw4w9WgXcQ", title: "Song" }));
   });
 
   it("rejects a body that is not a song without asking the database", async () => {

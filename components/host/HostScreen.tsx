@@ -377,7 +377,7 @@ export function HostScreen({ code }: { code: string }) {
                   emptyText={current ? "Nothing queued after this song." : "No songs yet. Scan the code to add one."}
                 />
               ) : (
-                <SearchPanel code={code} name={HOST_SINGER_NAME} current={current} queue={queue} played={state.played} onAdded={() => {
+                <SearchPanel code={code} name={HOST_SINGER_NAME} showWaitingLimit={false} current={current} queue={queue} played={state.played} onAdded={() => {
                     refresh();
                     setBackToUpNext((n) => n + 1);
                   }} />

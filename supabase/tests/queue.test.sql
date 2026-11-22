@@ -146,4 +146,22 @@ begin
   assert pg_temp.add('CAP333', 'ana', 'A5') = 'guest_limit', 'her song on stage is not one of her 3';
 end $$;
 
+-- The main screen adds songs for everyone in the room, so the limit is not for it,
+-- even once enough people have songs on the list for it to apply to guests.
+do $$
+begin
+  assert karaoke.create_session('HOST22', 'host-hash');
+  assert pg_temp.add('HOST22', 'ana', 'A1') = 'ok';
+  assert pg_temp.add('HOST22', 'ben', 'B1') = 'ok';
+  for i in 1..5 loop
+    assert karaoke.add_item('HOST22', 'tv', 'Host', 'dQw4w9WgXcQ', 'H' || i, '', '', 200, 'host-hash') = 'ok',
+      'with three people on the list, the main screen may still have more than 3 songs waiting';
+  end loop;
+  assert pg_temp.queue_titles('HOST22') = 'B1,H1,H2,H3,H4,H5';
+  assert karaoke.add_item('HOST22', 'tv', 'Host', 'dQw4w9WgXcQ', 'X', '', '', 200, 'wrong-hash') = 'guest_limit',
+    'a wrong host token is just a guest';
+  assert karaoke.add_item('HOST22', 'tv', 'Host', 'dQw4w9WgXcQ', 'X', '', '', 200) = 'guest_limit',
+    'and so is no host token, which is how the app called it before';
+end $$;
+
 rollback;

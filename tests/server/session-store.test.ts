@@ -46,9 +46,9 @@ describe("database calls", () => {
     await getSessionState("ABC234", "hash", "guest");
     expect(rpc).toHaveBeenLastCalledWith("get_state", { p_code: "ABC234", p_host_hash: "hash", p_guest_id: "guest" });
 
-    await addQueueItem("ABC234", "guest", "Maya", { videoId: "v", title: "t", channel: "c", thumbnailUrl: "u", durationSeconds: 9 });
+    await addQueueItem("ABC234", "hash", "guest", "Maya", { videoId: "v", title: "t", channel: "c", thumbnailUrl: "u", durationSeconds: 9 });
     expect(rpc).toHaveBeenLastCalledWith("add_item", {
-      p_code: "ABC234", p_guest_id: "guest", p_name: "Maya",
+      p_code: "ABC234", p_host_hash: "hash", p_guest_id: "guest", p_name: "Maya",
       p_video_id: "v", p_title: "t", p_channel: "c", p_thumbnail_url: "u", p_duration_seconds: 9,
     });
 

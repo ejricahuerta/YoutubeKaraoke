@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { useExpiringState } from "@/lib/client/browser-hooks";
 import { addSong, searchSongs } from "@/lib/client/session-api";
 import { failureMessage } from "@/lib/domain/messages";
 import { SINGING_LABEL } from "@/lib/domain/playback";
@@ -10,10 +11,14 @@ import type { QueueItem, SearchKind, SearchResult } from "@/lib/domain/types";
 import { CheckIcon, PlusIcon, SearchIcon } from "./Icons";
 import { SongRow } from "./SongRow";
 
+/** How long a failed add stays on screen. The results stay, so the person can just try again. */
+const ADD_FAILED_MS = 6000;
+
 /** Search YouTube for karaoke or lyrics videos and add them to the session queue. */
 export function SearchPanel({
   code,
   name,
+  showWaitingLimit = true,
   current,
   queue,
   played,
@@ -22,6 +27,8 @@ export function SearchPanel({
   code: string;
   /** The singer name new songs are added under. */
   name: string;
+  /** False on the main screen, which adds for everyone and is not held to the per-guest limit. */
+  showWaitingLimit?: boolean;
   /** The session's songs, to mark results that are already playing or queued. */
   current: QueueItem | null;
   queue: QueueItem[];
@@ -33,6 +40,7 @@ export function SearchPanel({
   const [results, setResults] = useState<SearchResult[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [addFailed, setAddFailed] = useExpiringState<string>(ADD_FAILED_MS);
   const [added, setAdded] = useState<Record<string, "adding" | "added">>({});
   const requestId = useRef(0);
 
@@ -41,6 +49,7 @@ export function SearchPanel({
     const id = ++requestId.current;
     setLoading(true);
     setMessage(null);
+    setAddFailed(null);
     const outcome = await searchSongs(code, q, k);
     if (id !== requestId.current) return; // a newer search superseded this one
     setLoading(false);
@@ -67,7 +76,7 @@ export function SearchPanel({
       onAdded(video);
     } else {
       setAdded((a) => Object.fromEntries(Object.entries(a).filter(([id]) => id !== video.videoId)));
-      setMessage(failureMessage(outcome, "Couldn't add that song. Try again."));
+      setAddFailed(failureMessage(outcome, "Couldn't add that song. Try again."));
     }
   }
 
@@ -126,14 +135,14 @@ export function SearchPanel({
         ) : null}
       </div>
 
-      {songLimitReached(current, queue) && !message ? (
+      {showWaitingLimit && songLimitReached(current, queue) && !message && !addFailed ? (
         <p className="mt-3 rounded-row bg-stage-100 px-4 py-3 text-sm font-semibold text-ink-muted">
           You have {MAX_WAITING_SONGS} songs waiting. Add more once one is sung.
         </p>
       ) : null}
 
-      {message ? (
-        <p role="alert" className="mt-3 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{message}</p>
+      {message || addFailed ? (
+        <p role="alert" className="mt-3 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{message ?? addFailed}</p>
       ) : null}
 
       <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto">
