@@ -36,7 +36,7 @@ export type PlaybackAction = "play" | "pause" | "next";
 
 /** What a database function that changes a session answers with. */
 export type MutationResult = "ok" | "stale" | MutationError;
-export type MutationError = "not_found" | "forbidden" | "invalid" | "queue_full" | "archived";
+export type MutationError = "not_found" | "forbidden" | "invalid" | "queue_full" | "guest_limit" | "archived";
 
 /** Every error code the API can put in `{ ok: false, error }`. */
 export type ApiError = MutationError | "rate_limited" | "search_unavailable" | "server_error";

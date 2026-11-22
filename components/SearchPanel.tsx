@@ -5,6 +5,7 @@ import { addSong, searchSongs } from "@/lib/client/session-api";
 import { failureMessage } from "@/lib/domain/messages";
 import { SINGING_LABEL } from "@/lib/domain/playback";
 import { whereInSession } from "@/lib/domain/queue";
+import { MAX_WAITING_SONGS } from "@/lib/domain/singers";
 import type { QueueItem, SearchKind, SearchResult } from "@/lib/domain/types";
 import { CheckIcon, PlusIcon, SearchIcon } from "./Icons";
 import { SongRow } from "./SongRow";
@@ -124,6 +125,12 @@ export function SearchPanel({
           <span className="ml-auto text-[0.8125rem] font-semibold text-ink-faint">{results.length} videos</span>
         ) : null}
       </div>
+
+      {queue.filter((item) => item.mine).length >= MAX_WAITING_SONGS && !message ? (
+        <p className="mt-3 rounded-row bg-stage-100 px-4 py-3 text-sm font-semibold text-ink-muted">
+          You have {MAX_WAITING_SONGS} songs waiting. Add more once one is sung.
+        </p>
+      ) : null}
 
       {message ? (
         <p role="alert" className="mt-3 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{message}</p>

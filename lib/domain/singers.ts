@@ -1,6 +1,9 @@
 /** Singer identity: a name, plus a colour and an initial derived from it on the client. */
 
 export const SINGER_COLOR_COUNT = 8;
+/** Songs one guest may have waiting at once. The database enforces it in add_item (migration 0006). */
+export const MAX_WAITING_SONGS = 3;
+
 /** Matches the cut-off in the database's add_item function. */
 export const SINGER_NAME_MAX_LENGTH = 40;
 

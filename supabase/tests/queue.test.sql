@@ -96,9 +96,30 @@ do $$
 begin
   assert karaoke.create_session('FULL22', 'h');
   for i in 1..201 loop
-    assert pg_temp.add('FULL22', 'ana', 'S' || i) = 'ok';
+    assert pg_temp.add('FULL22', 'guest' || i, 'S' || i) = 'ok';
   end loop;
-  assert pg_temp.add('FULL22', 'ana', 'one too many') = 'queue_full', '1 playing + 200 queued is the limit';
+  assert pg_temp.add('FULL22', 'newcomer', 'one too many') = 'queue_full', '1 playing + 200 queued is the limit';
+end $$;
+
+-- One guest cannot fill the queue: each may have at most 3 songs waiting.
+do $$
+begin
+  assert karaoke.create_session('CAP222', 'host-hash');
+  assert pg_temp.add('CAP222', 'ana', 'A1') = 'ok';
+  assert karaoke.get_state('CAP222', null, null)->'current'->>'title' = 'A1';
+  assert pg_temp.add('CAP222', 'ana', 'A2') = 'ok';
+  assert pg_temp.add('CAP222', 'ana', 'A3') = 'ok';
+  assert pg_temp.add('CAP222', 'ana', 'A4') = 'ok', 'the song being sung does not count: 3 are waiting now';
+  assert pg_temp.add('CAP222', 'ana', 'A5') = 'guest_limit', 'a fourth waiting song is refused';
+  assert pg_temp.queue_titles('CAP222') = 'A2,A3,A4', 'and the refused one is not added';
+  assert pg_temp.add('CAP222', 'ben', 'B1') = 'ok', 'other guests are not affected';
+
+  -- A2 starts, so only A3 and A4 are waiting.
+  assert karaoke.playback('CAP222', 'host-hash', 'next', pg_temp.item_id('CAP222', 'A1')) = 'ok';
+  assert pg_temp.add('CAP222', 'ana', 'A5') = 'ok', 'once one of hers is on, she can add again';
+  assert pg_temp.add('CAP222', 'ana', 'A6') = 'guest_limit';
+  assert karaoke.remove_item('CAP222', pg_temp.item_id('CAP222', 'A5'), null, 'ana') = 'ok';
+  assert pg_temp.add('CAP222', 'ana', 'A6') = 'ok', 'removing one of hers makes room too';
 end $$;
 
 rollback;

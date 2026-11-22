@@ -13,7 +13,7 @@ describe("resultResponse", () => {
   });
 
   it("maps each refusal to its HTTP status", async () => {
-    const cases = { not_found: 404, forbidden: 403, invalid: 400, queue_full: 409, archived: 410 } as const;
+    const cases = { not_found: 404, forbidden: 403, invalid: 400, queue_full: 409, guest_limit: 409, archived: 410 } as const;
     for (const [error, status] of Object.entries(cases)) {
       const res = resultResponse(error as keyof typeof cases);
       expect(res.status).toBe(status);

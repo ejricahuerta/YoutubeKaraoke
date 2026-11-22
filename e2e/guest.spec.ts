@@ -167,3 +167,25 @@ test("search marks a song that was already sung tonight", async ({ page }) => {
   await page.getByRole("searchbox").press("Enter");
   await expect(page.getByText("Sung earlier · Zoë")).toBeVisible();
 });
+
+test("a guest with three songs waiting is told before searching, and the server's refusal is explained", async ({ page }) => {
+  const mine = [song(2, "Leo", "One", true), song(5, "Leo", "Two", true), song(6, "Leo", "Three", true)];
+  const api = await mockSession(page, session({ queue: [song(3, "Sam", "Mr. Brightside - Karaoke"), ...mine] }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByText("You have 3 songs waiting")).toBeVisible();
+
+  api.addAnswer = { status: 409, error: "guest_limit" };
+  await page.getByRole("searchbox").fill("abba");
+  await page.getByRole("searchbox").press("Enter");
+  await page.getByRole("button", { name: "Add Result song 8 (Karaoke) to the queue" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "You already have 3 songs waiting" })).toBeVisible();
+});
+
+test("a guest with fewer than three songs waiting sees no limit notice", async ({ page }) => {
+  await mockSession(page, session());
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByRole("searchbox")).toBeVisible();
+  await expect(page.getByText(/songs waiting\. Add more/)).toHaveCount(0);
+});
