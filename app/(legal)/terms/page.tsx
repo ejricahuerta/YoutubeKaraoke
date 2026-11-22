@@ -79,7 +79,7 @@ export default function TermsPage() {
       <h2>Limits on our liability</h2>
       <p>
         To the fullest extent the law allows, we are not liable for indirect or consequential losses, lost data, or anything
-        caused by videos, other guests or services we do not control, and our total liability to you is limited to USD 50.
+        caused by videos, other guests or services we do not control, and our total liability to you is limited to CAD 50 (fifty Canadian dollars).
         Nothing in these terms limits liability that cannot be limited by law, or takes away rights you have as a consumer.
       </p>
 

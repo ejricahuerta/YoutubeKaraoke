@@ -74,3 +74,8 @@ test("the terms say Ontario law applies, and the privacy policy covers Canadian 
   await page.goto("/privacy");
   await expect(page.getByText(/PIPEDA/).first()).toBeVisible();
 });
+
+test("the terms cap liability at fifty Canadian dollars", async ({ page }) => {
+  await page.goto("/terms");
+  await expect(page.getByText(/limited to CAD 50 \(fifty Canadian dollars\)/)).toBeVisible();
+});
