@@ -38,8 +38,8 @@ QR code; the owner asked for something simpler.
 - A guest's phone is a phone (0007 still sends phones to the guest screen); the remote
   only adds controls to that screen.
 - `playback` and `move_item` gained a signature with `p_guest_id`. The old signatures
-  still exist, host only, so the previous app kept working during the rollout. They can
-  be dropped once nothing calls them.
+  stayed, host only, so the previous app kept working during the rollout; migration
+  0011 dropped them.
 
 ## Revisit when
 - The wrong person ends up as the remote at real parties: add a way for the main screen

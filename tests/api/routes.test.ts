@@ -8,6 +8,7 @@ const store = {
   moveQueueItem: vi.fn(),
   updatePlayback: vi.fn(),
   endSession: vi.fn(),
+  setTakeTurns: vi.fn(),
   createSession: vi.fn(),
 };
 vi.mock("@/lib/server/session-store", () => store);
@@ -89,6 +90,25 @@ describe("DELETE /api/sessions/[code]", () => {
   it("passes a refusal on", async () => {
     store.endSession.mockResolvedValue("forbidden");
     expect((await sessionRoute.DELETE(json("DELETE"), ctx({ code: "ABC234" }))).status).toBe(403);
+  });
+});
+
+describe("PATCH /api/sessions/[code]", () => {
+  it("switches taking turns with this browser's host token, and lets the database decide", async () => {
+    store.setTakeTurns.mockResolvedValue("ok");
+    const res = await sessionRoute.PATCH(json("PATCH", { takeTurns: false }), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok" });
+    expect(store.setTakeTurns).toHaveBeenCalledWith("ABC234", "host-hash", false);
+  });
+
+  it("refuses a body without a yes or no", async () => {
+    expect((await sessionRoute.PATCH(json("PATCH", { takeTurns: "no" }), ctx({ code: "ABC234" }))).status).toBe(400);
+    expect(store.setTakeTurns).not.toHaveBeenCalled();
+  });
+
+  it("passes a refusal on", async () => {
+    store.setTakeTurns.mockResolvedValue("forbidden");
+    expect((await sessionRoute.PATCH(json("PATCH", { takeTurns: true }), ctx({ code: "ABC234" }))).status).toBe(403);
   });
 });
 

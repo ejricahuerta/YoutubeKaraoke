@@ -68,6 +68,11 @@ export function updatePlayback(code: string, hostTokenHash: string | null, guest
   });
 }
 
+/** Host only: whether singers take turns once 3 or more people have songs on the list. */
+export function setTakeTurns(code: string, hostTokenHash: string | null, on: boolean) {
+  return rpc<MutationResult>("set_take_turns", { p_code: code, p_host_hash: hostTokenHash, p_on: on });
+}
+
 /** Host only: closes the session for good, at once. */
 export function endSession(code: string, hostTokenHash: string | null) {
   return rpc<MutationResult>("end_session", { p_code: code, p_host_hash: hostTokenHash });

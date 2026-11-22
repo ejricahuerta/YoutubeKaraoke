@@ -167,6 +167,31 @@ test("an unconfirmed End session goes back to normal by itself", async ({ page }
   expect(api.sent).toHaveLength(0);
 });
 
+test("the host can switch taking turns off and on", async ({ page }) => {
+  const api = await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+
+  const toggle = page.getByRole("switch", { name: "Take turns" });
+  await expect(toggle).toBeChecked();
+  // The page refetches right after the change, so the fake answers with the new setting first.
+  api.state = hosting({ takeTurns: false });
+  await toggle.click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "PATCH", path: "", body: { takeTurns: false } });
+  await expect(toggle).not.toBeChecked();
+
+  api.state = hosting({ takeTurns: true });
+  await toggle.click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "PATCH", body: { takeTurns: true } });
+  await expect(toggle).toBeChecked();
+});
+
+test("only the host is offered the take-turns switch", async ({ page }) => {
+  await mockSession(page, session());
+  await page.goto(`/s/${CODE}`);
+  await expect(page.getByRole("button", { name: "Hide queue" })).toBeVisible();
+  await expect(page.getByRole("switch", { name: "Take turns" })).toHaveCount(0);
+});
+
 test("only the host is offered End session", async ({ page }) => {
   await mockSession(page, session());
   await page.goto(`/s/${CODE}`);

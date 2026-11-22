@@ -40,3 +40,8 @@ export function parseMoveRequest(body: Body): { afterId: string | null } | null 
   if (afterId !== null && !isUuid(afterId)) return null;
   return { afterId };
 }
+
+/** The main screen's settings for a session: for now, whether singers take turns. */
+export function parseSettingsRequest(body: Body): { takeTurns: boolean } | null {
+  return typeof body.takeTurns === "boolean" ? { takeTurns: body.takeTurns } : null;
+}

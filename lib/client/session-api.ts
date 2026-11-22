@@ -42,6 +42,11 @@ export function sendPlayback(code: string, action: PlaybackAction, expectedItemI
   return mutate(`${sessionStateUrl(code)}/playback`, "POST", { action, expectedItemId });
 }
 
+/** Host only: whether singers take turns once 3 or more people have songs on the list. */
+export function setTakeTurns(code: string, on: boolean) {
+  return mutate(sessionStateUrl(code), "PATCH", { takeTurns: on });
+}
+
 /** Host only: closes the session for everyone. It cannot be reopened. */
 export function endSession(code: string) {
   return mutate(sessionStateUrl(code), "DELETE");

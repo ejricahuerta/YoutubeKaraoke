@@ -26,6 +26,7 @@ at that point. Later records are written when the decision is made.
 | [0013](0013-optional-youtube-api-fallback.md) | Official YouTube API as a fallback when a key is set | Accepted |
 | [0014](0014-first-guest-is-the-remote.md) | The first guest to join is the remote | Accepted |
 | [0015](0015-migrate-on-production-build.md) | Production builds apply pending migrations first | Accepted |
+| [0016](0016-singers-take-turns.md) | Singers take turns, one song per round | Accepted |
 
 ## Template
 
