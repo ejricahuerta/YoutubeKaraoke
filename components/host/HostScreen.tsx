@@ -229,7 +229,7 @@ export function HostScreen({ code }: { code: string }) {
             <HostLobby {...join} />
           )}
 
-          {showBanner ? <UpNextBanner item={upNext} remainingSeconds={duration - progress.seconds} narrow={showJoinCorner} /> : null}
+          {showBanner ? <UpNextBanner item={upNext} remainingSeconds={duration - progress.seconds} /> : null}
           {showJoinCorner ? <JoinCorner {...join} /> : null}
         </div>
 
