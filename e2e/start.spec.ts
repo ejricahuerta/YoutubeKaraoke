@@ -3,6 +3,7 @@ import { PHONE } from "./session";
 
 test("a big screen can start a session or join one by code", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Not okay? Hit start. Kara-OK.");
   await expect(page.getByRole("button", { name: "Start a session" })).toBeVisible();
 
   await page.getByLabel("Session code").fill("abc234");

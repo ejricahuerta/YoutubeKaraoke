@@ -35,7 +35,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
       <div className="flex flex-1 flex-wrap items-center gap-x-16 gap-y-12">
         <div className="min-w-0 flex-[999_1_26rem]">
           <h1 className="font-display text-[clamp(3rem,7vw,6rem)] font-extrabold leading-[0.92] tracking-[-0.03em]">
-            {phone ? <>Find the code, <span className="text-encore">then sing.</span></> : <>Karaoke night starts on <span className="text-encore">this screen.</span></>}
+            {phone ? <>Find the code, <span className="text-encore">then sing.</span></> : <>Not okay? <span className="whitespace-nowrap">Hit start.</span> <span className="whitespace-nowrap text-encore">Kara-OK.</span></>}
           </h1>
           <p className="mt-6 max-w-[34rem] text-xl leading-normal text-ink-muted">
             {phone
