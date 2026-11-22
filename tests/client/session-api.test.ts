@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { addSong, moveSong, removeSong, searchSongs, sendPlayback, sessionStateUrl } from "@/lib/client/session-api";
+import { addSong, endSession, moveSong, removeSong, searchSongs, sendPlayback, sessionStateUrl } from "@/lib/client/session-api";
 
 const video = { videoId: "dQw4w9WgXcQ", title: "Song", channel: "Sing King", thumbnailUrl: "u", durationSeconds: 200 };
 const ITEM_ID = "3f2c1b7e-8a4d-4e6f-9b0a-1c2d3e4f5a6b";
@@ -37,6 +37,12 @@ describe("session mutations", () => {
     const mock = stubFetch(200, { ok: true, result: "stale" });
     expect(await sendPlayback("ABC234", "next", ITEM_ID)).toBe("stale");
     expect(sent(mock)).toEqual({ url: "/api/sessions/ABC234/playback", method: "POST", body: { action: "next", expectedItemId: ITEM_ID } });
+  });
+
+  it("ends the session", async () => {
+    const mock = stubFetch(200, { ok: true, result: "ok" });
+    expect(await endSession("ABC234")).toBe("ok");
+    expect(sent(mock)).toEqual({ url: "/api/sessions/ABC234", method: "DELETE", body: undefined });
   });
 
   it("reports the server's error code", async () => {

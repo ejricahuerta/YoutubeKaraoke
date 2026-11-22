@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
-import { sendPlayback, type MutationOutcome } from "@/lib/client/session-api";
+import { endSession, sendPlayback, type MutationOutcome } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatWait } from "@/lib/domain/format";
 import { failureMessage, isFailure } from "@/lib/domain/messages";
@@ -30,6 +30,8 @@ import { useHostKeys } from "./use-host-keys";
  */
 const TV_SCALE = "html{font-size:max(10px,min(0.8333vw,1.4815vh))}";
 const NOTICE_MS = 6000;
+/** How long "End session" waits for its second press before going back to normal. */
+const END_CONFIRM_MS = 5000;
 /** The name songs added from the main screen go under. */
 const HOST_SINGER_NAME = "Host";
 
@@ -101,6 +103,15 @@ export function HostScreen({ code }: { code: string }) {
     [code, refresh, reportIfFailed],
   );
 
+  // Ending a session cannot be undone, so it takes two presses: the first only arms the button.
+  const [endArmed, setEndArmed] = useExpiringState<true>(END_CONFIRM_MS);
+  const onEndSession = async () => {
+    if (!endArmed) return setEndArmed(true);
+    setEndArmed(null);
+    reportIfFailed(await endSession(code), "Couldn't end the session. Try again.");
+    refresh();
+  };
+
   // A sleeping screen stops polling, and fifteen minutes of that ends the session.
   useWakeLock(!!state?.isHost);
 
@@ -134,7 +145,7 @@ export function HostScreen({ code }: { code: string }) {
   if (status === "not_found" || status === "archived") {
     return (
       <CenteredMessage title="This session has ended">
-        Sessions close after 15 minutes without the main screen open.{" "}
+        It was ended from the main screen, or closed itself after 15 minutes without one.{" "}
         <Link href="/" className="font-semibold text-encore underline">Start a new session</Link>.
       </CenteredMessage>
     );
@@ -166,12 +177,23 @@ export function HostScreen({ code }: { code: string }) {
           {reconnecting ? (
             <span role="status" className="rounded-full bg-notice-ground px-5 py-2 text-[1.25rem] font-semibold text-notice">Reconnecting…</span>
           ) : null}
+          {isHost ? (
+            <button
+              type="button"
+              onClick={onEndSession}
+              className={`ml-auto h-14 rounded-full px-7 text-[1.375rem] font-semibold transition active:scale-[0.97] ${
+                endArmed ? "bg-encore text-on-encore hover:bg-encore-hover" : "text-ink-muted hover:bg-stage-200 hover:text-ink"
+              }`}
+            >
+              {endArmed ? "End for everyone?" : "End session"}
+            </button>
+          ) : null}
           <button
             type="button"
             aria-expanded={showQueue}
             aria-controls="queue-panel"
             onClick={() => setQueueHidden(showQueue ? "1" : null)}
-            className="ml-auto h-14 rounded-full bg-stage-200 px-7 text-[1.375rem] font-semibold transition hover:bg-stage-300 active:scale-[0.97]"
+            className={`${isHost ? "" : "ml-auto"} h-14 rounded-full bg-stage-200 px-7 text-[1.375rem] font-semibold transition hover:bg-stage-300 active:scale-[0.97]`}
           >
             {showQueue ? "Hide queue" : `Show queue (${queue.length})`}
           </button>

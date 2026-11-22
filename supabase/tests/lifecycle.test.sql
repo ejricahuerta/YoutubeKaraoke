@@ -54,7 +54,34 @@ begin
   assert not exists (select 1 from karaoke.sessions where code = 'OLD222');
 end $$;
 
--- Access: the API roles reach the data only through the six public functions.
+-- The host can end a session on purpose, at once, for everyone.
+do $$
+declare
+  v_state jsonb;
+begin
+  assert karaoke.create_session('END222', 'host-hash');
+  perform karaoke.add_item('END222', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
+  perform karaoke.add_item('END222', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B', '', '', 200);
+
+  assert karaoke.end_session('NOPE22', 'host-hash') = 'not_found';
+  assert karaoke.end_session('END222', null) = 'forbidden', 'a guest cannot end the session';
+  assert karaoke.end_session('END222', 'wrong') = 'forbidden';
+  assert not (karaoke.get_state('END222', null, null)->>'archived')::boolean, 'a refused attempt changes nothing';
+
+  assert karaoke.end_session('END222', 'host-hash') = 'ok';
+  v_state := karaoke.get_state('END222', null, 'ana');
+  assert (v_state->>'archived')::boolean, 'every screen sees it ended';
+  assert v_state->'current' = 'null'::jsonb and v_state->'queue' = '[]'::jsonb;
+  assert karaoke.add_item('END222', 'ana', 'Ana', 'dQw4w9WgXcQ', 'C', '', '', 200) = 'archived', 'and nobody can add to it';
+  assert karaoke.end_session('END222', 'host-hash') = 'archived', 'ending it twice is harmless';
+
+  -- It is cleaned up like any other archived session.
+  update karaoke.sessions set archived_at = now() - interval '25 hours' where code = 'END222';
+  perform karaoke.cleanup();
+  assert not exists (select 1 from karaoke.sessions where code = 'END222');
+end $$;
+
+-- Access: the API roles reach the data only through the public functions.
 do $$
 declare
   v_role text;
@@ -72,7 +99,7 @@ begin
       'karaoke.create_session(text, text)', 'karaoke.get_state(text, text, text)',
       'karaoke.add_item(text, text, text, text, text, text, text, integer)',
       'karaoke.remove_item(text, uuid, text, text)', 'karaoke.move_item(text, text, uuid, uuid)',
-      'karaoke.playback(text, text, text, uuid)'
+      'karaoke.playback(text, text, text, uuid)', 'karaoke.end_session(text, text)'
     ] loop
       assert has_function_privilege(v_role, v_fn, 'execute'), v_role || ' can call ' || v_fn;
     end loop;
@@ -81,7 +108,7 @@ begin
     for v_fn in
       select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'karaoke'
-        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback')
+        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session')
     loop
       assert not has_function_privilege(v_role, v_fn, 'execute'), v_role || ' cannot call internal ' || v_fn;
     end loop;

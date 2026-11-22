@@ -62,7 +62,7 @@ Records: [0001 Next.js monolith](adr/0001-nextjs-monolith.md),
 app/                    Routes only: pages and API route handlers
   api/search            GET   search YouTube (needs a live session code)
   api/sessions          POST  start a session
-  api/sessions/[code]   GET   session state
+  api/sessions/[code]   GET   session state, DELETE end it (host)
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
     queue/[id]          DELETE remove, PATCH move        (PATCH: host)
@@ -122,7 +122,7 @@ Two tables in the `karaoke` schema:
   a floating-point `position` for ordering, the singer's name and the adder's guest id.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The six public functions are the whole API of the database:
+policies. The seven public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -132,6 +132,7 @@ policies. The six public functions are the whole API of the database:
 | `remove_item(code, item_id, host_hash, guest_id)` | `DELETE .../queue/[id]` | a result code |
 | `move_item(code, host_hash, item_id, after_id)` | `PATCH .../queue/[id]` | a result code |
 | `playback(code, host_hash, action, expected_item_id)` | `POST .../playback` | a result code |
+| `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
 
 Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`,
 `archived` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps

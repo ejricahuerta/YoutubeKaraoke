@@ -37,6 +37,15 @@ reused by a stranger.
 - The 15-minute value is written twice in SQL (`check_archived`, `cleanup`) and
   twice in user-facing text; they must be changed together.
 
+## Update, 2026-11-22: the host can end a session
+
+Migration 0004 adds `end_session`, behind an "End session" button on the host screen
+that needs two presses. It archives the session at once and by the same means as a
+timeout, so everything above about archived sessions still holds: final, refused by
+every entry point, deleted 24 hours later. The first "Revisit when" item below is
+only half answered: there is still no warning before a session times out, and no way
+to pause one.
+
 ## Revisit when
 - Hosts lose sessions they wanted to keep (ask for pause, or a longer window).
 - Session creation becomes frequent enough that running `cleanup()` inside it is slow.
