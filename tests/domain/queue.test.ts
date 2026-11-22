@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dropAfterId, guestLineup, turnAlertKey, waitSeconds } from "@/lib/domain/queue";
+import { dropAfterId, guestLineup, songOf, turnAlertKey, waitSeconds, whereInSession } from "@/lib/domain/queue";
 import type { QueueItem } from "@/lib/domain/types";
 
 describe("waitSeconds", () => {
@@ -96,5 +96,36 @@ describe("turnAlertKey", () => {
     const second = turnAlertKey(guestLineup(song("a", true), [song("b", true)]));
     const third = turnAlertKey(guestLineup(song("b", true), []));
     expect(new Set([first, second, third]).size).toBe(3);
+  });
+});
+
+describe("whereInSession", () => {
+  const item = (id: string, videoId: string, addedBy: string, mine = false): QueueItem => ({
+    id, videoId, title: id, channel: "", thumbnailUrl: "", durationSeconds: 100, addedBy, mine,
+  });
+  const current = item("now", "v-now", "Maya");
+  const queue = [item("q1", "v-q", "Leo", true), item("q2", "v-dup", "Sam")];
+  const played = [item("p1", "v-dup", "Ana"), item("p2", "v-old", "Zoë", true)];
+
+  it("says a video is being sung, waiting, or was sung earlier, and by whom", () => {
+    expect(whereInSession("v-now", current, queue, played)).toEqual({ place: "singing", by: "Maya", mine: false });
+    expect(whereInSession("v-q", current, queue, played)).toEqual({ place: "queued", by: "Leo", mine: true });
+    expect(whereInSession("v-old", current, queue, played)).toEqual({ place: "sung", by: "Zoë", mine: true });
+  });
+
+  it("prefers what is happening now over what happened earlier", () => {
+    expect(whereInSession("v-dup", current, queue, played)?.place).toBe("queued");
+  });
+
+  it("is null for a video the session has not seen", () => {
+    expect(whereInSession("v-new", current, queue, played)).toBeNull();
+    expect(whereInSession("v-new", null, [], [])).toBeNull();
+  });
+});
+
+describe("songOf", () => {
+  it("keeps only what adding the song again needs", () => {
+    const item: QueueItem = { id: "x", videoId: "v", title: "t", channel: "c", thumbnailUrl: "u", durationSeconds: 9, addedBy: "Ana", mine: true };
+    expect(songOf(item)).toEqual({ videoId: "v", title: "t", channel: "c", thumbnailUrl: "u", durationSeconds: 9 });
   });
 });

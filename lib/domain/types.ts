@@ -24,6 +24,8 @@ export type SessionState = {
   isHost: boolean;
   current: QueueItem | null;
   queue: QueueItem[];
+  /** Finished songs, newest first, at most 50. Empty for an archived session. */
+  played: QueueItem[];
 };
 
 export type SearchResult = Pick<QueueItem, "videoId" | "title" | "channel" | "thumbnailUrl" | "durationSeconds">;
