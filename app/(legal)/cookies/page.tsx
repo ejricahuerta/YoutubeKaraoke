@@ -78,7 +78,7 @@ export default function CookiesPage() {
       <h2>More</h2>
       <p>
         The <Link href="/privacy">Privacy Policy</Link> covers everything else YouOke handles. Questions:{" "}
-        <a href={OPERATOR.url}>{OPERATOR.name}</a>.
+        <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>.
       </p>
     </article>
   );

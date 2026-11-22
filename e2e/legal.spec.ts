@@ -69,3 +69,34 @@ test.describe("on a phone", () => {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 });
+
+test("every legal page gives an email address to contact", async ({ page }) => {
+  for (const path of ["/terms", "/privacy", "/cookies"]) {
+    await page.goto(path);
+    await expect(page.getByRole("link", { name: "me@edmel.dev" }).first()).toHaveAttribute("href", "mailto:me@edmel.dev");
+  }
+});
+
+test("the terms say Ontario law applies, and the privacy policy covers Canadian privacy law", async ({ page }) => {
+  await page.goto("/terms");
+  await expect(page.getByText(/laws of the Province of Ontario and the federal laws of Canada/)).toBeVisible();
+  await page.goto("/privacy");
+  await expect(page.getByText(/PIPEDA/).first()).toBeVisible();
+});
+
+test("the terms cap liability at fifty Canadian dollars", async ({ page }) => {
+  await page.goto("/terms");
+  await expect(page.getByText(/limited to CAD 50 \(fifty Canadian dollars\)/)).toBeVisible();
+});
+
+test("the terms say YouTube playback is not guaranteed", async ({ page }) => {
+  await page.goto("/terms");
+  await expect(page.getByText(/We do not guarantee that the YouTube player will work/)).toBeVisible();
+});
+
+test("the policies say when a session closes on its own", async ({ page }) => {
+  for (const path of ["/terms", "/privacy"]) {
+    await page.goto(path);
+    await expect(page.getByText(/15 minutes after the main screen was last open, or after 30 minutes with nothing playing/).first(), path).toBeVisible();
+  }
+});

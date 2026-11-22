@@ -13,14 +13,15 @@ export default function TermsPage() {
       <h1>Terms of Use</h1>
       <p>
         These terms are an agreement between you and <a href={OPERATOR.url}>{OPERATOR.name}</a> (&ldquo;we&rdquo;,
-        &ldquo;us&rdquo;), who run YouOke. By starting or joining a session you accept them and our{" "}
+        &ldquo;us&rdquo;), based in {OPERATOR.location}, who run YouOke. By starting or joining a session you accept them and our{" "}
         <Link href="/privacy">Privacy Policy</Link>. If you do not agree, please don&apos;t use YouOke.
       </p>
 
       <h2>The service</h2>
       <p>
         YouOke lets one screen play karaoke videos from YouTube while guests add songs from their phones. It is free, needs no
-        account, and a session closes for good 15 minutes after it was last used. We may change, limit or stop any part of
+        account, and a session closes for good 15 minutes after the main screen was last open, or after 30 minutes with
+        nothing playing or queued. We may change, limit or stop any part of
         YouOke at any time, with or without notice.
       </p>
 
@@ -71,15 +72,21 @@ export default function TermsPage() {
 
       <h2>No warranty</h2>
       <p>
-        YouOke is provided <strong>&ldquo;as is&rdquo;</strong> and &ldquo;as available&rdquo;. Searching YouTube depends on
-        services we do not control and can break. To the fullest extent the law allows, we make no promises that YouOke will
-        be available, error-free, or suitable for any purpose.
+        YouOke is provided <strong>&ldquo;as is&rdquo;</strong> and &ldquo;as available&rdquo;. To the fullest extent the law
+        allows, we make no promises that YouOke will be available, uninterrupted, error-free, or suitable for any purpose.
+      </p>
+      <p>
+        Search and playback depend on YouTube, which we do not control. <strong>We do not guarantee that the YouTube player
+        will work all the time, or at all.</strong> YouTube can change, limit or block its player or search without notice. A
+        video may fail to load, stop partway, play with ads, play at lower quality, or be removed or blocked in your country,
+        and search may return no results. We are not responsible for these interruptions or for any event, party or
+        performance affected by them.
       </p>
 
       <h2>Limits on our liability</h2>
       <p>
         To the fullest extent the law allows, we are not liable for indirect or consequential losses, lost data, or anything
-        caused by videos, other guests or services we do not control, and our total liability to you is limited to USD 50.
+        caused by videos, other guests or services we do not control, and our total liability to you is limited to CAD 50 (fifty Canadian dollars).
         Nothing in these terms limits liability that cannot be limited by law, or takes away rights you have as a consumer.
       </p>
 
@@ -92,13 +99,14 @@ export default function TermsPage() {
 
       <h2>Law</h2>
       <p>
-        These terms are governed by the laws of the place where we are established, without regard to its conflict-of-law
-        rules. If you are a consumer, you keep the protection of the mandatory laws of the country where you live. If any part
-        of these terms is unenforceable, the rest still applies.
+        These terms are governed by the laws of the Province of Ontario and the federal laws of Canada that apply there,
+        without regard to conflict-of-law rules. Any dispute will be heard by the courts of Ontario. If you are a consumer,
+        you keep the protection of the mandatory laws of the place where you live, including the right to go to your local
+        courts where that law gives it. If any part of these terms is unenforceable, the rest still applies.
       </p>
 
       <h2>Contact</h2>
-      <p>Questions about these terms: <a href={OPERATOR.url}>{OPERATOR.name}</a>.</p>
+      <p>Questions about these terms: <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>.</p>
     </article>
   );
 }
