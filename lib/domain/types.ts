@@ -47,6 +47,9 @@ export type SessionState = {
 
 export type SearchResult = Pick<QueueItem, "videoId" | "title" | "channel" | "thumbnailUrl" | "durationSeconds">;
 
+/** A song sung lately in any session, for the start page. Titles come from YouTube, not from whoever added the song. */
+export type RecentSong = Pick<QueueItem, "videoId" | "title">;
+
 export type SearchKind = "karaoke" | "lyrics";
 
 export type PlaybackAction = "play" | "pause" | "next";

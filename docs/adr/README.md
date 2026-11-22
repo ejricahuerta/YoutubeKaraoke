@@ -31,6 +31,7 @@ at that point. Later records are written when the decision is made.
 | [0018](0018-privacy-enhanced-youtube-player.md) | YouTube's privacy-enhanced player, with our own controls | Accepted |
 | [0019](0019-integration-tests-in-docker.md) | Test the built app against a real database in Docker | Accepted |
 | [0020](0020-hand-over-the-remote.md) | The remote can be freed and taken by another phone | Accepted |
+| [0021](0021-recently-sung-songs-on-the-start-page.md) | Songs sung lately are shown on the start page | Accepted |
 
 ## Template
 

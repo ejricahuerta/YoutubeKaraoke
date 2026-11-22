@@ -25,6 +25,10 @@ export default function PrivacyPage() {
           each request. We use them to run the app, to tell phones from big screens, and to stop abuse.
         </li>
         <li>The singer name you type and the songs you add are shown to everyone in your session.</li>
+        <li>
+          The names of songs sung in any session are shown on the start page for a day, without who sang them or in which
+          session.
+        </li>
         <li>A session&apos;s songs and names are deleted 24 hours after the session closes.</li>
         <li>No ads, no analytics or tracking cookies, and we never sell or share your information for advertising.</li>
       </ul>
@@ -89,6 +93,10 @@ export default function PrivacyPage() {
         <li>
           <strong>People in your session.</strong> Your singer name and songs appear on the main screen and on every phone
           that opens the session. Anyone with the session code or QR code can join.
+        </li>
+        <li>
+          <strong>Anyone who opens the start page.</strong> For a day after a song is sung, its name (as YouTube titles the
+          video) may float across the start page. Your singer name, your session and when you sang it are never shown there.
         </li>
         <li>
           <strong>Our service providers</strong>, who process it for us to run YouOke:

@@ -37,6 +37,11 @@ export function getSessionState(code: string, hostTokenHash: string | null, gues
   return rpc<SessionState | null>("get_state", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId });
 }
 
+/** YouTube ids of songs finished in the last day, in any session, newest first. */
+export async function getRecentlyPlayedVideoIds(): Promise<string[]> {
+  return (await rpc<string[] | null>("recently_played", {})) ?? [];
+}
+
 /** The host's token lifts the limit on waiting songs: the main screen adds for everyone. */
 export function addQueueItem(code: string, hostTokenHash: string | null, guestId: string, name: string, video: SearchResult) {
   return rpc<MutationResult>("add_item", {
