@@ -2,7 +2,6 @@ import { countSongs, formatDuration } from "@/lib/domain/format";
 import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
-import { OVERLINE } from "./styles";
 
 /** How many upcoming singers the room sees; the rest collapse into "+N more". */
 const UP_NEXT_ROWS = 4;
@@ -50,15 +49,23 @@ function UpNextRow({ item, first }: { item: QueueItem; first: boolean }) {
   );
 }
 
-/** Names the next singer over the video near the end of a song. `narrow` leaves room for the corner QR code. */
-export function UpNextBanner({ item, remainingSeconds, narrow }: { item: QueueItem; remainingSeconds: number; narrow: boolean }) {
+/**
+ * Names the next singer over the video near the end of a song. A small card in the top right
+ * corner: karaoke videos put their lyrics in the middle and bottom of the picture.
+ */
+export function UpNextBanner({ item, remainingSeconds }: { item: QueueItem; remainingSeconds: number }) {
   return (
-    <div className={`animate-rise pointer-events-none absolute bottom-7 left-7 flex items-center gap-5 rounded-full bg-stage-000 py-4 pl-4 pr-8 shadow-lift ${narrow ? "right-[14rem]" : "right-7"}`}>
-      <Avatar name={item.addedBy} className="h-16 w-16 text-[1.75rem]" />
-      <span className={`${OVERLINE} shrink-0 text-ink-muted`}>Up next</span>
-      <span className="shrink-0 text-[1.875rem] font-bold">{item.addedBy}</span>
-      <span className="min-w-0 flex-1 truncate text-[1.875rem] font-medium text-ink-muted">{displayTitle(item.title)}</span>
-      <span className="shrink-0 text-[1.5rem] font-semibold tabular-nums text-ink-muted">in {formatDuration(remainingSeconds) || "0:00"}</span>
+    <div className="animate-rise pointer-events-none absolute right-6 top-6 flex w-max max-w-[30rem] items-center gap-3.5 rounded-card bg-stage-000/90 py-3 pl-3 pr-5 shadow-lift">
+      <Avatar name={item.addedBy} className="h-12 w-12 shrink-0 text-[1.375rem]" />
+      <div className="min-w-0">
+        <p className="text-[1rem] font-bold uppercase leading-5 tracking-[0.1em] text-ink-muted">
+          Up next · <span className="tabular-nums">in {formatDuration(remainingSeconds) || "0:00"}</span>
+        </p>
+        <p className="truncate text-[1.375rem] leading-7">
+          <span className="font-bold">{item.addedBy}</span>
+          <span className="font-medium text-ink-muted"> · {displayTitle(item.title)}</span>
+        </p>
+      </div>
     </div>
   );
 }
