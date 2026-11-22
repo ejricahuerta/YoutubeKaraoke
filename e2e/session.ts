@@ -48,7 +48,18 @@ export type SentRequest = { method: string; path: string; body: unknown };
  * Returns switches to make calls fail, and the list of changes the page sent.
  */
 export async function mockSession(page: Page, state: SessionState | null) {
-  const control = { state, stateFails: false, mutationsFail: false, addAnswer: null as null | { status: number; error: string }, sent: [] as SentRequest[] };
+  const control = {
+    state,
+    stateFails: false,
+    mutationsFail: false,
+    addAnswer: null as null | { status: number; error: string },
+    sent: [] as SentRequest[],
+    /** Console messages about the Content-Security-Policy, which is report-only for now. */
+    cspViolations: [] as string[],
+  };
+  page.on("console", (message) => {
+    if (message.text().includes("Content Security Policy")) control.cspViolations.push(message.text());
+  });
   await page.route(/youtube\.com|ytimg\.com/, (route) => route.abort());
   await page.route(`**/api/sessions/${CODE}`, (route) => {
     if (route.request().method() !== "GET") {

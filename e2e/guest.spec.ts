@@ -202,3 +202,33 @@ test("guests are warned when the main screen has been closed for a while", async
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByRole("status").filter({ hasText: "main screen seems to be closed" })).toContainText("about 10 min");
 });
+
+test("the guest screen breaks none of the Content-Security-Policy", async ({ page }) => {
+  const api = await mockSession(page, session({ played: [song(7, "Zoë", "Wonderwall (Karaoke)")] }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await page.getByRole("searchbox").fill("abba");
+  await page.getByRole("searchbox").press("Enter");
+  await expect(page.getByText("Result song 8")).toBeVisible();
+  await page.getByRole("button", { name: /Queue · 3/ }).click();
+  await page.getByRole("button", { name: /My songs/ }).click();
+  expect(api.cspViolations).toEqual([]);
+});
+
+test("the Added message and its Undo stay until dismissed", async ({ page }) => {
+  await page.clock.install();
+  const api = await mockSession(page, session({ queue: [song(3, "Sam", "Mr. Brightside - Karaoke")] }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await page.getByRole("searchbox").fill("abba");
+  await page.getByRole("searchbox").press("Enter");
+  api.state = session({ queue: [song(3, "Sam", "Mr. Brightside - Karaoke"), song(8, "Leo", "Result song 8 (Karaoke)", true)] });
+  await page.getByRole("button", { name: "Add Result song 8 (Karaoke) to the queue" }).click();
+  await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+
+  await page.clock.fastForward(30_000); // no time limit on undoing
+  await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Dismiss" }).click();
+  await expect(page.getByRole("button", { name: "Undo" })).toHaveCount(0);
+});

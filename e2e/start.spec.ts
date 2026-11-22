@@ -48,3 +48,26 @@ test("every response carries the security headers", async ({ page, request }) =>
     expect(headers["x-powered-by"]).toBeUndefined();
   }
 });
+
+test("pages carry the full policy as report-only, and reports are accepted", async ({ page, request }) => {
+  const response = await page.goto("/");
+  const policy = response!.headers()["content-security-policy-report-only"];
+  expect(policy).toContain("frame-src https://www.youtube.com");
+  expect(policy).toContain("report-uri /api/csp-report");
+
+  const report = await request.post("/api/csp-report", {
+    headers: { "content-type": "application/csp-report" },
+    data: { "csp-report": { "document-uri": "http://localhost/", "violated-directive": "img-src", "blocked-uri": "https://example.com/x.png" } },
+  });
+  expect(report.status()).toBe(204);
+});
+
+test("the start page breaks none of its own policy", async ({ page }) => {
+  const violations: string[] = [];
+  page.on("console", (message) => {
+    if (message.text().includes("Content Security Policy")) violations.push(message.text());
+  });
+  await page.goto("/");
+  await page.getByLabel("Session code").fill("abc234");
+  expect(violations).toEqual([]);
+});

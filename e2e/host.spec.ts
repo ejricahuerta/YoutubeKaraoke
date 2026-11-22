@@ -158,3 +158,15 @@ test("only the host is offered End session", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Hide queue" })).toBeVisible();
   await expect(page.getByRole("button", { name: "End session" })).toHaveCount(0);
 });
+
+test("the main screen breaks none of the Content-Security-Policy", async ({ page }) => {
+  const api = await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Start now" }).first().click();
+  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("tab", { name: "Add a song" }).click();
+  await page.getByRole("searchbox").fill("abba");
+  await page.getByRole("searchbox").press("Enter");
+  await expect(page.getByText("Result song 8")).toBeVisible();
+  expect(api.cspViolations).toEqual([]);
+});
