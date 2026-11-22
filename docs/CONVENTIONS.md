@@ -92,8 +92,9 @@ Work test-first:
 
 - Files are `NNNN_what_it_does.sql`, applied in order, never edited after they
   have been applied anywhere.
-- Apply them as migrations so they appear in the project's migration history, and
-  record each in the table in `supabase/migrations/README.md`.
+- Production builds apply pending ones before the app goes live (ADR 0015), so
+  merging is the only step. Each must therefore work with the app that is live now:
+  add first, drop in a later migration.
 - Every function is `security definer set search_path = ''` and fully qualifies
   names; internal helpers are revoked from the API roles. `supabase/tests/lifecycle.test.sql`
   fails if a new function forgets either.

@@ -79,6 +79,7 @@ lib/
 supabase/
   migrations/           The schema and every database function
   tests/                SQL tests for those functions
+scripts/                migrate.mts (applies migrations on a production build) and test-db.sh
 tests/                  Unit tests, mirroring lib/ (plus tests/api for the route handlers)
 e2e/                    Browser tests for the screens, with the session API faked
 docs/                   This page, conventions, decision records
