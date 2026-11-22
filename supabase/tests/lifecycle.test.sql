@@ -141,8 +141,7 @@ begin
     foreach v_fn in array array[
       'karaoke.create_session(text, text)', 'karaoke.get_state(text, text, text)',
       'karaoke.add_item(text, text, text, text, text, text, text, integer, text)',
-      'karaoke.remove_item(text, uuid, text, text)', 'karaoke.move_item(text, text, uuid, uuid)',
-      'karaoke.playback(text, text, text, uuid)', 'karaoke.end_session(text, text)',
+      'karaoke.remove_item(text, uuid, text, text)', 'karaoke.end_session(text, text)',
       'karaoke.playback(text, text, text, uuid, text)', 'karaoke.move_item(text, text, uuid, uuid, text)'
     ] loop
       assert has_function_privilege(v_role, v_fn, 'execute'), v_role || ' can call ' || v_fn;

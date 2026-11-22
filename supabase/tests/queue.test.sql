@@ -43,14 +43,15 @@ begin
   assert pg_temp.add('TEST22', 'ben', 'B') = 'ok';
   assert pg_temp.add('TEST22', 'ana', 'C') = 'ok';
   assert pg_temp.add('TEST22', 'cy', 'D') = 'ok';
-  assert pg_temp.queue_titles('TEST22') = 'B,C,D', 'later songs queue in the order they were added';
+  assert pg_temp.queue_titles('TEST22') = 'B,D,C', 'singers take turns: Cy''s first song goes ahead of Ana''s second (migration 0011)';
 
   assert karaoke.add_item('TEST22', 'dee', '   ', 'dQw4w9WgXcQ', 'E', null, null, -5) = 'ok';
-  v_state := karaoke.get_state('TEST22', null, null)->'queue'->3;
+  select q into v_state from jsonb_array_elements(karaoke.get_state('TEST22', null, null)->'queue') q where q->>'title' = 'E';
   assert v_state->>'addedBy' = 'Guest', 'a blank name becomes Guest';
   assert (v_state->>'durationSeconds')::int = 0, 'a negative length becomes unknown';
   assert karaoke.add_item('TEST22', 'dee', repeat('x', 90), 'dQw4w9WgXcQ', 'F', '', '', 1) = 'ok';
-  assert length(karaoke.get_state('TEST22', null, null)->'queue'->4->>'addedBy') = 40, 'names are cut to 40 characters';
+  assert (select length(q->>'addedBy') from jsonb_array_elements(karaoke.get_state('TEST22', null, null)->'queue') q
+          where q->>'title' = 'F') = 40, 'names are cut to 40 characters';
   assert karaoke.remove_item('TEST22', pg_temp.item_id('TEST22', 'E'), 'host-hash', '') = 'ok';
   assert karaoke.remove_item('TEST22', pg_temp.item_id('TEST22', 'F'), 'host-hash', '') = 'ok';
 
@@ -92,6 +93,53 @@ begin
   assert (select count(distinct position) = count(*) from karaoke.queue_items i
           join karaoke.sessions s on s.id = i.session_id where s.code = 'TEST22' and i.status = 'queued'),
     'no two waiting songs ever share a position';
+end $$;
+
+-- Singers take turns (migration 0011): a new song goes after the last song of its singer's
+-- round, so one keen guest cannot make everyone else wait.
+do $$
+begin
+  assert karaoke.create_session('TURN22', 'host-hash');
+  -- The example from issue #21.
+  assert pg_temp.add('TURN22', 'ana', 'Ana1') = 'ok';
+  assert pg_temp.add('TURN22', 'ana', 'Ana2') = 'ok';
+  assert pg_temp.add('TURN22', 'ana', 'Ana3') = 'ok';
+  assert pg_temp.add('TURN22', 'ben', 'Ben1') = 'ok';
+  assert pg_temp.add('TURN22', 'cy', 'Cy1') = 'ok';
+  assert pg_temp.add('TURN22', 'ben', 'Ben2') = 'ok';
+  assert karaoke.get_state('TURN22', null, null)->'current'->>'title' = 'Ana1', 'the first song still starts right away';
+  assert pg_temp.queue_titles('TURN22') = 'Ben1,Cy1,Ana2,Ben2,Ana3', 'one song per singer per round';
+
+  -- A newcomer's first song goes ahead of everyone's second.
+  assert pg_temp.add('TURN22', 'dee', 'Dee1') = 'ok';
+  assert pg_temp.queue_titles('TURN22') = 'Ben1,Cy1,Dee1,Ana2,Ben2,Ana3';
+
+  -- The singer on stage has used this round's turn: Cy's next song waits for round 2.
+  assert karaoke.playback('TURN22', 'host-hash', 'next', pg_temp.item_id('TURN22', 'Ana1')) = 'ok';
+  assert karaoke.get_state('TURN22', null, null)->'current'->>'title' = 'Ben1';
+  assert pg_temp.add('TURN22', 'ben', 'Ben3') = 'ok';
+  assert pg_temp.queue_titles('TURN22') = 'Cy1,Dee1,Ana2,Ben2,Ana3,Ben3', 'Ben is singing, so Ben3 is his third round';
+
+  assert pg_temp.add('TURN22', 'ana', 'Ana4') = 'ok';
+  assert pg_temp.queue_titles('TURN22') = 'Cy1,Dee1,Ana2,Ben2,Ana3,Ben3,Ana4';
+
+  -- The main screen adds for people without a phone, so its songs take turns by the name typed.
+  assert karaoke.add_item('TURN22', 'tv', 'Eve', 'dQw4w9WgXcQ', 'Eve1', '', '', 200, 'host-hash') = 'ok';
+  assert karaoke.add_item('TURN22', 'tv', 'Fay', 'dQw4w9WgXcQ', 'Fay1', '', '', 200, 'host-hash') = 'ok';
+  assert karaoke.add_item('TURN22', 'tv', ' eve ', 'dQw4w9WgXcQ', 'Eve2', '', '', 200, 'host-hash') = 'ok';
+  -- A song sung earlier tonight does not count: Ana1 is done, so Ana2 is now her round 1
+  -- and Eve and Fay come after it. The same name in any case is the same person.
+  assert pg_temp.queue_titles('TURN22') = 'Cy1,Dee1,Ana2,Eve1,Fay1,Ben2,Ana3,Eve2,Ben3,Ana4',
+    'Eve and Fay each get a first-round turn, by the name typed on the main screen';
+
+  -- A guest's songs take turns by phone, whatever name they type.
+  assert karaoke.add_item('TURN22', 'cy', 'Not Cy', 'dQw4w9WgXcQ', 'Cy2', '', '', 200) = 'ok';
+  assert pg_temp.queue_titles('TURN22') = 'Cy1,Dee1,Ana2,Eve1,Fay1,Ben2,Ana3,Eve2,Cy2,Ben3,Ana4',
+    'renaming yourself does not buy a new first turn';
+
+  -- The main screen and the remote can still put any song anywhere; new songs fit around that.
+  assert karaoke.move_item('TURN22', 'host-hash', pg_temp.item_id('TURN22', 'Ana4'), null) = 'ok';
+  assert pg_temp.queue_titles('TURN22') = 'Ana4,Cy1,Dee1,Ana2,Eve1,Fay1,Ben2,Ana3,Eve2,Cy2,Ben3';
 end $$;
 
 -- The queue is capped at 200 waiting songs.

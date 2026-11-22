@@ -71,7 +71,7 @@ begin
   assert (karaoke.get_state('OWNS22', null, 'ana')->'current'->>'mine')::boolean is false;
 end $$;
 
--- The previous signatures keep working, host only, for an app that does not send a guest id yet.
+-- Without a guest id (p_guest_id defaults to null since migration 0011), only the main screen controls.
 do $$
 begin
   assert karaoke.create_session('OLDS22', 'host-hash');
