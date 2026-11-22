@@ -45,6 +45,7 @@ export const BROWSER_STORAGE: readonly BrowserStorageEntry[] = [
     lifetimeSeconds: SECONDS_PER_DAY * 30,
   },
   { name: "karaoke:name", kind: "local storage", purpose: "The singer name you typed, so you don't have to type it again." },
+  { name: "karaoke:room", kind: "local storage", purpose: "The code of the session this browser is in, so every tab stays in the same one." },
   { name: "karaoke:volume", kind: "local storage", purpose: "The main screen's volume." },
   { name: "karaoke:queue-hidden", kind: "local storage", purpose: "Whether the main screen's queue panel is hidden." },
   { name: "karaoke:position", kind: "local storage", purpose: "Where the main screen was in the current song, so a reload carries on from there." },
