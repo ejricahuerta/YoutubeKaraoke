@@ -14,6 +14,7 @@ const store = {
   startHandoff: vi.fn(),
   takeOver: vi.fn(),
   createSession: vi.fn(),
+  getRecentlyPlayedVideoIds: vi.fn(),
 };
 vi.mock("@/lib/server/session-store", () => store);
 const clearHostCookie = vi.fn();
@@ -27,7 +28,8 @@ vi.mock("@/lib/server/auth", () => ({
   clearHostCookie,
 }));
 const searchVideos = vi.fn();
-vi.mock("@/lib/server/youtube-search", () => ({ searchVideos }));
+const videoTitle = vi.fn();
+vi.mock("@/lib/server/youtube-search", () => ({ searchVideos, videoTitle }));
 
 const sessionRoute = await import("@/app/api/sessions/[code]/route");
 const queueRoute = await import("@/app/api/sessions/[code]/queue/route");
@@ -38,6 +40,7 @@ const handoffRoute = await import("@/app/api/sessions/[code]/handoff/route");
 const hostRoute = await import("@/app/api/sessions/[code]/host/route");
 const sessionsRoute = await import("@/app/api/sessions/route");
 const searchRoute = await import("@/app/api/search/route");
+const recentSongsRoute = await import("@/app/api/recent-songs/route");
 
 const ITEM_ID = "3f2c1b7e-8a4d-4e6f-9b0a-1c2d3e4f5a6b";
 const ctx = <P>(params: P) => ({ params: Promise.resolve(params) });
@@ -339,5 +342,27 @@ describe("GET /api/search", () => {
     let last = 200;
     for (let i = 0; i < 41; i++) last = (await search("code=ABC234&q=hello", "198.51.100.99")).status;
     expect(last).toBe(429);
+  });
+});
+
+describe("GET /api/recent-songs", () => {
+  it("answers the songs sung recently with YouTube's titles, cacheable for everyone", async () => {
+    store.getRecentlyPlayedVideoIds.mockResolvedValue(["aaaaaaaaaaa", "bbbbbbbbbbb", "ccccccccccc"]);
+    videoTitle.mockImplementation(async (id: string) => ({ aaaaaaaaaaa: "Valerie (Karaoke)", ccccccccccc: "Dancing Queen" })[id] ?? null);
+    const res = await recentSongsRoute.GET();
+    expect(await res.json()).toEqual({
+      songs: [
+        { videoId: "aaaaaaaaaaa", title: "Valerie (Karaoke)" },
+        { videoId: "ccccccccccc", title: "Dancing Queen" },
+      ],
+    });
+    expect(res.headers.get("cache-control")).toMatch(/^public, s-maxage=\d+/);
+  });
+
+  it("is a 500 when the database fails", async () => {
+    store.getRecentlyPlayedVideoIds.mockRejectedValue(new Error("down"));
+    const res = await recentSongsRoute.GET();
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ ok: false, error: "server_error" });
   });
 });

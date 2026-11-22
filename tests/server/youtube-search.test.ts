@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { thumbnailUrl } from "@/lib/domain/video";
-import { isEmbeddable, mapVideoNode } from "@/lib/server/youtube-search";
+import { isEmbeddable, mapVideoNode, videoTitle } from "@/lib/server/youtube-search";
 
 describe("mapVideoNode", () => {
   const node = {
@@ -61,6 +61,38 @@ describe("isEmbeddable", () => {
     respondWith(200);
     await isEmbeddable("embedMemo01");
     await isEmbeddable("embedMemo01");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("videoTitle", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const respondWith = (status: number, body?: unknown) =>
+    vi.stubGlobal("fetch", vi.fn(async () => (body === undefined ? new Response(null, { status }) : Response.json(body, { status }))));
+
+  it("is YouTube's own title for the video", async () => {
+    respondWith(200, { title: " Never Gonna Give You Up (Karaoke) ", author_name: "Sing King" });
+    expect(await videoTitle("titleOk0001")).toBe("Never Gonna Give You Up (Karaoke)");
+  });
+
+  it("is null for a video that cannot play here or is gone", async () => {
+    respondWith(403);
+    expect(await videoTitle("titleNo0403")).toBeNull();
+    respondWith(404);
+    expect(await videoTitle("titleNo0404")).toBeNull();
+  });
+
+  it("is null when YouTube cannot be asked, and asks again next time", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    expect(await videoTitle("titleErr001")).toBeNull();
+    respondWith(200, { title: "Valerie" });
+    expect(await videoTitle("titleErr001")).toBe("Valerie");
+  });
+
+  it("shares one question to YouTube with the embeddable check", async () => {
+    respondWith(200, { title: "Valerie" });
+    await isEmbeddable("titleMemo01");
+    expect(await videoTitle("titleMemo01")).toBe("Valerie");
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

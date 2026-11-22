@@ -15,7 +15,7 @@ import { MoveScreenSheet } from "./MoveScreenSheet";
  * migration 0010). The video itself keeps playing on the main screen, which follows.
  * The remote can also give the remote up, for another phone to take (migration 0012).
  * While the main screen is away nothing can play, so the buttons wait, and the remote can
- * move the main screen to another device instead (migration 0013).
+ * move the main screen to another device instead (migration 0014).
  */
 export function RemoteBar({
   code,

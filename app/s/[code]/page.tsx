@@ -15,7 +15,7 @@ export default async function HostPage({
   searchParams,
 }: {
   params: Promise<{ code: string }>;
-  /** takeover: the secret of a "move the main screen" link (migration 0013). */
+  /** takeover: the secret of a "move the main screen" link (migration 0014). */
   searchParams: Promise<{ takeover?: string }>;
 }) {
   const code = normalizeSessionCode((await params).code);

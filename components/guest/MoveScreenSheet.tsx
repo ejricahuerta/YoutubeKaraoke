@@ -11,7 +11,7 @@ import { QrCode } from "../QrCode";
 const noopSubscribe = () => () => {};
 
 /**
- * For the remote while the main screen is away (migration 0013): a one-time link that makes
+ * For the remote while the main screen is away (migration 0014): a one-time link that makes
  * whichever big screen opens it the main screen. It works once, for 10 minutes, and only
  * while the main screen stays away. A native <dialog>, like the invite sheet.
  */

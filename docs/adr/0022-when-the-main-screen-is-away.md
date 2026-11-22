@@ -1,4 +1,4 @@
-# 0021. When the main screen is away
+# 0022. When the main screen is away
 
 - Status: Accepted
 - Date: 2026-11-22

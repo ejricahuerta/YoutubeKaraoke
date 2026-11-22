@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Opening a "move the main screen" link: { token }. This browser becomes the main screen
- * with a host token of its own, and the old one stops being host (migration 0013).
+ * with a host token of its own, and the old one stops being host (migration 0014).
  * Phones are never the main screen (docs/adr/0007).
  */
 export const POST = sessionRoute(async (req, { code }) => {

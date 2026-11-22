@@ -41,7 +41,7 @@ function timeLeft(seconds: number): string {
   return seconds < 60 ? "under a minute" : `about ${Math.ceil(seconds / 60)} min`;
 }
 
-/** For guests while the main screen is away (the database decides when, migration 0013); null otherwise. */
+/** For guests while the main screen is away (the database decides when, migration 0014); null otherwise. */
 export function mainScreenGoneNotice(state: { mainScreenAway?: boolean; closesInSeconds?: number | null }): string | null {
   if (!state.mainScreenAway || state.closesInSeconds == null) return null;
   return `The main screen is away, so nothing is playing. If it doesn't come back, this session ends in ${timeLeft(state.closesInSeconds)}.`;

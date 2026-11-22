@@ -163,7 +163,7 @@ begin
   if not karaoke.can_control(v_session, p_host_hash, p_guest_id) and not v_skipping_own_song then
     return 'forbidden';
   end if;
-  -- A phone cannot play, pause or skip with no main screen to play on (migration 0013).
+  -- A phone cannot play, pause or skip with no main screen to play on (migration 0014).
   if (p_host_hash is null or v_session.host_token_hash <> p_host_hash) and karaoke.main_screen_away(v_session) then
     return 'main_screen_away';
   end if;
@@ -242,7 +242,7 @@ begin
     -- if nothing happens. Guests use these to warn that the main screen has gone.
     'hostAwaySeconds', floor(extract(epoch from now() - v_session.host_seen_at))::int,
     'closesInSeconds', greatest(0, floor(extract(epoch from karaoke.closes_at(v_session) - now())))::int,
-    -- No heartbeat for a while: nothing is playing, and phones are told (migration 0013).
+    -- No heartbeat for a while: nothing is playing, and phones are told (migration 0014).
     'mainScreenAway', karaoke.main_screen_away(v_session),
     'current', (
       select jsonb_build_object(

@@ -1,4 +1,4 @@
--- What happens when the main screen goes away (migration 0013): it pauses, phones are told,
+-- What happens when the main screen goes away (migration 0014): it pauses, phones are told,
 -- the session ends 15 minutes later, and the remote can move the main screen to another
 -- device. And an open main screen with nothing to play ends after 30 idle minutes.
 -- Runs in a transaction that is rolled back.

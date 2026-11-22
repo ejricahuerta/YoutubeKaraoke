@@ -49,3 +49,6 @@ export const InviteIcon = ({ className = "h-5 w-5" }: Props) => (
     <circle cx="9" cy="8" r="4" /><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6" />
   </svg>
 );
+export const NoteIcon = ({ className = "h-5 w-5" }: Props) => (
+  <svg {...base} className={className}><path d="M19 3.5v11.25a3.25 3.25 0 1 1-2-3V7.3l-7 1.56v7.9A3.25 3.25 0 1 1 8 13.76V6.3a1 1 0 0 1 .78-.98l9-2a1 1 0 0 1 1.22.98z" /></svg>
+);

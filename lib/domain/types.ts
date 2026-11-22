@@ -34,7 +34,7 @@ export type SessionState = {
   /** The remote's singer name, once it has added a song. */
   remoteName: string | null;
   /**
-   * No heartbeat from the main screen for 150 seconds (migration 0013): nothing is playing,
+   * No heartbeat from the main screen for 150 seconds (migration 0014): nothing is playing,
    * phones cannot play, and the session ends 15 minutes after it was last seen.
    */
   mainScreenAway: boolean;
@@ -52,6 +52,9 @@ export type SessionState = {
 
 export type SearchResult = Pick<QueueItem, "videoId" | "title" | "channel" | "thumbnailUrl" | "durationSeconds">;
 
+/** A song sung lately in any session, for the start page. Titles come from YouTube, not from whoever added the song. */
+export type RecentSong = Pick<QueueItem, "videoId" | "title">;
+
 export type SearchKind = "karaoke" | "lyrics";
 
 export type PlaybackAction = "play" | "pause" | "next";
@@ -65,7 +68,7 @@ export type MutationError =
   | "queue_full"
   | "guest_limit"
   | "archived"
-  /** A phone tried to play, pause or skip with no main screen to play on (migration 0013). */
+  /** A phone tried to play, pause or skip with no main screen to play on (migration 0014). */
   | "main_screen_away"
   /** The main screen cannot be moved while it is there. */
   | "main_screen_here";

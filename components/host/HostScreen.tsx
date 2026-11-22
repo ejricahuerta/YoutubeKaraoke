@@ -116,7 +116,7 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
     [setNotice],
   );
 
-  // Opened from a "move the main screen" link (migration 0013): become the main screen once,
+  // Opened from a "move the main screen" link (migration 0014): become the main screen once,
   // then drop the secret from the address so a reload or a shared screenshot cannot reuse it.
   const router = useRouter();
   const tookOver = useRef(false);
