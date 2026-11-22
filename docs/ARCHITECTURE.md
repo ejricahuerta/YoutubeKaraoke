@@ -135,7 +135,7 @@ policies. The seven public functions are the whole API of the database:
 | `playback(code, host_hash, action, expected_item_id)` | `POST .../playback` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
 
-Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`,
+Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`, `guest_limit`,
 `archived` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
 each to an HTTP status and the body `{ ok, result }` or `{ ok: false, error }`.
 
@@ -181,6 +181,7 @@ the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 | --- | --- | --- |
 | Session code | 6 chars, no 0/O/1/I/L | `lib/domain/session-code.ts` |
 | Waiting songs per session | 200 | `add_item` |
+| Waiting songs per guest | 3 | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Singer name | 40 chars | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Search query | 120 chars | `lib/domain/video.ts` |
 | Inactivity before archive | 15 min | `check_archived`, `cleanup` |

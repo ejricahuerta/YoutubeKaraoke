@@ -1,4 +1,5 @@
 /** What to tell a person when something they asked for did not happen. */
+import { MAX_WAITING_SONGS } from "./singers";
 
 const SESSION_ENDED = "This session has ended.";
 
@@ -8,6 +9,7 @@ const FAILURE_MESSAGES: Record<string, string> = {
   not_found: SESSION_ENDED,
   archived: SESSION_ENDED,
   queue_full: "The queue is full. Wait for a few songs to finish.",
+  guest_limit: `You already have ${MAX_WAITING_SONGS} songs waiting. Add another once one is sung.`,
   forbidden: "Only the main screen can do that.",
   network_error: "You seem to be offline. Check your connection and try again.",
 };

@@ -9,6 +9,7 @@ const RESULT_STATUS: Record<MutationResult, number> = {
   forbidden: 403,
   invalid: 400,
   queue_full: 409,
+  guest_limit: 409,
   archived: 410,
 };
 

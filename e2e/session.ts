@@ -46,7 +46,7 @@ export type SentRequest = { method: string; path: string; body: unknown };
  * Returns switches to make calls fail, and the list of changes the page sent.
  */
 export async function mockSession(page: Page, state: SessionState | null) {
-  const control = { state, stateFails: false, mutationsFail: false, sent: [] as SentRequest[] };
+  const control = { state, stateFails: false, mutationsFail: false, addAnswer: null as null | { status: number; error: string }, sent: [] as SentRequest[] };
   await page.route(/youtube\.com|ytimg\.com/, (route) => route.abort());
   await page.route(`**/api/sessions/${CODE}`, (route) => {
     if (route.request().method() !== "GET") {
@@ -64,7 +64,11 @@ export async function mockSession(page: Page, state: SessionState | null) {
       path: new URL(request.url()).pathname.replace(`/api/sessions/${CODE}`, ""),
       body: request.postDataJSON(),
     });
-    return control.mutationsFail ? route.abort() : route.fulfill({ json: { ok: true, result: "ok" } });
+    if (control.mutationsFail) return route.abort();
+    if (control.addAnswer && request.method() === "POST" && request.url().endsWith("/queue")) {
+      return route.fulfill({ status: control.addAnswer.status, json: { ok: false, error: control.addAnswer.error } });
+    }
+    return route.fulfill({ json: { ok: true, result: "ok" } });
   });
   await page.route("**/api/search**", (route) => route.fulfill({ json: { results: SEARCH_RESULTS } }));
   return control;

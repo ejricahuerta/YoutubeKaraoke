@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { failureMessage, isFailure, startErrorMessage } from "@/lib/domain/messages";
+import { MAX_WAITING_SONGS } from "@/lib/domain/singers";
 
 describe("isFailure", () => {
   it("treats ok and stale as success: stale means someone else already did it", () => {
@@ -20,6 +21,7 @@ describe("failureMessage", () => {
     expect(failureMessage("queue_full", "x")).toMatch(/queue is full/i);
     expect(failureMessage("rate_limited", "x")).toMatch(/wait/i);
     expect(failureMessage("forbidden", "x")).toMatch(/main screen/i);
+    expect(failureMessage("guest_limit", "x")).toBe(`You already have ${MAX_WAITING_SONGS} songs waiting. Add another once one is sung.`);
   });
 
   it("says the session ended whether it was archived or is gone", () => {
