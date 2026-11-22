@@ -182,6 +182,24 @@ test("a guest with three songs waiting is told before searching, and the server'
   await expect(page.getByRole("alert").filter({ hasText: "You already have 3 songs waiting" })).toBeVisible();
 });
 
+test("a song that could not be added says so, then the message clears itself", async ({ page }) => {
+  await page.clock.install();
+  const api = await mockSession(page, session());
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  api.addAnswer = { status: 500, error: "server_error" };
+  await page.getByRole("searchbox").fill("abba");
+  await page.getByRole("searchbox").press("Enter");
+  await page.getByRole("button", { name: "Add Result song 8 (Karaoke) to the queue" }).click();
+  const failed = page.getByRole("alert").filter({ hasText: "Couldn't add that song" });
+  await expect(failed).toBeVisible();
+
+  await page.clock.fastForward(7_000);
+  await expect(failed).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add Result song 8 (Karaoke) to the queue" })).toBeVisible(); // results stay
+});
+
 test("a guest with fewer than three songs waiting sees no limit notice", async ({ page }) => {
   await mockSession(page, session());
   await setSingerName(page, "Leo");

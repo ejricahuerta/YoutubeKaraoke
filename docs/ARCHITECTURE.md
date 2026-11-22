@@ -181,7 +181,7 @@ the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 | --- | --- | --- |
 | Session code | 6 chars, no 0/O/1/I/L | `lib/domain/session-code.ts` |
 | Waiting songs per session | 200 | `add_item` |
-| Waiting songs per guest | 3 | `add_item`; mirrored in `lib/domain/singers.ts` |
+| Waiting songs per guest (not the main screen) | 3 | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Singer name | 40 chars | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Search query | 120 chars | `lib/domain/video.ts` |
 | Inactivity before archive | 15 min | `idle_limit()` (used by `check_archived`, `cleanup`, `get_state`) |

@@ -37,9 +37,11 @@ export function getSessionState(code: string, hostTokenHash: string | null, gues
   return rpc<SessionState | null>("get_state", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId });
 }
 
-export function addQueueItem(code: string, guestId: string, name: string, video: SearchResult) {
+/** The host's token lifts the limit on waiting songs: the main screen adds for everyone. */
+export function addQueueItem(code: string, hostTokenHash: string | null, guestId: string, name: string, video: SearchResult) {
   return rpc<MutationResult>("add_item", {
     p_code: code,
+    p_host_hash: hostTokenHash,
     p_guest_id: guestId,
     p_name: name,
     p_video_id: video.videoId,

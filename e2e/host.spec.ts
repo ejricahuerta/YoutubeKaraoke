@@ -91,6 +91,21 @@ test("a failed action says why, and the notice clears itself", async ({ page }) 
   await expect(page.getByRole("status").filter({ hasText: "offline" })).toHaveCount(0);
 });
 
+test("the main screen adds for everyone, so it is not held to the three-song limit", async ({ page }) => {
+  const mine = [song(2, "Host", "One", true), song(3, "Host", "Two", true), song(4, "Host", "Three", true)];
+  const api = await mockSession(page, hosting({ queue: mine }));
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("tab", { name: "Add a song" }).click();
+  await expect(page.getByRole("searchbox")).toBeVisible();
+  await expect(page.getByText(/songs waiting/)).toHaveCount(0);
+
+  await page.getByRole("searchbox").fill("abba");
+  await page.getByRole("searchbox").press("Enter");
+  await page.getByRole("button", { name: "Add Result song 8 (Karaoke) to the queue" }).click();
+  await expect(page.getByRole("button", { name: "Added Result song 8 (Karaoke)" })).toBeVisible();
+  expect(api.sent.at(-1)).toMatchObject({ method: "POST", path: "/queue", body: { videoId: "video000008", name: "Host" } });
+});
+
 test("a second computer on the main-screen link watches but cannot add songs as the host", async ({ page }) => {
   await mockSession(page, session());
   await page.goto(`/s/${CODE}`);
