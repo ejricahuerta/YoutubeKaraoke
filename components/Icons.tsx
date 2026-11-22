@@ -43,3 +43,9 @@ export const Forward10Icon = ({ className = "h-6 w-6" }: Props) => (
 export const QueueIcon = ({ className = "h-5 w-5" }: Props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className={className}><path d="M4 6h16M4 12h16M4 18h10" /></svg>
 );
+/** A person with a plus: invite someone. */
+export const InviteIcon = ({ className = "h-5 w-5" }: Props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
+    <circle cx="9" cy="8" r="4" /><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6" />
+  </svg>
+);
