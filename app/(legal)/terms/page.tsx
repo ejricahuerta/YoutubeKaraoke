@@ -13,7 +13,7 @@ export default function TermsPage() {
       <h1>Terms of Use</h1>
       <p>
         These terms are an agreement between you and <a href={OPERATOR.url}>{OPERATOR.name}</a> (&ldquo;we&rdquo;,
-        &ldquo;us&rdquo;), who run YouOke. By starting or joining a session you accept them and our{" "}
+        &ldquo;us&rdquo;), based in {OPERATOR.location}, who run YouOke. By starting or joining a session you accept them and our{" "}
         <Link href="/privacy">Privacy Policy</Link>. If you do not agree, please don&apos;t use YouOke.
       </p>
 
@@ -92,13 +92,14 @@ export default function TermsPage() {
 
       <h2>Law</h2>
       <p>
-        These terms are governed by the laws of the place where we are established, without regard to its conflict-of-law
-        rules. If you are a consumer, you keep the protection of the mandatory laws of the country where you live. If any part
-        of these terms is unenforceable, the rest still applies.
+        These terms are governed by the laws of the Province of Ontario and the federal laws of Canada that apply there,
+        without regard to conflict-of-law rules. Any dispute will be heard by the courts of Ontario. If you are a consumer,
+        you keep the protection of the mandatory laws of the place where you live, including the right to go to your local
+        courts where that law gives it. If any part of these terms is unenforceable, the rest still applies.
       </p>
 
       <h2>Contact</h2>
-      <p>Questions about these terms: <a href={OPERATOR.url}>{OPERATOR.name}</a>.</p>
+      <p>Questions about these terms: <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>.</p>
     </article>
   );
 }

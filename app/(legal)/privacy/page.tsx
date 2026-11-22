@@ -12,7 +12,7 @@ export default function PrivacyPage() {
     <article>
       <h1>Privacy Policy</h1>
       <p>
-        YouOke is run by <a href={OPERATOR.url}>{OPERATOR.name}</a> (&ldquo;we&rdquo;, &ldquo;us&rdquo;). This policy says what
+        YouOke is run by <a href={OPERATOR.url}>{OPERATOR.name}</a> (&ldquo;we&rdquo;, &ldquo;us&rdquo;), based in {OPERATOR.location}. This policy says what
         information YouOke handles when you start or join a karaoke session, why, who else sees it and how long it is kept.
         We are the controller of that information.
       </p>
@@ -119,8 +119,9 @@ export default function PrivacyPage() {
 
       <h2>Where it is processed</h2>
       <p>
-        Our providers may process information in the United States and other countries. Where the law requires it, transfers
-        are covered by safeguards such as the European Commission&apos;s Standard Contractual Clauses.
+        We are based in Canada, and our providers may process information in the United States and other countries, where
+        it may be accessible to courts and authorities under local law. Where the law requires it, transfers are covered by
+        safeguards such as the European Commission&apos;s Standard Contractual Clauses.
       </p>
 
       <h2>Your choices and rights</h2>
@@ -128,13 +129,15 @@ export default function PrivacyPage() {
         <li>You can remove your own songs from the queue at any time, and the main screen can end the session.</li>
         <li>You can clear YouOke&apos;s cookies and site data in your browser settings.</li>
         <li>
-          Depending on where you live (for example under the GDPR, the UK GDPR or US state privacy laws), you may have the
-          right to access, correct, delete or receive a copy of your information, to object to or restrict how we use it, and
-          to complain to your data protection authority.
+          We follow Canada&apos;s Personal Information Protection and Electronic Documents Act (PIPEDA). Under it, and
+          depending on where you live under laws such as Quebec&apos;s Law 25, the GDPR, the UK GDPR or US state privacy
+          laws, you may have the right to access, correct, delete or receive a copy of your information, to withdraw consent
+          or object to how we use it, and to complain to a data protection authority, such as the{" "}
+          <a href="https://www.priv.gc.ca">Office of the Privacy Commissioner of Canada</a>.
         </li>
       </ul>
       <p>
-        To make a request, contact us through <a href={OPERATOR.url}>{OPERATOR.name}</a>. Because there are no accounts, tell
+        To make a request, email <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>. Because there are no accounts, tell
         us the session code and roughly when you used it so we can find what belongs to you. Often it will already have been
         deleted.
       </p>
@@ -158,7 +161,7 @@ export default function PrivacyPage() {
       </p>
 
       <h2>Contact</h2>
-      <p>Questions or requests: <a href={OPERATOR.url}>{OPERATOR.name}</a>.</p>
+      <p>Questions or requests: <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>.</p>
     </article>
   );
 }

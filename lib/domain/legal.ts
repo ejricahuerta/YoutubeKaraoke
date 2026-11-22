@@ -5,7 +5,12 @@
  */
 
 /** Who runs YouOke. Also the credit line on every screen. */
-export const OPERATOR = { name: "edmel.dev", url: "https://edmel.dev" } as const;
+export const OPERATOR = {
+  name: "edmel.dev",
+  url: "https://edmel.dev",
+  email: "me@edmel.dev",
+  location: "Thornhill, Ontario, Canada",
+} as const;
 
 /** Shown at the top of each legal page. Change it whenever any of them changes. */
 export const LEGAL_UPDATED_ON = "22 November 2026";
