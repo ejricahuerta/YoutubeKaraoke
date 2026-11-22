@@ -62,8 +62,9 @@ More detail, and the reasons behind each of these choices:
 
 ## Setup
 
-1. Create a Supabase project and run the files in `supabase/migrations/` in
-   order in the SQL editor.
+1. Create a Supabase project and apply the files in `supabase/migrations/` in
+   order. `supabase/migrations/README.md` says which are applied where, and how
+   to apply a new one so it shows in the project's migration history.
 2. In the Supabase dashboard, open Project Settings > API (Data API) and add
    `karaoke` to **Exposed schemas**.
 3. Copy `.env.example` to `.env.local` and fill in the project URL and
