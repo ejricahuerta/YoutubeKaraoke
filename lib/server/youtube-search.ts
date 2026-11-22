@@ -1,10 +1,12 @@
 import type { SearchResult } from "@/lib/domain/types";
 import { isVideoId, thumbnailUrl } from "@/lib/domain/video";
+import { searchWithDataApi } from "./youtube-data-api";
 
 /**
  * Keyless YouTube search via youtubei.js (the same internal API the website
- * uses). Unofficial: it can break or be throttled. Everything that touches
- * YouTube lives in this file, so another provider can replace searchVideos().
+ * uses). Unofficial: it can break or be throttled. When it fails and the server has
+ * a YOUTUBE_API_KEY, the official Data API answers instead (youtube-data-api.ts,
+ * docs/adr/0013). searchVideos() is the only way in, so either can be replaced.
  */
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -84,11 +86,27 @@ export async function isEmbeddable(videoId: string): Promise<boolean> {
   }
 }
 
+/** Videos for a query from keyless search, or from the official API when that fails and a key is set. */
 export async function searchVideos(query: string): Promise<SearchResult[]> {
   const key = query.toLowerCase();
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.results;
 
+  let results: SearchResult[];
+  try {
+    results = await searchKeyless(query);
+  } catch (err) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) throw err;
+    console.warn("Keyless YouTube search failed; using the Data API:", err instanceof Error ? err.message : err);
+    results = await searchWithDataApi(query, apiKey);
+  }
+  if (cache.size > CACHE_MAX_QUERIES) cache.clear();
+  cache.set(key, { at: Date.now(), results });
+  return results;
+}
+
+async function searchKeyless(query: string): Promise<SearchResult[]> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error("YouTube search timed out")), SEARCH_TIMEOUT_MS);
@@ -106,10 +124,7 @@ export async function searchVideos(query: string): Promise<SearchResult[]> {
     }
     // Hide videos that would be skipped on the main screen.
     const playable = await Promise.all(candidates.map((video) => isEmbeddable(video.videoId)));
-    const results = candidates.filter((_, i) => playable[i]);
-    if (cache.size > CACHE_MAX_QUERIES) cache.clear();
-    cache.set(key, { at: Date.now(), results });
-    return results;
+    return candidates.filter((_, i) => playable[i]);
   } finally {
     clearTimeout(timer);
   }

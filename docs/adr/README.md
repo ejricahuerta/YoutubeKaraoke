@@ -23,6 +23,7 @@ at that point. Later records are written when the decision is made.
 | [0010](0010-in-memory-limits-and-caches.md) | Rate limits and caches live in server memory | Accepted |
 | [0011](0011-layered-lib.md) | `lib` split into domain, server and client, enforced by lint | Accepted |
 | [0012](0012-testing-strategy.md) | Test-first; pure logic unit-tested, database tested in Postgres | Accepted |
+| [0013](0013-optional-youtube-api-fallback.md) | Official YouTube API as a fallback when a key is set | Accepted |
 
 ## Template
 

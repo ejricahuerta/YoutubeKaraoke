@@ -16,6 +16,7 @@
   --color-line-strong: #6b6485;
   --color-ink: #f6f3ff;
   --color-ink-muted: #b3adc7;
+  /* 5.0:1 or better on stage-000 to stage-200; only 4.3:1 on stage-300, so no faint text on stage-300 (WCAG AA needs 4.5:1). */
   --color-ink-faint: #8f89a6;
   --color-encore: #ff4f7b;
   --color-encore-hover: #ff7396;

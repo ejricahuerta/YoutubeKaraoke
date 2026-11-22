@@ -44,6 +44,10 @@ hold: `NEXT_PUBLIC_` keys are public by definition.
 - Route handlers must stay thin; a permission check in TypeScript would be a
   second, weaker copy of the rule.
 
+## Update, 2026-11-22
+The app can now hold one optional, server-only secret, a YouTube Data API key used only
+for search (0013). It grants nothing in the database, so the reasoning above still holds.
+
 ## Revisit when
 - The functions grow past what one person can hold in their head, or a rule needs
   data the database cannot reach (an external service, for instance).
