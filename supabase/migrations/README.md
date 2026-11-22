@@ -19,7 +19,7 @@ is shared. Every karaoke entry is named `karaoke_<file name without number>`:
 | `0006_limit_waiting_songs_per_guest.sql` | `20261122022209` | `karaoke_limit_waiting_songs_per_guest` | Applied as a migration, after the app that knows `guest_limit` was live |
 | `0007_warn_when_main_screen_is_gone.sql` | `20261122023635` | `karaoke_warn_when_main_screen_is_gone` | Applied as a migration |
 | `0008_song_limit_only_with_three_people.sql` | `20261122025117` | `karaoke_song_limit_only_with_three_people` | Applied as a migration |
-| `0009_main_screen_is_not_limited.sql` | not yet | `karaoke_main_screen_is_not_limited` | Not applied yet. Safe before the app: the old call still works |
+| `0009_main_screen_is_not_limited.sql` | `20261122033001` | `karaoke_main_screen_is_not_limited` | Applied as a migration, after the app that sends `p_host_hash` was already live: adding songs failed in production until it was |
 
 The two entries recorded afterwards hold a note naming the file and commit instead of
 the SQL itself.
