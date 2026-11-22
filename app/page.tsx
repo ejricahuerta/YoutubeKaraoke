@@ -1,8 +1,10 @@
 import { headers } from "next/headers";
 import Link from "next/link";
+import { BackToRoom } from "@/components/BackToRoom";
 import { Credit } from "@/components/Credit";
 import { AgreementNotice, LegalLinks } from "@/components/LegalLinks";
 import { Logo } from "@/components/Logo";
+import { RecentSongs } from "@/components/RecentSongs";
 import { startErrorMessage } from "@/lib/domain/messages";
 import { normalizeSessionCode, SESSION_CODE_LENGTH } from "@/lib/domain/session-code";
 import { getHostedSessionCodes, getHostTokenHash } from "@/lib/server/auth";
@@ -30,7 +32,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
   const sessions = configured && !phone ? await hostedSessions() : [];
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[70rem] flex-col gap-12 px-6 py-8">
+    <main className="mx-auto flex min-h-dvh w-full max-w-[70rem] flex-col gap-12 overflow-x-clip px-6 py-8">
+      <BackToRoom />
       <header><Logo mark="h-10 w-10" word="text-[1.625rem]" /></header>
 
       <div className="flex flex-1 flex-wrap items-center gap-x-16 gap-y-12">
@@ -65,7 +68,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
           )}
         </div>
 
-        <div className="flex min-w-0 flex-[1_1_22rem] flex-col gap-4">
+        <div className="relative flex min-w-0 flex-[1_1_22rem] flex-col gap-4">
+          {/* Behind everything on the page, so the songs go up behind the cards and the words. */}
+          {configured ? <RecentSongs /> : null}
           {sessions.length > 0 ? (
             <section className="rounded-card bg-stage-100 p-6">
               <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-ink-muted">

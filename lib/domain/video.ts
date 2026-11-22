@@ -7,6 +7,13 @@ export function isVideoId(value: unknown): value is string {
   return typeof value === "string" && VIDEO_ID_PATTERN.test(value);
 }
 
+/**
+ * Where the main screen's player is framed from: YouTube's privacy-enhanced mode, which sets
+ * no YouTube cookies until a video plays (docs/adr/0018). The IFrame API script itself still
+ * comes from www.youtube.com.
+ */
+export const YOUTUBE_PLAYER_HOST = "https://www.youtube-nocookie.com";
+
 const THUMBNAIL_FILES = { row: "mqdefault", poster: "hqdefault" } as const;
 
 /** YouTube's own image for a video: "row" for lists, "poster" for the paused player. */

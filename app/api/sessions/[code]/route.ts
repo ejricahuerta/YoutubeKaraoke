@@ -1,6 +1,7 @@
-import { errorResponse, resultResponse, sessionRoute } from "@/lib/server/api";
+import { errorResponse, readJsonBody, resultResponse, sessionRoute } from "@/lib/server/api";
 import { clearHostCookie, getHostTokenHash, getOrCreateGuestId } from "@/lib/server/auth";
-import { endSession, getSessionState } from "@/lib/server/session-store";
+import { parseSettingsRequest } from "@/lib/server/request-parsers";
+import { endSession, getSessionState, setTakeTurns } from "@/lib/server/session-store";
 
 export const dynamic = "force-dynamic";
 
@@ -16,3 +17,10 @@ export const GET = sessionRoute(async (_req, { code }) => {
 
 /** Host only: ends the session for everyone, for good. */
 export const DELETE = sessionRoute(async (_req, { code }) => resultResponse(await endSession(code, await getHostTokenHash(code))));
+
+/** Host only: changes the session's settings (whether singers take turns). */
+export const PATCH = sessionRoute(async (req, { code }) => {
+  const request = parseSettingsRequest(await readJsonBody(req));
+  if (!request) return errorResponse("invalid", 400);
+  return resultResponse(await setTakeTurns(code, await getHostTokenHash(code), request.takeTurns));
+});

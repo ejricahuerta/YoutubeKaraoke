@@ -62,8 +62,12 @@ Records: [0001 Next.js monolith](adr/0001-nextjs-monolith.md),
 app/                    Routes only: pages and API route handlers
   api/search            GET   search YouTube (needs a live session code)
   api/csp-report        POST  browsers report what the Content-Security-Policy would block
+  api/recent-songs      GET   songs sung lately in any session, for the start page (titles from YouTube)
   api/sessions          POST  start a session
-  api/sessions/[code]   GET   session state, DELETE end it (host)
+  api/sessions/[code]   GET   session state, PATCH settings (host), DELETE end it (host)
+    remote              POST  take a freed remote, DELETE free it (host or remote)
+    handoff             POST  a one-time link to move an away main screen (remote)
+    host                POST  open that link: this browser becomes the main screen
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
     queue/[id]          DELETE remove, PATCH move        (PATCH: host)
@@ -124,10 +128,13 @@ Two tables in the `karaoke` schema:
   `last_active_at`, `host_seen_at` (last poll from the main screen), `archived_at`.
 - `queue_items`: one row per added song with `status` `queued` → `playing` → `played`
   (with `played_at` set when it finishes),
-  a floating-point `position` for ordering, the singer's name and the adder's guest id.
+  a floating-point `position` for ordering, the singer's name, the adder's guest id, and
+  `singer`, who takes turns (`guest:<id>`, or `name:<name>` for songs the main screen adds).
+  With 3 or more singers, `add_item` places each new song by turns (ADR 0016), unless the
+  session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The seven public functions are the whole API of the database:
+policies. The thirteen public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -135,12 +142,18 @@ policies. The seven public functions are the whole API of the database:
 | `get_state(code, host_hash, guest_id)` | `GET /api/sessions/[code]`, search, start page | The `SessionState` JSON (current song, queue, and the last 50 sung), or null |
 | `add_item(...)` | `POST .../queue` | a result code |
 | `remove_item(code, item_id, host_hash, guest_id)` | `DELETE .../queue/[id]` | a result code |
-| `move_item(code, host_hash, item_id, after_id)` | `PATCH .../queue/[id]` | a result code |
-| `playback(code, host_hash, action, expected_item_id)` | `POST .../playback` | a result code |
+| `move_item(code, host_hash, item_id, after_id, guest_id)` | `PATCH .../queue/[id]` | a result code |
+| `playback(code, host_hash, action, expected_item_id, guest_id)` | `POST .../playback` | a result code |
+| `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
+| `free_remote(code, host_hash, guest_id)` | `DELETE .../remote` | a result code |
+| `claim_remote(code, guest_id)` | `POST .../remote` | a result code |
+| `start_handoff(code, guest_id, link_hash)` | `POST .../handoff` | a result code |
+| `take_over(code, link_hash, new_host_hash)` | `POST .../host` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
+| `recently_played()` | `GET /api/recent-songs` | Video ids of songs finished in the last day, in any session, newest first, at most 24 ([0021](adr/0021-recently-sung-songs-on-the-start-page.md)) |
 
 Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`, `guest_limit`,
-`archived` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
+`archived`, `main_screen_away`, `main_screen_here` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
 each to an HTTP status and the body `{ ok, result }` or `{ ok: false, error }`.
 
 Session lifecycle: [0008](adr/0008-archive-on-access.md).
@@ -155,12 +168,17 @@ There are no accounts ([0004](adr/0004-anonymous-cookie-identity.md)).
   which queued songs are "mine" and may be removed by that browser.
 - **Singer name**: typed on the phone, kept in localStorage, sent with each add. It
   is a label, not an identity.
+- **Room**: a guest's browser is in one room at a time, kept in localStorage next to the
+  name, so all its tabs share both. A tab on another room's link asks before switching;
+  the start page sends the browser back to its room ([0017](adr/0017-one-room-per-browser.md)).
 
 Phones are always guests: the server sends a phone that opens a host URL to the
 guest view ([0007](adr/0007-phones-are-guests.md)). The exception is the **remote**:
 the first guest whose phone loads the session may play, pause, skip, remove and reorder
 like the main screen, from the guest view. Ending the session stays with the main
 screen. It is stored as `sessions.remote_guest_id` ([0014](adr/0014-first-guest-is-the-remote.md)).
+The main screen or the remote can free it; then the first phone to ask takes it
+([0020](adr/0020-hand-over-the-remote.md)).
 Any guest may also skip their own song while it is being sung.
 
 ## How a change reaches every screen
@@ -177,9 +195,10 @@ playing in that browser.
 
 ## Playback
 
-Only the host screen plays video, through YouTube's IFrame player with YouTube's
-controls turned off and the app's own TV-sized controls in their place
-([0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
+Only the host screen plays video, through YouTube's IFrame player in privacy-enhanced
+mode (`youtube-nocookie.com`), with YouTube's controls turned off and the app's own
+TV-sized controls in their place ([0018](adr/0018-privacy-enhanced-youtube-player.md),
+which supersedes [0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
 grid that scales with the window ([0009](adr/0009-tv-scale-grid.md)). Search runs on
 the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 

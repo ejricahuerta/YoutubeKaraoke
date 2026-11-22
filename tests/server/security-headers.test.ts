@@ -9,8 +9,12 @@ describe("contentSecurityPolicy", () => {
 
   it("allows YouTube's player script, its frame and its thumbnails", () => {
     expect(directive(policy, "script-src")).toContain("https://www.youtube.com");
-    expect(directive(policy, "frame-src")).toContain("https://www.youtube.com");
+    expect(directive(policy, "frame-src")).toContain("https://www.youtube-nocookie.com");
     expect(directive(policy, "img-src")).toContain("https://i.ytimg.com");
+  });
+
+  it("frames only YouTube's privacy-enhanced player, so a regular youtube.com embed is reported", () => {
+    expect(directive(policy, "frame-src")).toBe("frame-src https://www.youtube-nocookie.com");
   });
 
   it("allows the QR code, which is a data URL", () => {

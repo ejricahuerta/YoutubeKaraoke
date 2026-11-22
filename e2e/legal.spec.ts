@@ -32,6 +32,15 @@ test("the cookie policy lists the guest and host cookies and how long they last"
   await expect(table.getByRole("row", { name: /^kh_<CODE> .*30 days/ })).toBeVisible();
 });
 
+test("the policies say the main screen uses YouTube's privacy-enhanced mode, which still sets cookies once a song plays", async ({ page }) => {
+  for (const path of ["/cookies", "/privacy"]) {
+    await page.goto(path);
+    await expect(page.getByText(/privacy-enhanced mode \(youtube-nocookie\.com\)/).first(), path).toBeVisible();
+    await expect(page.getByText(/no cookies on the main screen until a video plays/).first(), path).toBeVisible();
+    await expect(page.getByText(/once the first song plays/).first(), path).toBeVisible();
+  }
+});
+
 test("each legal page links to the other two and back to the start page", async ({ page }) => {
   await page.goto("/terms");
   await page.getByRole("link", { name: "Privacy", exact: true }).click();

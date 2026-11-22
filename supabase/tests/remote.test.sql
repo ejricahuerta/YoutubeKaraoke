@@ -71,7 +71,7 @@ begin
   assert (karaoke.get_state('OWNS22', null, 'ana')->'current'->>'mine')::boolean is false;
 end $$;
 
--- The previous signatures keep working, host only, for an app that does not send a guest id yet.
+-- Without a guest id (p_guest_id defaults to null since migration 0011), only the main screen controls.
 do $$
 begin
   assert karaoke.create_session('OLDS22', 'host-hash');
@@ -90,6 +90,50 @@ begin
   perform karaoke.end_session('ENDR22', 'host-hash');
   assert not coalesce((karaoke.get_state('ENDR22', null, 'ana')->>'isRemote')::boolean, false);
   assert (select remote_guest_id is null from karaoke.sessions where code = 'ENDR22');
+end $$;
+
+-- Handing the remote over (migration 0012). Everyone sees who has it; the main screen, or
+-- the remote itself, frees it; then the first phone to ask takes it.
+do $$
+declare
+  v_state jsonb;
+begin
+  assert karaoke.create_session('HAND22', 'host-hash');
+  v_state := karaoke.get_state('HAND22', 'host-hash', 'tv');
+  assert v_state->>'remote' = 'unclaimed' and v_state->'remoteName' = 'null'::jsonb, 'nobody has joined yet';
+
+  perform karaoke.get_state('HAND22', null, 'ana');
+  v_state := karaoke.get_state('HAND22', null, 'ben');
+  assert v_state->>'remote' = 'taken', 'Ana took it by joining first';
+  assert v_state->'remoteName' = 'null'::jsonb, 'with no song yet, her name is not known';
+  perform karaoke.add_item('HAND22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A1', '', '', 200);
+  assert karaoke.get_state('HAND22', null, 'ben')->>'remoteName' = 'Ana', 'her singer name, once she has added a song';
+
+  -- Only the main screen or the remote itself can free it.
+  assert karaoke.free_remote('HAND22', null, 'ben') = 'forbidden', 'another guest cannot';
+  assert karaoke.claim_remote('HAND22', 'ben') = 'forbidden', 'nor take a remote someone has';
+  assert karaoke.free_remote('HAND22', 'host-hash', null) = 'ok', 'the main screen can';
+  v_state := karaoke.get_state('HAND22', null, 'ana');
+  assert v_state->>'remote' = 'free' and not (v_state->>'isRemote')::boolean, 'Ana is no longer the remote';
+  assert karaoke.playback('HAND22', null, 'pause', null, 'ana') = 'forbidden', 'and has no controls';
+
+  -- Free means nobody until someone asks: joining, or polling, does not take it.
+  perform karaoke.get_state('HAND22', null, 'cy');
+  assert karaoke.get_state('HAND22', null, 'cy')->>'remote' = 'free';
+  assert karaoke.claim_remote('HAND22', '') = 'invalid', 'a guest id is needed';
+  assert karaoke.claim_remote('HAND22', 'ben') = 'ok', 'the first phone to ask takes it';
+  assert (karaoke.get_state('HAND22', null, 'ben')->>'isRemote')::boolean;
+  assert karaoke.claim_remote('HAND22', 'cy') = 'forbidden', 'the next one is too late';
+  assert karaoke.playback('HAND22', null, 'pause', null, 'ben') = 'ok', 'Ben now has the controls';
+
+  -- The remote can give it up itself.
+  assert karaoke.free_remote('HAND22', null, 'ben') = 'ok';
+  assert karaoke.get_state('HAND22', null, 'ben')->>'remote' = 'free';
+
+  assert karaoke.end_session('HAND22', 'host-hash') = 'ok';
+  assert karaoke.claim_remote('HAND22', 'cy') = 'archived', 'an ended session hands out nothing';
+  assert karaoke.free_remote('HAND22', 'host-hash', null) = 'archived';
+  assert karaoke.claim_remote('NOPE22', 'cy') = 'not_found';
 end $$;
 
 rollback;

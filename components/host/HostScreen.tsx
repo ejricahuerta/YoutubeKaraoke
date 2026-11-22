@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
-import { endSession, sendPlayback, type MutationOutcome } from "@/lib/client/session-api";
+import { endSession, freeRemote, sendPlayback, setTakeTurns, takeOver, type MutationOutcome } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatWait } from "@/lib/domain/format";
-import { failureMessage, isFailure } from "@/lib/domain/messages";
+import { failureMessage, idleNotice, isFailure } from "@/lib/domain/messages";
 import { clampVolume, playingLabel, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
 import { waitSeconds } from "@/lib/domain/queue";
 import { displayTitle } from "@/lib/domain/video";
@@ -18,7 +19,9 @@ import { SearchPanel } from "../SearchPanel";
 import { HostLobby } from "./HostLobby";
 import { JoinCard, JoinCorner } from "./JoinCard";
 import { Player, savedPosition, type PlayerHandle, type Progress } from "./Player";
+import { RemoteIndicator } from "./RemoteIndicator";
 import { SingerIntro } from "./SingerIntro";
+import { TakeTurnsSwitch } from "./TakeTurnsSwitch";
 import { OVERLINE } from "./styles";
 import { SeekBar, TransportControls } from "./TransportControls";
 import { UpNextBanner, UpNextList } from "./UpNext";
@@ -46,7 +49,7 @@ type RailTab = (typeof RAIL_TABS)[number][0];
 const NO_PROGRESS: Progress = { seconds: 0, duration: 0 };
 
 /** The main screen (/s/CODE): the video with the host's controls, and the queue beside it. */
-export function HostScreen({ code }: { code: string }) {
+export function HostScreen({ code, takeover }: { code: string; takeover?: string }) {
   const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
   const { state, status, reconnecting, refresh, remove, move } = useSessionState(code, setNotice);
   const origin = useOrigin();
@@ -113,6 +116,21 @@ export function HostScreen({ code }: { code: string }) {
     [setNotice],
   );
 
+  // Opened from a "move the main screen" link (migration 0014): become the main screen once,
+  // then drop the secret from the address so a reload or a shared screenshot cannot reuse it.
+  const router = useRouter();
+  const tookOver = useRef(false);
+  useEffect(() => {
+    if (!takeover || tookOver.current) return;
+    tookOver.current = true;
+    takeOver(code, takeover).then((outcome) => {
+      router.replace(`/s/${code}`);
+      if (outcome === "forbidden") setNotice("That link has expired or was already used. Ask the remote for a new one.");
+      else if (isFailure(outcome)) setNotice(failureMessage(outcome, "Couldn't move the main screen here. Try the link again."));
+      refresh();
+    });
+  }, [code, takeover, router, refresh, setNotice]);
+
   const setPlaying = useCallback(
     async (next: boolean) => {
       setLocalPlaying(next);
@@ -141,6 +159,16 @@ export function HostScreen({ code }: { code: string }) {
     if (!endArmed) return setEndArmed(true);
     setEndArmed(null);
     reportIfFailed(await endSession(code), "Couldn't end the session. Try again.");
+    refresh();
+  };
+
+  const onFreeRemote = async () => {
+    reportIfFailed(await freeRemote(code), "Couldn't free the remote. Try again.");
+    refresh();
+  };
+
+  const onTakeTurns = async (on: boolean) => {
+    reportIfFailed(await setTakeTurns(code, on), "Couldn't change taking turns. Try again.");
     refresh();
   };
 
@@ -185,6 +213,7 @@ export function HostScreen({ code }: { code: string }) {
   if (!state) return <SessionLoadingMessage status={status} />;
 
   const { isHost, queue } = state;
+  const idle = idleNotice({ hasSongs: !!current || queue.length > 0, closesInSeconds: state.closesInSeconds });
   // Only the host adds songs here: anyone else on this page has no name yet, and goes to the guest screen for one.
   const railTabs = RAIL_TABS.filter(([id]) => isHost || id !== "add");
   const shownTab = railTabs.some(([id]) => id === tab) ? tab : "next";
@@ -209,11 +238,12 @@ export function HostScreen({ code }: { code: string }) {
           {reconnecting ? (
             <span role="status" className="rounded-full bg-notice-ground px-5 py-2 text-[1.25rem] font-semibold text-notice">Reconnecting…</span>
           ) : null}
+          <span className="ml-auto" />
           {isHost ? (
             <button
               type="button"
               onClick={onEndSession}
-              className={`ml-auto h-14 rounded-full px-7 text-[1.375rem] font-semibold transition active:scale-[0.97] ${
+              className={`h-14 rounded-full px-7 text-[1.375rem] font-semibold transition active:scale-[0.97] ${
                 endArmed ? "bg-encore text-on-encore hover:bg-encore-hover" : "text-ink-muted hover:bg-stage-200 hover:text-ink"
               }`}
             >
@@ -225,7 +255,7 @@ export function HostScreen({ code }: { code: string }) {
             aria-expanded={showQueue}
             aria-controls="queue-panel"
             onClick={() => setQueueHidden(showQueue ? "1" : null)}
-            className={`${isHost ? "" : "ml-auto"} h-14 rounded-full bg-stage-200 px-7 text-[1.375rem] font-semibold transition hover:bg-stage-300 active:scale-[0.97]`}
+            className={`h-14 rounded-full bg-stage-200 px-7 text-[1.375rem] font-semibold transition hover:bg-stage-300 active:scale-[0.97]`}
           >
             {showQueue ? "Hide queue" : `Show queue (${queue.length})`}
           </button>
@@ -233,6 +263,9 @@ export function HostScreen({ code }: { code: string }) {
 
         {notice ? (
           <p role="status" className="animate-rise rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{notice}</p>
+        ) : null}
+        {isHost && idle ? (
+          <p role="status" className="rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{idle}</p>
         ) : null}
 
         <div ref={stageRef} className="relative aspect-video w-full overflow-hidden rounded-card bg-stage-100 lg:aspect-auto lg:min-h-0 lg:flex-1">
@@ -371,6 +404,13 @@ export function HostScreen({ code }: { code: string }) {
           aria-labelledby={`queue-tab-${shownTab}`}
           className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0"
         >
+          {shownTab === "edit" && isHost ? (
+            // The night's settings sit with the queue they change, which keeps the header short.
+            <div className="-ml-6 mb-3 flex flex-wrap items-center gap-x-2 border-b border-line pb-3">
+              <TakeTurnsSwitch on={state.takeTurns} onChange={onTakeTurns} />
+              <RemoteIndicator remote={state.remote} name={state.remoteName} onFree={onFreeRemote} />
+            </div>
+          ) : null}
           {shownTab === "next" ? (
             <UpNextList queue={queue} hasCurrent={!!current} queueWait={queueWait} />
           ) : (

@@ -45,6 +45,10 @@ export function useSessionState(code: string, onActionFailed?: (message: string)
         ...body,
         played: body.played ?? [],
         isRemote: body.isRemote ?? false,
+        takeTurns: body.takeTurns ?? true,
+        remote: body.remote ?? "unclaimed",
+        remoteName: body.remoteName ?? null,
+        mainScreenAway: body.mainScreenAway ?? false,
         hostAwaySeconds: body.hostAwaySeconds ?? null,
         closesInSeconds: body.closesInSeconds ?? null,
       };

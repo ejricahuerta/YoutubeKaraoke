@@ -167,6 +167,61 @@ test("an unconfirmed End session goes back to normal by itself", async ({ page }
   expect(api.sent).toHaveLength(0);
 });
 
+test("the host can switch taking turns off and on", async ({ page }) => {
+  const api = await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("tab", { name: "Edit queue" }).click();
+
+  const toggle = page.getByRole("switch", { name: "Take turns" });
+  await expect(toggle).toBeChecked();
+  // The page refetches right after the change, so the fake answers with the new setting first.
+  api.state = hosting({ takeTurns: false });
+  await toggle.click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "PATCH", path: "", body: { takeTurns: false } });
+  await expect(toggle).not.toBeChecked();
+
+  api.state = hosting({ takeTurns: true });
+  await toggle.click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "PATCH", body: { takeTurns: true } });
+  await expect(toggle).toBeChecked();
+});
+
+test("the main screen shows who has the remote, and can free it", async ({ page }) => {
+  const api = await mockSession(page, hosting({ remote: "taken", remoteName: "Ana" }));
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("tab", { name: "Edit queue" }).click();
+
+  await expect(page.getByText("Remote: Ana")).toBeVisible();
+  api.state = hosting({ remote: "free", remoteName: null });
+  await page.getByRole("button", { name: "Free the remote" }).click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "DELETE", path: "/remote" });
+  await expect(page.getByText("Remote: free, any phone can take it")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Free the remote" })).toHaveCount(0);
+});
+
+test("the main screen says who will get the remote before anyone has it", async ({ page }) => {
+  await mockSession(page, hosting({ remote: "unclaimed", remoteName: null }));
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await expect(page.getByText("Remote: first phone to join")).toBeVisible();
+});
+
+test("a remote with no songs yet is still shown", async ({ page }) => {
+  await mockSession(page, hosting({ remote: "taken", remoteName: null }));
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await expect(page.getByText("Remote: a phone")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Free the remote" })).toBeVisible();
+});
+
+test("only the host is offered the take-turns switch", async ({ page }) => {
+  await mockSession(page, session());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await expect(page.getByRole("button", { name: "Hide queue" })).toBeVisible();
+  await expect(page.getByRole("switch", { name: "Take turns" })).toHaveCount(0);
+});
+
 test("only the host is offered End session", async ({ page }) => {
   await mockSession(page, session());
   await page.goto(`/s/${CODE}`);
@@ -230,3 +285,48 @@ test("the main screen follows a pause from the phone remote", async ({ page }) =
   await page.clock.fastForward(16_000);
   await expect(page.getByRole("button", { name: "Pause" }).first()).toBeVisible();
 });
+
+test("the main screen asks YouTube for its privacy-enhanced player, with YouTube's own controls off", async ({ page }) => {
+  await mockSession(page, hosting());
+  // A stand-in for YouTube's IFrame API that records how the page creates the player.
+  await page.route("https://www.youtube.com/iframe_api", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: `window.YT = { Player: function (el, options) { window.playerOptions = options; return {
+        loadVideoById() {}, cueVideoById() {}, playVideo() {}, pauseVideo() {}, seekTo() {}, setVolume() {},
+        getCurrentTime() { return 0; }, getDuration() { return 0; }, getPlayerState() { return -1; }, destroy() {},
+      }; } }; window.onYouTubeIframeAPIReady();`,
+    }),
+  );
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Start now" }).first().click();
+
+  const options = await page.waitForFunction(() => (window as unknown as { playerOptions?: unknown }).playerOptions).then((h) => h.jsonValue());
+  expect(options).toMatchObject({
+    host: "https://www.youtube-nocookie.com",
+    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0 },
+  });
+});
+
+test("opening a move-the-main-screen link makes this screen the main screen", async ({ page }) => {
+  const LINK_SECRET = "s".repeat(43);
+  const api = await mockSession(page, session({ isHost: false }));
+  await page.goto(`/s/${CODE}?takeover=${LINK_SECRET}`);
+
+  await expect.poll(() => api.sent.find((request) => request.path === "/host")).toMatchObject({ method: "POST", body: { token: LINK_SECRET } });
+  await expect(page).toHaveURL(new RegExp(`/s/${CODE}$`));
+});
+
+test("a used or expired link says so", async ({ page }) => {
+  await mockSession(page, session({ isHost: false }));
+  await page.route(`**/api/sessions/${CODE}/host`, (route) => route.fulfill({ status: 403, json: { ok: false, error: "forbidden" } }));
+  await page.goto(`/s/${CODE}?takeover=${"s".repeat(43)}`);
+  await expect(page.getByText("That link has expired or was already used. Ask the remote for a new one.")).toBeVisible();
+});
+
+test("an idle session warns the main screen before it ends", async ({ page }) => {
+  await mockSession(page, hosting({ current: null, queue: [], closesInSeconds: 300 }));
+  await page.goto(`/s/${CODE}`);
+  await expect(page.getByText("Nothing's queued. This session ends in about 5 min unless someone adds a song.")).toBeVisible();
+});
+

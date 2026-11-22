@@ -37,6 +37,11 @@ export function getSessionState(code: string, hostTokenHash: string | null, gues
   return rpc<SessionState | null>("get_state", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId });
 }
 
+/** YouTube ids of songs finished in the last day, in any session, newest first. */
+export async function getRecentlyPlayedVideoIds(): Promise<string[]> {
+  return (await rpc<string[] | null>("recently_played", {})) ?? [];
+}
+
 /** The host's token lifts the limit on waiting songs: the main screen adds for everyone. */
 export function addQueueItem(code: string, hostTokenHash: string | null, guestId: string, name: string, video: SearchResult) {
   return rpc<MutationResult>("add_item", {
@@ -66,6 +71,31 @@ export function updatePlayback(code: string, hostTokenHash: string | null, guest
   return rpc<MutationResult>("playback", {
     p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId, p_action: action, p_expected_item_id: expectedItemId,
   });
+}
+
+/** Host only: whether singers take turns once 3 or more people have songs on the list. */
+export function setTakeTurns(code: string, hostTokenHash: string | null, on: boolean) {
+  return rpc<MutationResult>("set_take_turns", { p_code: code, p_host_hash: hostTokenHash, p_on: on });
+}
+
+/** A phone takes the remote, if it has been freed: the first to ask gets it. */
+export function claimRemote(code: string, guestId: string) {
+  return rpc<MutationResult>("claim_remote", { p_code: code, p_guest_id: guestId });
+}
+
+/** The main screen or the remote itself: frees the remote for another phone to take. */
+export function freeRemote(code: string, hostTokenHash: string | null, guestId: string) {
+  return rpc<MutationResult>("free_remote", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId });
+}
+
+/** The remote, while the main screen is away: stores the hash of a one-time link to move it. */
+export function startHandoff(code: string, guestId: string, linkHash: string) {
+  return rpc<MutationResult>("start_handoff", { p_code: code, p_guest_id: guestId, p_link_hash: linkHash });
+}
+
+/** The device that opened the link becomes the main screen. */
+export function takeOver(code: string, linkHash: string, newHostTokenHash: string) {
+  return rpc<MutationResult>("take_over", { p_code: code, p_link_hash: linkHash, p_new_host_hash: newHostTokenHash });
 }
 
 /** Host only: closes the session for good, at once. */

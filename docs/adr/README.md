@@ -15,10 +15,10 @@ at that point. Later records are written when the decision is made.
 | [0002](0002-database-functions-are-the-only-data-access.md) | All rules live in Postgres functions; tables are closed | Accepted |
 | [0003](0003-realtime-ping-then-refetch.md) | Realtime sends "changed"; screens refetch | Accepted |
 | [0004](0004-anonymous-cookie-identity.md) | No accounts: host token and guest id cookies | Accepted |
-| [0005](0005-youtube-iframe-player.md) | YouTube IFrame player with our own controls | Accepted |
+| [0005](0005-youtube-iframe-player.md) | YouTube IFrame player with our own controls | Superseded by 0018 |
 | [0006](0006-keyless-youtube-search.md) | Keyless search through youtubei.js, behind one module | Accepted |
 | [0007](0007-phones-are-guests.md) | Phones only ever get the guest view | Accepted |
-| [0008](0008-archive-on-access.md) | Sessions archive after 15 idle minutes, checked on access | Accepted |
+| [0008](0008-archive-on-access.md) | Sessions archive after 15 idle minutes, checked on access | Accepted, amended by 0022 |
 | [0009](0009-tv-scale-grid.md) | Host screen drawn on a scaling 1920 × 1080 grid | Accepted |
 | [0010](0010-in-memory-limits-and-caches.md) | Rate limits and caches live in server memory | Accepted |
 | [0011](0011-layered-lib.md) | `lib` split into domain, server and client, enforced by lint | Accepted |
@@ -26,6 +26,13 @@ at that point. Later records are written when the decision is made.
 | [0013](0013-optional-youtube-api-fallback.md) | Official YouTube API as a fallback when a key is set | Accepted |
 | [0014](0014-first-guest-is-the-remote.md) | The first guest to join is the remote | Accepted |
 | [0015](0015-migrate-on-production-build.md) | Production builds apply pending migrations first | Accepted |
+| [0016](0016-singers-take-turns.md) | Singers take turns, one song per round | Accepted |
+| [0017](0017-one-room-per-browser.md) | One room per browser, shared by its tabs | Accepted |
+| [0018](0018-privacy-enhanced-youtube-player.md) | YouTube's privacy-enhanced player, with our own controls | Accepted |
+| [0019](0019-integration-tests-in-docker.md) | Test the built app against a real database in Docker | Accepted |
+| [0020](0020-hand-over-the-remote.md) | The remote can be freed and taken by another phone | Accepted |
+| [0021](0021-recently-sung-songs-on-the-start-page.md) | Songs sung lately are shown on the start page | Accepted |
+| [0022](0022-when-the-main-screen-is-away.md) | When the main screen is away: pause, end after 15 minutes, move it | Accepted |
 
 ## Template
 

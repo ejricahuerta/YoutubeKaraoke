@@ -13,7 +13,8 @@
     "test:db": "bash scripts/test-db.sh",
     "test:e2e": "playwright test",
     "check": "npm run lint && npm run typecheck && npm test",
-    "migrate": "node scripts/migrate.mts"
+    "migrate": "node scripts/migrate.mts",
+    "test:integration": "bash scripts/test-integration.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
