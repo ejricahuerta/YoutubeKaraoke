@@ -41,6 +41,11 @@ export function parseMoveRequest(body: Body): { afterId: string | null } | null 
   return { afterId };
 }
 
+/** The secret from a "move the main screen" link: base64url, as createHostToken makes it. */
+export function parseTakeOverRequest(body: Body): { token: string } | null {
+  return typeof body.token === "string" && /^[A-Za-z0-9_-]{20,200}$/.test(body.token) ? { token: body.token } : null;
+}
+
 /** The main screen's settings for a session: for now, whether singers take turns. */
 export function parseSettingsRequest(body: Body): { takeTurns: boolean } | null {
   return typeof body.takeTurns === "boolean" ? { takeTurns: body.takeTurns } : null;

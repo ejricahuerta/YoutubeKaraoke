@@ -4,12 +4,13 @@
  * before, so they run in order on one session.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { Browser, idOf, titles } from "./browser";
+import { Browser, idOf, mainScreenSeen, titles } from "./browser";
 
 const screen = Browser.screen();
 const ana = Browser.phone();
 const ben = Browser.phone();
 const cy = Browser.phone();
+const newScreen = Browser.screen();
 let code = "";
 
 beforeAll(async () => {
@@ -103,9 +104,31 @@ describe("a night of karaoke", () => {
     expect((await ben.state(code)).takeTurns).toBe(false);
   });
 
+  it("pauses when the main screen goes away, and lets the remote move it to another screen", async () => {
+    await mainScreenSeen(code, 180);
+    const away = await ben.state(code);
+    expect(away).toMatchObject({ mainScreenAway: true, isPlaying: false, isRemote: true });
+    expect(away.closesInSeconds).toBeGreaterThan(700);
+    expect((await ben.playback(code, "play")).body.error).toBe("main_screen_away");
+    expect((await ben.add(code, "later", "Ben")).status).toBe(200);
+
+    expect((await cy.startHandoff(code)).status).toBe(403);
+    const { status, body } = await ben.startHandoff(code);
+    expect(status).toBe(200);
+    expect(body.token).toMatch(/^[A-Za-z0-9_-]{40,}$/);
+    expect((await Browser.phone().takeOver(code, body.token!)).status).toBe(403);
+    expect((await newScreen.takeOver(code, "x".repeat(43))).status).toBe(403);
+    expect((await newScreen.takeOver(code, body.token!)).status).toBe(200);
+
+    expect(await newScreen.state(code)).toMatchObject({ isHost: true, mainScreenAway: false });
+    expect((await screen.state(code)).isHost).toBe(false);
+    expect((await newScreen.takeOver(code, body.token!)).status).toBe(403);
+  });
+
   it("ends for everyone when the main screen ends it, and only then", async () => {
     expect((await ana.end(code)).status).toBe(403);
-    expect((await screen.end(code)).status).toBe(200);
+    expect((await screen.end(code)).status).toBe(403);
+    expect((await newScreen.end(code)).status).toBe(200);
     expect((await ben.state(code)).archived).toBe(true);
     expect((await ben.add(code, "late", "Ben")).status).toBe(410);
   });

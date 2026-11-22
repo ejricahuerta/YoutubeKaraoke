@@ -57,4 +57,6 @@ server_pid=$!
 for _ in $(seq 1 60); do curl -sf -o /dev/null "http://127.0.0.1:$PORT/" && break; sleep 1; done
 
 echo "• Running tests/integration"
-APP_URL="http://127.0.0.1:$PORT" npx vitest run --config vitest.integration.config.mts
+# DATABASE_URL lets a test move a session's clock, e.g. to make the main screen look away.
+APP_URL="http://127.0.0.1:$PORT" DATABASE_URL="postgres://postgres@127.0.0.1:54329/postgres" \
+  npx vitest run --config vitest.integration.config.mts

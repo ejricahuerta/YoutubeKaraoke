@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { STORAGE_KEYS, useExpiringState, useStoredString, useTurnAlert } from "@/lib/client/browser-hooks";
+import { STORAGE_KEYS, useExpiringState, useOrigin, useStoredString, useTurnAlert } from "@/lib/client/browser-hooks";
 import { addSong, sendPlayback } from "@/lib/client/session-api";
 import { useRoom } from "@/lib/client/use-room";
 import { useSessionState } from "@/lib/client/use-session-state";
@@ -16,12 +16,13 @@ import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
 import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
 import { IconButton } from "../IconButton";
-import { MicIcon, NextIcon, QueueIcon, SearchIcon } from "../Icons";
+import { InviteIcon, MicIcon, NextIcon, QueueIcon, SearchIcon } from "../Icons";
 import { Logo } from "../Logo";
 import { QueuePanel } from "../QueuePanel";
 import { SearchPanel } from "../SearchPanel";
 import { SongRow } from "../SongRow";
 import { AddedToast } from "./AddedToast";
+import { InviteSheet } from "./InviteSheet";
 import { MySongs } from "./MySongs";
 import { NameForm } from "./NameForm";
 import { OtherRoomMessage } from "./OtherRoomMessage";
@@ -63,6 +64,8 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
   const [name, setName] = useStoredString(STORAGE_KEYS.name);
   const [editingName, setEditingName] = useState(false);
   const [tab, setTab] = useState<Tab>("search");
+  const [inviting, setInviting] = useState(false);
+  const origin = useOrigin();
   /**
    * Video id of the song this guest just added, while its toast shows. It stays until
    * dismissed or replaced by the next add, so Undo has no time limit (WCAG 2.2.1).
@@ -153,11 +156,14 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
     <div className="mx-auto flex h-dvh w-full max-w-xl flex-col">
       <header className="flex items-center gap-2.5 px-4 pb-3 pt-4">
         <Logo label={TAB_TITLES[tab]} />
+        <IconButton label="Invite a friend" onClick={() => setInviting(true)} className="ml-auto">
+          <InviteIcon />
+        </IconButton>
         <button
           type="button"
           onClick={() => setEditingName(true)}
           aria-label={`${name}, change name`}
-          className="ml-auto flex h-11 max-w-[45%] shrink-0 items-center gap-2 rounded-full bg-stage-200 pl-1.5 pr-3.5 text-sm font-semibold transition hover:bg-stage-300"
+          className=" flex h-11 max-w-[45%] shrink-0 items-center gap-2 rounded-full bg-stage-200 pl-1.5 pr-3.5 text-sm font-semibold transition hover:bg-stage-300"
         >
           <Avatar name={name} className="h-8 w-8 text-sm" />
           <span className="truncate">{name}</span>
@@ -188,7 +194,7 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
               </p>
             ) : null}
             <div className="-mx-2">
-              {current ? <NowRow current={current} playing={state.isPlaying} onSkip={state.isRemote ? undefined : skipOwnSong} /> : null}
+              {current ? <NowRow current={current} playing={state.isPlaying} onSkip={state.isRemote || state.mainScreenAway ? undefined : skipOwnSong} /> : null}
               <QueuePanel
                 queue={queue}
                 canControl={state.isRemote}
@@ -221,7 +227,7 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
       ) : null}
 
       {state.isRemote ? (
-        <RemoteBar code={code} current={current} isPlaying={state.isPlaying} onDone={refresh} onFailed={setNotice} />
+        <RemoteBar code={code} current={current} isPlaying={state.isPlaying} mainScreenAway={state.mainScreenAway} onDone={refresh} onFailed={setNotice} />
       ) : state.remote === "free" ? (
         <TakeRemoteBar code={code} onDone={refresh} onFailed={setNotice} />
       ) : current && tab !== "queue" ? (
@@ -233,9 +239,11 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
             </p>
             <p className="truncate text-sm font-semibold leading-5">{current.addedBy} · {displayTitle(current.title)}</p>
           </div>
-          {current.mine ? <SkipOwnSongButton onSkip={() => skipOwnSong(current.id)} /> : null}
+          {current.mine && !state.mainScreenAway ? <SkipOwnSongButton onSkip={() => skipOwnSong(current.id)} /> : null}
         </div>
       ) : null}
+
+      <InviteSheet code={code} joinUrl={origin ? `${origin}/join/${code}` : ""} open={inviting} onClose={() => setInviting(false)} />
 
       <nav aria-label="Sections" className="flex border-t border-line bg-stage-100 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5">
         {tabs.map(([id, label, icon]) => (

@@ -307,3 +307,26 @@ test("the main screen asks YouTube for its privacy-enhanced player, with YouTube
     playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0 },
   });
 });
+
+test("opening a move-the-main-screen link makes this screen the main screen", async ({ page }) => {
+  const LINK_SECRET = "s".repeat(43);
+  const api = await mockSession(page, session({ isHost: false }));
+  await page.goto(`/s/${CODE}?takeover=${LINK_SECRET}`);
+
+  await expect.poll(() => api.sent.find((request) => request.path === "/host")).toMatchObject({ method: "POST", body: { token: LINK_SECRET } });
+  await expect(page).toHaveURL(new RegExp(`/s/${CODE}$`));
+});
+
+test("a used or expired link says so", async ({ page }) => {
+  await mockSession(page, session({ isHost: false }));
+  await page.route(`**/api/sessions/${CODE}/host`, (route) => route.fulfill({ status: 403, json: { ok: false, error: "forbidden" } }));
+  await page.goto(`/s/${CODE}?takeover=${"s".repeat(43)}`);
+  await expect(page.getByText("That link has expired or was already used. Ask the remote for a new one.")).toBeVisible();
+});
+
+test("an idle session warns the main screen before it ends", async ({ page }) => {
+  await mockSession(page, hosting({ current: null, queue: [], closesInSeconds: 300 }));
+  await page.goto(`/s/${CODE}`);
+  await expect(page.getByText("Nothing's queued. This session ends in about 5 min unless someone adds a song.")).toBeVisible();
+});
+

@@ -1,6 +1,6 @@
 # 0008. Sessions archive after 15 idle minutes, checked on access
 
-- Status: Accepted
+- Status: Accepted, amended by 0022 (what ends a session: the main screen away 15 minutes, or 30 idle minutes)
 - Date: 2026-11-21 (recorded; in the code since commit `0c680a4`)
 
 ## Context

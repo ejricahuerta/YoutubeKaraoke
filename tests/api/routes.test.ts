@@ -11,17 +11,20 @@ const store = {
   setTakeTurns: vi.fn(),
   claimRemote: vi.fn(),
   freeRemote: vi.fn(),
+  startHandoff: vi.fn(),
+  takeOver: vi.fn(),
   createSession: vi.fn(),
   getRecentlyPlayedVideoIds: vi.fn(),
 };
 vi.mock("@/lib/server/session-store", () => store);
 const clearHostCookie = vi.fn();
+const setHostCookie = vi.fn();
 vi.mock("@/lib/server/auth", () => ({
   getHostTokenHash: async () => "host-hash",
   getOrCreateGuestId: async () => "guest-1",
   createHostToken: () => "token",
-  hashHostToken: () => "host-hash",
-  setHostCookie: vi.fn(),
+  hashHostToken: (token: string) => `hash(${token})`,
+  setHostCookie,
   clearHostCookie,
 }));
 const searchVideos = vi.fn();
@@ -33,6 +36,8 @@ const queueRoute = await import("@/app/api/sessions/[code]/queue/route");
 const itemRoute = await import("@/app/api/sessions/[code]/queue/[id]/route");
 const playbackRoute = await import("@/app/api/sessions/[code]/playback/route");
 const remoteRoute = await import("@/app/api/sessions/[code]/remote/route");
+const handoffRoute = await import("@/app/api/sessions/[code]/handoff/route");
+const hostRoute = await import("@/app/api/sessions/[code]/host/route");
 const sessionsRoute = await import("@/app/api/sessions/route");
 const searchRoute = await import("@/app/api/search/route");
 const recentSongsRoute = await import("@/app/api/recent-songs/route");
@@ -139,6 +144,47 @@ describe("/api/sessions/[code]/remote", () => {
   });
 });
 
+describe("POST /api/sessions/[code]/handoff", () => {
+  it("makes a one-time link secret, gives the database only its hash, and returns the secret", async () => {
+    store.startHandoff.mockResolvedValue("ok");
+    const res = await handoffRoute.POST(json("POST"), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok", token: "token" });
+    expect(store.startHandoff).toHaveBeenCalledWith("ABC234", "guest-1", "hash(token)");
+  });
+
+  it("returns no secret when the database refuses", async () => {
+    store.startHandoff.mockResolvedValue("main_screen_here");
+    const res = await handoffRoute.POST(json("POST"), ctx({ code: "ABC234" }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ ok: false, error: "main_screen_here" });
+  });
+});
+
+describe("POST /api/sessions/[code]/host", () => {
+  const LINK = "x".repeat(43);
+
+  it("takes over with the link's hash, and makes this browser the host with a fresh token", async () => {
+    store.takeOver.mockResolvedValue("ok");
+    const res = await hostRoute.POST(json("POST", { token: LINK }), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok" });
+    expect(store.takeOver).toHaveBeenCalledWith("ABC234", `hash(${LINK})`, "hash(token)");
+    expect(setHostCookie).toHaveBeenCalledWith("ABC234", "token");
+  });
+
+  it("sets no cookie when the database refuses", async () => {
+    store.takeOver.mockResolvedValue("forbidden");
+    expect((await hostRoute.POST(json("POST", { token: LINK }), ctx({ code: "ABC234" }))).status).toBe(403);
+    expect(setHostCookie).not.toHaveBeenCalled();
+  });
+
+  it("refuses a body without a link secret, and phones, which are never the main screen", async () => {
+    expect((await hostRoute.POST(json("POST", { token: 5 }), ctx({ code: "ABC234" }))).status).toBe(400);
+    const phone = json("POST", { token: LINK }, { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148" });
+    expect((await hostRoute.POST(phone, ctx({ code: "ABC234" }))).status).toBe(403);
+    expect(store.takeOver).not.toHaveBeenCalled();
+  });
+});
+
 describe("POST /api/sessions/[code]/queue", () => {
   const song = { videoId: "dQw4w9WgXcQ", title: "Song", name: "Maya" };
 
@@ -206,7 +252,7 @@ describe("POST /api/sessions", () => {
     const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, "x-forwarded-for": "198.51.100.1" }));
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toBe("/s/ABC234");
-    expect(store.createSession).toHaveBeenCalledWith("host-hash");
+    expect(store.createSession).toHaveBeenCalledWith("hash(token)");
   });
 
   it("answers with JSON when asked to", async () => {

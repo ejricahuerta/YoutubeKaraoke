@@ -61,8 +61,14 @@ export function useRoom(code: string) {
       setOver(null);
       setRoom(code);
     }, [code, setRoom]),
-    /** Forgets the room, so the start page stops sending this browser back to it. */
-    leave: useCallback(() => setRoom(null), [setRoom]),
+    /**
+     * Forgets the room, so the start page stops sending this browser back to it. Marked as
+     * given up first, or this tab would claim it again before the start page loads.
+     */
+    leave: useCallback(() => {
+      setOver(code);
+      setRoom(null);
+    }, [code, setRoom]),
     /** This tab's room has ended: let the browser go, without claiming it again. */
     ended: useCallback(() => {
       setOver(code);

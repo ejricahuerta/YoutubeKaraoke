@@ -90,6 +90,16 @@ export class Browser {
     return this.answer("DELETE", `/api/sessions/${code}/remote`);
   }
 
+  /** The remote, while the main screen is away: a one-time link secret to move it. */
+  async startHandoff(code: string) {
+    const res = await this.request("POST", `/api/sessions/${code}/handoff`);
+    return { status: res.status, body: (await res.json()) as { token?: string; error?: string } };
+  }
+
+  takeOver(code: string, token: string) {
+    return this.answer("POST", `/api/sessions/${code}/host`, { token });
+  }
+
   settings(code: string, settings: Record<string, unknown>) {
     return this.answer("PATCH", `/api/sessions/${code}`, settings);
   }
@@ -104,3 +114,15 @@ export const titles = (state: SessionState) => state.queue.map((item) => item.ti
 /** The id of the song with this title, waiting or current. */
 export const idOf = (state: SessionState, title: string) =>
   [state.current, ...state.queue].find((item) => item?.title === title)?.id ?? "";
+
+/** Moves a session's clock in the test database: makes its main screen last seen `seconds` ago. */
+export async function mainScreenSeen(code: string, secondsAgo: number) {
+  const { default: pg } = await import("pg");
+  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  await client.connect();
+  try {
+    await client.query("update karaoke.sessions set host_seen_at = now() - make_interval(secs => $2) where code = $1", [code, secondsAgo]);
+  } finally {
+    await client.end();
+  }
+}

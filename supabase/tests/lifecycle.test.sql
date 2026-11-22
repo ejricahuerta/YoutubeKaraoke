@@ -9,22 +9,26 @@ begin
   assert karaoke.create_session('LIFE22', 'host-hash');
   perform karaoke.add_item('LIFE22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
 
-  -- A guest looking at the session is not activity; the host's screen is.
-  update karaoke.sessions set last_active_at = now() - interval '14 minutes' where code = 'LIFE22';
+  -- Looking is not activity, for guests or the main screen; the main screen's poll is its
+  -- heartbeat instead (host_seen_at), since migration 0014.
+  update karaoke.sessions set last_active_at = now() - interval '14 minutes', host_seen_at = now() - interval '14 minutes'
+    where code = 'LIFE22';
   perform karaoke.get_state('LIFE22', null, 'ana');
-  assert (select last_active_at < now() - interval '13 minutes' from karaoke.sessions where code = 'LIFE22'),
-    'a guest poll does not keep a session alive';
+  assert (select last_active_at < now() - interval '13 minutes' and host_seen_at < now() - interval '13 minutes'
+          from karaoke.sessions where code = 'LIFE22'), 'a guest poll keeps nothing alive';
   perform karaoke.get_state('LIFE22', 'host-hash', null);
-  assert (select last_active_at > now() - interval '1 minute' from karaoke.sessions where code = 'LIFE22'),
-    'the host poll is the heartbeat';
+  assert (select host_seen_at > now() - interval '1 minute' from karaoke.sessions where code = 'LIFE22'),
+    'the main screen''s poll is its heartbeat';
+  assert (select last_active_at < now() - interval '13 minutes' from karaoke.sessions where code = 'LIFE22'),
+    'but not activity: it does not put off the idle clock';
 
   -- Adding a song is activity too.
   update karaoke.sessions set last_active_at = now() - interval '14 minutes' where code = 'LIFE22';
   perform karaoke.add_item('LIFE22', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B', '', '', 200);
   assert (select last_active_at > now() - interval '1 minute' from karaoke.sessions where code = 'LIFE22');
 
-  -- Fifteen quiet minutes archive the session, checked the moment anyone touches it.
-  update karaoke.sessions set last_active_at = now() - interval '16 minutes' where code = 'LIFE22';
+  -- Fifteen minutes without the main screen archive the session, checked the moment anyone touches it.
+  update karaoke.sessions set host_seen_at = now() - interval '16 minutes' where code = 'LIFE22';
   v_state := karaoke.get_state('LIFE22', 'host-hash', 'ana');
   assert (v_state->>'archived')::boolean, 'a stale session reports itself archived, even to its host';
   assert v_state->'current' = 'null'::jsonb and v_state->'queue' = '[]'::jsonb, 'and shows no songs';
@@ -41,7 +45,7 @@ begin
 
   -- Cleanup archives stale sessions nobody touched and deletes day-old archives with their songs.
   assert karaoke.create_session('IDLE22', 'h');
-  update karaoke.sessions set last_active_at = now() - interval '20 minutes' where code = 'IDLE22';
+  update karaoke.sessions set host_seen_at = now() - interval '20 minutes' where code = 'IDLE22';
   update karaoke.sessions set archived_at = now() - interval '25 hours' where code = 'LIFE22';
   perform karaoke.cleanup();
   assert (select archived_at is not null from karaoke.sessions where code = 'IDLE22'), 'cleanup archives idle sessions';
@@ -71,11 +75,11 @@ begin
   assert (v_state->>'hostAwaySeconds')::int between 299 and 301, 'guests see how long the main screen has been gone';
   assert (v_state->>'closesInSeconds')::int between 599 and 601, 'and how long until the session closes';
 
-  -- A guest adding a song keeps the session alive, but does not bring the main screen back.
+  -- A guest adding a song does not bring the main screen back, nor put off closing (migration 0014).
   perform karaoke.add_item('AWAY22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
   v_state := karaoke.get_state('AWAY22', null, 'ana');
   assert (v_state->>'hostAwaySeconds')::int >= 299, 'adding a song is not the main screen';
-  assert (v_state->>'closesInSeconds')::int >= 895, 'but it does put off closing';
+  assert (v_state->>'closesInSeconds')::int between 598 and 601, 'and the countdown does not jump back';
 
   -- The main screen comes back: its poll counts as seen at once, even though the session was recently active.
   perform karaoke.get_state('AWAY22', 'host-hash', null);
@@ -145,7 +149,8 @@ begin
       'karaoke.remove_item(text, uuid, text, text)', 'karaoke.end_session(text, text)',
       'karaoke.playback(text, text, text, uuid, text)', 'karaoke.move_item(text, text, uuid, uuid, text)',
       'karaoke.set_take_turns(text, text, boolean)',
-      'karaoke.claim_remote(text, text)', 'karaoke.free_remote(text, text, text)', 'karaoke.recently_played()'
+      'karaoke.claim_remote(text, text)', 'karaoke.free_remote(text, text, text)', 'karaoke.recently_played()',
+      'karaoke.start_handoff(text, text, text)', 'karaoke.take_over(text, text, text)'
     ] loop
       assert has_function_privilege(v_role, v_fn, 'execute'), v_role || ' can call ' || v_fn;
     end loop;
@@ -154,7 +159,7 @@ begin
     for v_fn in
       select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'karaoke'
-        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played')
+        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over')
     loop
       assert not has_function_privilege(v_role, v_fn, 'execute'), v_role || ' cannot call internal ' || v_fn;
     end loop;

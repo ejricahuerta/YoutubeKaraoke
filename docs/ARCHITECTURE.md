@@ -66,6 +66,8 @@ app/                    Routes only: pages and API route handlers
   api/sessions          POST  start a session
   api/sessions/[code]   GET   session state, PATCH settings (host), DELETE end it (host)
     remote              POST  take a freed remote, DELETE free it (host or remote)
+    handoff             POST  a one-time link to move an away main screen (remote)
+    host                POST  open that link: this browser becomes the main screen
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
     queue/[id]          DELETE remove, PATCH move        (PATCH: host)
@@ -132,7 +134,7 @@ Two tables in the `karaoke` schema:
   session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The eleven public functions are the whole API of the database:
+policies. The thirteen public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -145,11 +147,13 @@ policies. The eleven public functions are the whole API of the database:
 | `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
 | `free_remote(code, host_hash, guest_id)` | `DELETE .../remote` | a result code |
 | `claim_remote(code, guest_id)` | `POST .../remote` | a result code |
+| `start_handoff(code, guest_id, link_hash)` | `POST .../handoff` | a result code |
+| `take_over(code, link_hash, new_host_hash)` | `POST .../host` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
 | `recently_played()` | `GET /api/recent-songs` | Video ids of songs finished in the last day, in any session, newest first, at most 24 ([0021](adr/0021-recently-sung-songs-on-the-start-page.md)) |
 
 Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`, `guest_limit`,
-`archived` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
+`archived`, `main_screen_away`, `main_screen_here` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
 each to an HTTP status and the body `{ ok, result }` or `{ ok: false, error }`.
 
 Session lifecycle: [0008](adr/0008-archive-on-access.md).
