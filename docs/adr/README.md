@@ -33,6 +33,7 @@ at that point. Later records are written when the decision is made.
 | [0020](0020-hand-over-the-remote.md) | The remote can be freed and taken by another phone | Accepted |
 | [0021](0021-recently-sung-songs-on-the-start-page.md) | Songs sung lately are shown on the start page | Accepted |
 | [0022](0022-when-the-main-screen-is-away.md) | When the main screen is away: pause, end after 15 minutes, move it | Accepted |
+| [0023](0023-main-screen-controls.md) | Main screen: four buttons, a Settings menu, confirmations | Accepted |
 
 ## Template
 

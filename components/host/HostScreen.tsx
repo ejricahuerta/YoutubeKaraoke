@@ -2,26 +2,27 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
-import { endSession, freeRemote, sendPlayback, setTakeTurns, takeOver, type MutationOutcome } from "@/lib/client/session-api";
+import { endSession, freeRemote, playSongNow, sendPlayback, setTakeTurns, takeOver, type MutationOutcome } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
-import { formatWait } from "@/lib/domain/format";
+import { formatDuration } from "@/lib/domain/format";
 import { failureMessage, idleNotice, isFailure } from "@/lib/domain/messages";
 import { clampVolume, playingLabel, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
-import { waitSeconds } from "@/lib/domain/queue";
+import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
 import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
+import { BackIcon, CheckIcon, EditIcon, PlayIcon, PlusIcon, PowerIcon } from "../Icons";
 import { Logo } from "../Logo";
 import { QueuePanel } from "../QueuePanel";
 import { SearchPanel } from "../SearchPanel";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { HostLobby } from "./HostLobby";
 import { JoinCard, JoinCorner } from "./JoinCard";
 import { Player, savedPosition, type PlayerHandle, type Progress } from "./Player";
-import { RemoteIndicator } from "./RemoteIndicator";
+import { SettingsMenu } from "./SettingsMenu";
 import { SingerIntro } from "./SingerIntro";
-import { TakeTurnsSwitch } from "./TakeTurnsSwitch";
 import { OVERLINE } from "./styles";
 import { SeekBar, TransportControls } from "./TransportControls";
 import { UpNextBanner, UpNextList } from "./UpNext";
@@ -33,8 +34,6 @@ import { useHostKeys } from "./use-host-keys";
  */
 const TV_SCALE = "html{font-size:max(10px,min(0.8333vw,1.4815vh))}";
 const NOTICE_MS = 6000;
-/** How long "End session" waits for its second press before going back to normal. */
-const END_CONFIRM_MS = 5000;
 /**
  * After the host adds a song, the panel goes back to "Up next" once this long passes with no
  * typing or tapping in it, so the room sees the queue again.
@@ -43,8 +42,8 @@ const BACK_TO_UP_NEXT_MS = 30_000;
 /** The name songs added from the main screen go under. */
 const HOST_SINGER_NAME = "Host";
 
-const RAIL_TABS = [["next", "Up next"], ["edit", "Edit queue"], ["add", "Add a song"]] as const;
-type RailTab = (typeof RAIL_TABS)[number][0];
+/** What the queue panel shows: the list, the list with edit buttons, or search. */
+type RailView = "next" | "edit" | "add";
 
 const NO_PROGRESS: Progress = { seconds: 0, duration: 0 };
 
@@ -56,22 +55,31 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
   const join = { joinUrl: origin ? `${origin}/join/${code}` : "", joinHost: origin.replace(/^https?:\/\//, ""), code };
   const playerRef = useRef<PlayerHandle>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const [tab, setTab] = useState<RailTab>("next");
+  const [railView, setRailView] = useState<RailView>("next");
   // Bumped by each add, and by activity in the panel after one; 0 means no switch back is due.
   const [backToUpNext, setBackToUpNext] = useState(0);
   useEffect(() => {
-    if (!backToUpNext || tab !== "add") return;
+    if (!backToUpNext || railView !== "add") return;
     const timer = setTimeout(() => {
-      setTab("next");
+      setRailView("next");
       setBackToUpNext(0);
     }, BACK_TO_UP_NEXT_MS);
     return () => clearTimeout(timer);
-  }, [backToUpNext, tab]);
-  /** A tab the host picks stays put: it cancels any switch back that was due. */
-  function chooseTab(next: RailTab) {
-    setTab(next);
+  }, [backToUpNext, railView]);
+  /** A view the host picks stays put: it cancels any switch back that was due. */
+  function chooseRailView(next: RailView) {
+    setRailView(next);
     setBackToUpNext(0);
   }
+  // Leaving search puts the focus back on "Add a song", so a remote is not left nowhere.
+  const addButtonRef = useRef<HTMLButtonElement>(null);
+  const focusAddButton = useRef(false);
+  useEffect(() => {
+    if (focusAddButton.current && railView !== "add") {
+      focusAddButton.current = false;
+      addButtonRef.current?.focus();
+    }
+  }, [railView]);
   /** Still searching after an add: start the wait again. */
   function keepAddTabOpen() {
     if (backToUpNext) setBackToUpNext((n) => n + 1);
@@ -153,12 +161,22 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
     [code, refresh, reportIfFailed],
   );
 
-  // Ending a session cannot be undone, so it takes two presses: the first only arms the button.
-  const [endArmed, setEndArmed] = useExpiringState<true>(END_CONFIRM_MS);
-  const onEndSession = async () => {
-    if (!endArmed) return setEndArmed(true);
-    setEndArmed(null);
+  // Ending a session and playing a picked song cannot be undone, so both ask first (docs/adr/0023).
+  const [askingEnd, setAskingEnd] = useState(false);
+  const confirmEnd = async () => {
+    setAskingEnd(false);
     reportIfFailed(await endSession(code), "Couldn't end the session. Try again.");
+    refresh();
+  };
+
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const playPicked = async (item: QueueItem, interrupting: QueueItem) => {
+    setPickedId(null);
+    setLocalPlaying(true);
+    const outcome = await playSongNow(code, item.id, interrupting.id);
+    // Someone else removed it, or it started meanwhile.
+    if (outcome === "not_found") setNotice(`"${displayTitle(item.title)}" isn't waiting any more.`);
+    else reportIfFailed(outcome, "Couldn't play that song. Try again.");
     refresh();
   };
 
@@ -214,14 +232,14 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
 
   const { isHost, queue } = state;
   const idle = idleNotice({ hasSongs: !!current || queue.length > 0, closesInSeconds: state.closesInSeconds });
-  // Only the host adds songs here: anyone else on this page has no name yet, and goes to the guest screen for one.
-  const railTabs = RAIL_TABS.filter(([id]) => isHost || id !== "add");
-  const shownTab = railTabs.some(([id]) => id === tab) ? tab : "next";
+  // Only the host edits and adds here: anyone else on this page has no name yet, and goes to the guest screen for one.
+  const shownView: RailView = isHost ? railView : "next";
   const duration = progress.duration || current?.durationSeconds || 0;
   const upNext = queue[0];
   const showBanner = upNextBannerVisible({ hasNext: !!upNext, intro, duration: progress.duration, seconds: progress.seconds });
   const showJoinCorner = !!current && (!showQueue || fullscreen);
-  const queueWait = formatWait(waitSeconds(current, queue, queue.length, current ? progress.seconds : undefined));
+  // The picked song may be played or removed by someone else while the host decides.
+  const picked = pickedId ? queue.find((item) => item.id === pickedId) : undefined;
 
   return (
     <div className="flex min-h-dvh flex-col gap-8 p-6 lg:h-dvh lg:flex-row lg:gap-12 lg:px-24 lg:py-[3.375rem]">
@@ -229,36 +247,32 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
 
       {/* Left: video and transport controls */}
       <main className="flex min-w-0 flex-1 flex-col gap-5">
-        <header className="flex h-12 shrink-0 items-center gap-6">
+        <header className="flex h-14 shrink-0 items-center gap-6">
+          {/* The byline is plain text, not a link: no focus stop that could navigate away mid-party. */}
           <Link href="/" className="rounded-row">
-            <Logo mark="h-12 w-12" word="text-[2rem]" />
+            <Logo mark="h-12 w-12" word="text-[2rem] leading-8" byline={{ text: "by edmel.dev", className: "text-[1.25rem] font-medium leading-6 text-ink-faint" }} />
           </Link>
-          {/* Plain text, not a link: no focus stop that could navigate away mid-party. */}
-          <span className="hidden text-[1.25rem] font-medium text-ink-faint sm:inline">by edmel.dev</span>
           {reconnecting ? (
             <span role="status" className="rounded-full bg-notice-ground px-5 py-2 text-[1.25rem] font-semibold text-notice">Reconnecting…</span>
           ) : null}
           <span className="ml-auto" />
-          {isHost ? (
-            <button
-              type="button"
-              onClick={onEndSession}
-              className={`h-14 rounded-full px-7 text-[1.375rem] font-semibold transition active:scale-[0.97] ${
-                endArmed ? "bg-encore text-on-encore hover:bg-encore-hover" : "text-ink-muted hover:bg-stage-200 hover:text-ink"
-              }`}
-            >
-              {endArmed ? "End for everyone?" : "End session"}
-            </button>
-          ) : null}
-          <button
-            type="button"
-            aria-expanded={showQueue}
-            aria-controls="queue-panel"
-            onClick={() => setQueueHidden(showQueue ? "1" : null)}
-            className={`h-14 rounded-full bg-stage-200 px-7 text-[1.375rem] font-semibold transition hover:bg-stage-300 active:scale-[0.97]`}
-          >
-            {showQueue ? "Hide queue" : `Show queue (${queue.length})`}
-          </button>
+          <SettingsMenu
+            isHost={isHost}
+            volume={volume}
+            onVolume={(next) => {
+              setStoredVolume(String(next));
+              playerRef.current?.setVolume(next);
+            }}
+            takeTurns={state.takeTurns}
+            onTakeTurns={onTakeTurns}
+            remote={state.remote}
+            remoteName={state.remoteName}
+            onFreeRemote={onFreeRemote}
+            showQueue={showQueue}
+            queueLength={queue.length}
+            onToggleQueue={() => setQueueHidden(showQueue ? "1" : null)}
+            onEndSession={() => setAskingEnd(true)}
+          />
         </header>
 
         {notice ? (
@@ -333,14 +347,9 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
               hasCurrent={!!current}
               intro={intro}
               playing={playing}
-              volume={volume}
               onPlayPause={() => (intro ? startNow() : setPlaying(!playing))}
               onForward={seekForward}
               onNext={() => current && skip(current.id)}
-              onVolume={(next) => {
-                setStoredVolume(String(next));
-                playerRef.current?.setVolume(next);
-              }}
               onFullscreen={() => {
                 if (document.fullscreenElement) document.exitFullscreen();
                 else stageRef.current?.requestFullscreen?.();
@@ -361,71 +370,53 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
         hidden={!showQueue}
         className={`${showQueue ? "flex" : ""} min-h-0 w-full shrink-0 flex-col gap-4 rounded-panel bg-stage-100 p-8 lg:w-[32.5rem]`}
       >
-        <div
-          className="flex gap-1 rounded-full bg-stage-000 p-1.5"
-          role="tablist"
-          aria-label="Queue panel"
-          onKeyDown={(e) => {
-            // Left and right move between tabs, as on any tab list and as a TV remote expects.
-            const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-            if (!step) return;
-            e.preventDefault();
-            const index = railTabs.findIndex(([id]) => id === shownTab);
-            const [nextId] = railTabs[(index + step + railTabs.length) % railTabs.length];
-            chooseTab(nextId);
-            document.getElementById(`queue-tab-${nextId}`)?.focus();
-          }}
-        >
-          {railTabs.map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              id={`queue-tab-${id}`}
-              aria-controls="queue-tabpanel"
-              aria-selected={shownTab === id}
-              tabIndex={shownTab === id ? 0 : -1}
-              onClick={() => chooseTab(id)}
-              className={`h-12 flex-1 rounded-full text-[1.25rem] font-semibold transition ${
-                shownTab === id ? "bg-ink text-stage-000" : "text-ink-muted hover:text-ink"
-              }`}
+        <div className="flex shrink-0 items-center justify-between gap-4 pl-4 pr-2">
+          <h2 className="font-display text-[2.5rem] font-bold leading-[3.25rem] tracking-tight">
+            {shownView === "add" ? "Add a song" : "Up next"}
+          </h2>
+          {shownView === "add" ? (
+            <RailButton
+              label="Back to Up next"
+              onClick={() => {
+                chooseRailView("next");
+                focusAddButton.current = true;
+              }}
             >
-              {label}
-            </button>
-          ))}
+              <BackIcon className="h-7 w-7" />
+            </RailButton>
+          ) : isHost ? (
+            <RailButton
+              label="Edit queue"
+              pressed={shownView === "edit"}
+              onClick={() => chooseRailView(shownView === "edit" ? "next" : "edit")}
+            >
+              {shownView === "edit" ? <CheckIcon className="h-7 w-7" /> : <EditIcon className="h-7 w-7" />}
+            </RailButton>
+          ) : null}
         </div>
 
         {/* Rows in the lists bleed past their column; the side padding holds that so no sideways scrollbar appears. */}
         <div
-          role="tabpanel"
           onKeyDown={keepAddTabOpen}
           onPointerDown={keepAddTabOpen}
-          id="queue-tabpanel"
-          aria-labelledby={`queue-tab-${shownTab}`}
           className="-mx-3 flex min-h-64 flex-1 flex-col overflow-y-auto px-3 lg:min-h-0"
         >
-          {shownTab === "edit" && isHost ? (
-            // The night's settings sit with the queue they change, which keeps the header short.
-            <div className="-ml-6 mb-3 flex flex-wrap items-center gap-x-2 border-b border-line pb-3">
-              <TakeTurnsSwitch on={state.takeTurns} onChange={onTakeTurns} />
-              <RemoteIndicator remote={state.remote} name={state.remoteName} onFree={onFreeRemote} />
-            </div>
-          ) : null}
-          {shownTab === "next" ? (
-            <UpNextList queue={queue} hasCurrent={!!current} queueWait={queueWait} />
+          {shownView === "next" ? (
+            <UpNextList queue={queue} hasCurrent={!!current} />
           ) : (
             // Phone-sized controls, enlarged a step: these are used up close, not read from the sofa.
             <div className="flex min-h-0 flex-1 flex-col lg:[zoom:1.3]">
-              {shownTab === "edit" ? (
+              {shownView === "edit" ? (
                 <QueuePanel
                   queue={queue}
                   canControl={isHost}
                   onRemove={remove}
-                  onMove={isHost ? move : undefined}
+                  onMove={move}
+                  onPlayNow={current ? (item) => setPickedId(item.id) : undefined}
                   emptyText={current ? "Nothing queued after this song." : "No songs yet. Scan the code to add one."}
                 />
               ) : (
-                <SearchPanel code={code} name={HOST_SINGER_NAME} showWaitingLimit={false} current={current} queue={queue} played={state.played} onAdded={() => {
+                <SearchPanel code={code} name={HOST_SINGER_NAME} showWaitingLimit={false} current={current} queue={queue} played={state.played} autoFocus onAdded={() => {
                     refresh();
                     setBackToUpNext((n) => n + 1);
                   }} />
@@ -434,8 +425,77 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
           )}
         </div>
 
+        {isHost && shownView !== "add" ? (
+          <button
+            ref={addButtonRef}
+            type="button"
+            onClick={() => chooseRailView("add")}
+            className="flex h-[4.5rem] shrink-0 items-center justify-center gap-3 rounded-full bg-stage-200 text-[1.5rem] font-bold transition hover:bg-stage-300 active:scale-[0.97]"
+          >
+            <PlusIcon className="h-7 w-7" />
+            Add a song
+          </button>
+        ) : null}
+
         {current ? <JoinCard {...join} /> : null}
       </aside>
+
+      {picked && current ? (
+        <ConfirmDialog
+          title="Play this song now?"
+          confirmLabel="Play now"
+          confirmIcon={<PlayIcon className="h-[1.875rem] w-[1.875rem]" />}
+          onConfirm={() => playPicked(picked, current)}
+          onCancel={() => setPickedId(null)}
+        >
+          <div className="flex items-center gap-5 rounded-card bg-stage-200 p-4">
+            <Avatar name={picked.addedBy} className="h-16 w-16 text-[1.75rem]" />
+            <div className="min-w-0">
+              <p className="truncate text-[1.75rem] font-semibold">{displayTitle(picked.title)}</p>
+              <p className="mt-0.5 text-[1.5rem] font-medium text-ink-muted">
+                {picked.addedBy}{formatDuration(picked.durationSeconds) ? ` · ${formatDuration(picked.durationSeconds)}` : ""}
+              </p>
+            </div>
+          </div>
+          <p className="text-[1.75rem] font-medium leading-9 text-ink-muted">
+            “{displayTitle(current.title)}” stops now, and {picked.addedBy} is up.
+          </p>
+        </ConfirmDialog>
+      ) : null}
+
+      {askingEnd && isHost ? (
+        <ConfirmDialog
+          title="End the session for everyone?"
+          cancelLabel="Keep singing"
+          confirmLabel="End session"
+          confirmIcon={<PowerIcon className="h-[1.875rem] w-[1.875rem]" />}
+          danger
+          onConfirm={confirmEnd}
+          onCancel={() => setAskingEnd(false)}
+        >
+          <p className="text-[1.75rem] font-medium leading-9 text-ink-muted">
+            The video stops, the queue is cleared, and every phone is told the session has ended. It can&apos;t be reopened.
+          </p>
+        </ConfirmDialog>
+      ) : null}
     </div>
+  );
+}
+
+/** The round button beside the queue panel's heading: edit the queue, or go back from search. */
+function RailButton({ label, pressed, onClick, children }: { label: string; pressed?: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      aria-pressed={pressed}
+      onClick={onClick}
+      className={`grid h-[3.25rem] w-[3.25rem] shrink-0 place-items-center rounded-full transition active:scale-95 ${
+        pressed ? "bg-ink text-stage-000" : "bg-stage-200 text-ink hover:bg-stage-300"
+      }`}
+    >
+      {children}
+    </button>
   );
 }

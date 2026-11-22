@@ -66,6 +66,13 @@ export function moveQueueItem(code: string, hostTokenHash: string | null, guestI
   return rpc<MutationResult>("move_item", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId, p_item_id: itemId, p_after_id: afterId });
 }
 
+/** The main screen or the remote: ends `expectedItemId` and plays `itemId`, a waiting song, now. */
+export function playQueueItem(code: string, hostTokenHash: string | null, guestId: string, itemId: string, expectedItemId: string | null) {
+  return rpc<MutationResult>("play_item", {
+    p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId, p_item_id: itemId, p_expected_item_id: expectedItemId,
+  });
+}
+
 /** The main screen or the remote: the database checks which the caller is. */
 export function updatePlayback(code: string, hostTokenHash: string | null, guestId: string, action: PlaybackAction, expectedItemId: string | null) {
   return rpc<MutationResult>("playback", {

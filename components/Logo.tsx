@@ -39,20 +39,29 @@ export function Logo({
   mark = "h-8 w-8",
   word = "text-[1.375rem]",
   label,
+  byline,
 }: {
   mark?: string;
   word?: string;
   /** Text to show instead of the wordmark, e.g. a screen title. Pass null for the mark alone. */
   label?: string | null;
+  /** A small line under the wordmark, with its own classes for size and colour. */
+  byline?: { text: string; className: string };
 }) {
+  const name = label === null ? null : (
+    <span className={`font-display font-extrabold tracking-tight ${word}`}>
+      {label ?? <Wordmark />}
+    </span>
+  );
   return (
     <span className="flex items-center gap-[0.625em]">
       <LogoMark className={mark} />
-      {label === null ? null : (
-        <span className={`font-display font-extrabold tracking-tight ${word}`}>
-          {label ?? <Wordmark />}
+      {byline && name ? (
+        <span className="flex flex-col">
+          {name}
+          <span className={byline.className}>{byline.text}</span>
         </span>
-      )}
+      ) : name}
     </span>
   );
 }

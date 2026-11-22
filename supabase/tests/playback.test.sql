@@ -81,4 +81,50 @@ begin
   assert karaoke.get_state('SUNG22', null, null)->'played' = '[]'::jsonb;
 end $$;
 
+-- The host picks any waiting song to play now: the one being sung ends and the pick starts.
+do $$
+declare
+  v_a uuid;
+  v_c uuid;
+  v_d uuid;
+  v_state jsonb;
+begin
+  assert karaoke.create_session('PICK22', 'host-hash');
+  perform karaoke.get_state('PICK22', null, 'remo'); -- the first guest to look is the remote
+  perform karaoke.add_item('PICK22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
+  perform karaoke.add_item('PICK22', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B', '', '', 200);
+  perform karaoke.add_item('PICK22', 'cy', 'Cy', 'dQw4w9WgXcQ', 'C', '', '', 200);
+  perform karaoke.add_item('PICK22', 'dee', 'Dee', 'dQw4w9WgXcQ', 'D', '', '', 200);
+  select id into v_a from karaoke.queue_items where title = 'A' and session_id = (select id from karaoke.sessions where code = 'PICK22');
+  select id into v_c from karaoke.queue_items where title = 'C' and session_id = (select id from karaoke.sessions where code = 'PICK22');
+  select id into v_d from karaoke.queue_items where title = 'D' and session_id = (select id from karaoke.sessions where code = 'PICK22');
+
+  assert karaoke.play_item('NOPE22', 'host-hash', v_c, v_a) = 'not_found';
+  assert karaoke.play_item('PICK22', null, v_c, v_a, 'ben') = 'forbidden', 'a guest cannot pick what plays';
+  assert karaoke.play_item('PICK22', 'wrong', v_c, v_a) = 'forbidden';
+  assert karaoke.play_item('PICK22', 'host-hash', v_c, v_d) = 'stale', 'the pick names the song it interrupts';
+  assert karaoke.play_item('PICK22', 'host-hash', gen_random_uuid(), v_a) = 'not_found', 'only a waiting song can be picked';
+  assert karaoke.play_item('PICK22', 'host-hash', v_a, v_a) = 'not_found', 'not the one being sung';
+  assert karaoke.get_state('PICK22', null, null)->'current'->>'title' = 'A', 'a refused pick changes nothing';
+
+  assert karaoke.playback('PICK22', 'host-hash', 'pause', null) = 'ok';
+  assert karaoke.play_item('PICK22', 'host-hash', v_c, v_a) = 'ok';
+  v_state := karaoke.get_state('PICK22', null, null);
+  assert v_state->'current'->>'title' = 'C', 'the picked song plays now';
+  assert (v_state->>'isPlaying')::boolean, 'even if the last one was paused';
+  assert (select string_agg(q->>'title', ',' order by o) from jsonb_array_elements(v_state->'queue') with ordinality as x(q, o)) = 'B,D',
+    'the rest keep their order';
+  assert v_state->'played'->0->>'title' = 'A', 'and the interrupted song counts as sung';
+  assert karaoke.play_item('PICK22', 'host-hash', v_c, v_a) = 'stale', 'pressing again does nothing more';
+
+  assert karaoke.play_item('PICK22', null, v_d, v_c, 'remo') = 'ok', 'the phone remote may pick too';
+  assert karaoke.get_state('PICK22', null, null)->'current'->>'title' = 'D';
+
+  -- Songs in other sessions are out of reach.
+  assert karaoke.create_session('OTHR22', 'other-hash');
+  perform karaoke.add_item('OTHR22', 'eve', 'Eve', 'dQw4w9WgXcQ', 'E', '', '', 200);
+  perform karaoke.add_item('OTHR22', 'fay', 'Fay', 'dQw4w9WgXcQ', 'F', '', '', 200);
+  assert karaoke.play_item('PICK22', 'host-hash', (select id from karaoke.queue_items where title = 'F'), v_d) = 'not_found';
+end $$;
+
 rollback;

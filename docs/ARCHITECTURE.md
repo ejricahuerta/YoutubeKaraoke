@@ -70,7 +70,7 @@ app/                    Routes only: pages and API route handlers
     host                POST  open that link: this browser becomes the main screen
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
-    queue/[id]          DELETE remove, PATCH move        (PATCH: host)
+    queue/[id]          DELETE remove, PATCH move, POST play it now  (PATCH, POST: host)
   s/[code]              Host screen
   join/[code]           Guest screen
   (legal)/              Terms, privacy policy and cookie policy: /terms, /privacy, /cookies
@@ -134,7 +134,7 @@ Two tables in the `karaoke` schema:
   session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The thirteen public functions are the whole API of the database:
+policies. The fourteen public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -144,6 +144,7 @@ policies. The thirteen public functions are the whole API of the database:
 | `remove_item(code, item_id, host_hash, guest_id)` | `DELETE .../queue/[id]` | a result code |
 | `move_item(code, host_hash, item_id, after_id, guest_id)` | `PATCH .../queue/[id]` | a result code |
 | `playback(code, host_hash, action, expected_item_id, guest_id)` | `POST .../playback` | a result code |
+| `play_item(code, host_hash, item_id, expected_item_id, guest_id)` | `POST .../queue/[id]` | a result code |
 | `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
 | `free_remote(code, host_hash, guest_id)` | `DELETE .../remote` | a result code |
 | `claim_remote(code, guest_id)` | `POST .../remote` | a result code |
@@ -198,7 +199,9 @@ playing in that browser.
 Only the host screen plays video, through YouTube's IFrame player in privacy-enhanced
 mode (`youtube-nocookie.com`), with YouTube's controls turned off and the app's own
 TV-sized controls in their place ([0018](adr/0018-privacy-enhanced-youtube-player.md),
-which supersedes [0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
+which supersedes [0005](adr/0005-youtube-iframe-player.md)). Four buttons sit under the
+video and the rest is in a Settings menu; playing a picked song and ending the session
+both ask first ([0023](adr/0023-main-screen-controls.md)). The screen is drawn on a 1920 × 1080
 grid that scales with the window ([0009](adr/0009-tv-scale-grid.md)). Search runs on
 the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 

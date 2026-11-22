@@ -36,6 +36,8 @@ begin
 
   assert karaoke.playback('GONE22', null, 'play', null, 'ana') = 'main_screen_away', 'the remote cannot play with no screen to play on';
   assert karaoke.playback('GONE22', null, 'next', pg_temp.item_id('GONE22', 'A1'), 'ana') = 'main_screen_away', 'nor skip';
+  assert karaoke.play_item('GONE22', null, pg_temp.item_id('GONE22', 'B1'), pg_temp.item_id('GONE22', 'A1'), 'ana') = 'main_screen_away',
+    'nor play a picked song (migration 0015)';
   assert karaoke.add_item('GONE22', 'cy', 'Cy', 'dQw4w9WgXcQ', 'C1', '', '', 200) = 'ok', 'guests can still add songs for later';
 
   -- The main screen comes back: it is no longer away, and stays paused until someone plays.

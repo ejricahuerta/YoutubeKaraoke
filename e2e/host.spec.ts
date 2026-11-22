@@ -36,7 +36,7 @@ test("Next song names the song the host believes is playing", async ({ page }) =
 test("the host reorders the queue with Move, without dragging", async ({ page }) => {
   const api = await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Edit queue" }).click();
 
   await page.getByRole("button", { name: "Move Song D", exact: true }).click();
   await page.getByRole("button", { name: "Move here, to place 1" }).click();
@@ -53,15 +53,64 @@ test("the host reorders the queue with Move, without dragging", async ({ page })
   expect(api.sent).toHaveLength(sent);
 });
 
-test("Play next sends a song to the top, and the host can remove anyone's song", async ({ page }) => {
+test("the host can remove anyone's song", async ({ page }) => {
   const api = await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Edit queue" }).click();
+  await expect(page.getByRole("button", { name: "Edit queue" })).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByRole("button", { name: "Play Song D next" }).click();
-  expect(api.sent.at(-1)).toMatchObject({ method: "PATCH", body: { afterId: null } });
   await page.getByRole("button", { name: "Remove Song C" }).click();
   expect(api.sent.at(-1)).toMatchObject({ method: "DELETE", path: `/queue/${song(3, "", "").id}` });
+
+  await page.getByRole("button", { name: "Edit queue" }).click();
+  await expect(page.getByRole("button", { name: "Remove Song C" })).toHaveCount(0);
+});
+
+test("Play now asks first, then plays the picked song in place of the current one", async ({ page }) => {
+  const api = await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Edit queue" }).click();
+
+  await page.getByRole("button", { name: "Play Song D now" }).click();
+  const dialog = page.getByRole("dialog", { name: "Play this song now?" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("Song D");
+  await expect(dialog).toContainText("stops now, and Ana is up.");
+  // A second press on a remote lands on Cancel, never on Play now.
+  await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(dialog).toBeHidden();
+  expect(api.sent).toHaveLength(0);
+
+  await page.getByRole("button", { name: "Play Song D now" }).click();
+  await dialog.getByRole("button", { name: "Play now" }).click();
+  await expect(dialog).toBeHidden();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({
+    method: "POST",
+    path: `/queue/${song(4, "", "").id}`,
+    body: { expectedItemId: song(1, "", "").id },
+  });
+});
+
+test("Escape closes the Play now question without playing anything", async ({ page }) => {
+  const api = await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Play Song C now" }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(api.sent).toHaveLength(0);
+});
+
+test("under the video the host has four buttons of one size", async ({ page }) => {
+  await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Start now" }).first().click();
+
+  const names = ["Pause", "Forward 10 seconds", "Next song", "Full screen"];
+  const sizes = await Promise.all(names.map((name) => page.getByRole("button", { name, exact: true }).boundingBox()));
+  for (const size of sizes) expect(size).toMatchObject({ width: sizes[0]!.width, height: sizes[0]!.height });
+  await expect(page.getByRole("slider", { name: "Volume" })).toBeHidden();
 });
 
 test("hiding the queue moves the QR code to a corner of the video, and the choice survives a reload", async ({ page }) => {
@@ -70,11 +119,13 @@ test("hiding the queue moves the QR code to a corner of the video, and the choic
   const qrCodes = page.getByRole("img", { name: "QR code to join this karaoke session" });
   await expect(qrCodes).toHaveCount(1);
 
+  await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: "Hide queue" }).click();
-  await expect(page.getByRole("tab", { name: "Up next" })).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Up next" })).toBeHidden();
   await expect(qrCodes.first()).toBeVisible();
 
   await page.reload();
+  await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("button", { name: "Show queue (3)" })).toBeVisible();
 });
 
@@ -82,7 +133,7 @@ test("a failed action says why, and the notice clears itself", async ({ page }) 
   await page.clock.install();
   const api = await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Edit queue" }).click();
 
   api.mutationsFail = true;
   await page.getByRole("button", { name: "Remove Song C" }).click();
@@ -95,7 +146,7 @@ test("the main screen adds for everyone, so it is not held to the three-song lim
   const mine = [song(2, "Host", "One", true), song(3, "Host", "Two", true), song(4, "Host", "Three", true)];
   const api = await mockSession(page, hosting({ queue: [song(5, "Leo", "Song E"), song(6, "Sam", "Song F"), ...mine] }));
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Add a song" }).click();
+  await page.getByRole("button", { name: "Add a song" }).click();
   await expect(page.getByRole("searchbox")).toBeVisible();
   await expect(page.getByText(/songs waiting/)).toHaveCount(0);
 
@@ -111,7 +162,7 @@ test("a second computer on the main-screen link watches but cannot add songs as 
   await page.goto(`/s/${CODE}`);
 
   await expect(page.getByText("The video plays on the screen that started this session.")).toBeVisible();
-  await expect(page.getByRole("tab", { name: "Add a song" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add a song" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Add songs from this device" })).toHaveAttribute("href", `/join/${CODE}`);
   await expect(page.getByRole("button", { name: "Next song" })).toHaveCount(0);
 });
@@ -123,54 +174,72 @@ test("an ended session offers a way to start a new one", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Start a new session" })).toHaveAttribute("href", "/");
 });
 
-test("the queue panel's tabs work from the keyboard and name their panel", async ({ page }) => {
+test("the Settings menu works from a remote: arrows move through it and Escape closes it", async ({ page }) => {
   await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
 
-  const panel = page.getByRole("tabpanel");
-  await expect(panel).toHaveAccessibleName("Up next");
+  const settings = page.getByRole("button", { name: "Settings" });
+  await settings.click();
+  await expect(settings).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("slider", { name: "Volume" })).toBeFocused();
 
-  await page.getByRole("tab", { name: "Up next" }).focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("tab", { name: "Edit queue" })).toBeFocused();
-  await expect(page.getByRole("tab", { name: "Edit queue" })).toHaveAttribute("aria-selected", "true");
-  await expect(panel).toHaveAccessibleName("Edit queue");
-  await expect(page.getByRole("button", { name: "Remove Song C" })).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("switch", { name: "Take turns" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("button", { name: "Free the remote" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("button", { name: "Hide queue" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("button", { name: "End session" })).toBeFocused();
+  await page.keyboard.press("ArrowDown"); // wraps round to the top
+  await expect(page.getByRole("slider", { name: "Volume" })).toBeFocused();
 
-  await page.keyboard.press("ArrowLeft");
-  await page.keyboard.press("ArrowLeft"); // wraps round to the last tab
-  await expect(page.getByRole("tab", { name: "Add a song" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(settings).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByRole("switch", { name: "Take turns" })).toBeHidden();
+  await expect(settings).toBeFocused();
 });
 
-test("the host ends the session with two presses, and everyone is told it ended", async ({ page }) => {
+test("a press outside the Settings menu closes it", async ({ page }) => {
+  await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("heading", { name: "Up next" }).click();
+  await expect(page.getByRole("button", { name: "Settings" })).toHaveAttribute("aria-expanded", "false");
+});
+
+test("End session asks first, and everyone is told it ended", async ({ page }) => {
   const api = await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
 
+  await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: "End session" }).click();
-  expect(api.sent.filter((request) => request.method === "DELETE")).toHaveLength(0); // one press is never enough
+  const dialog = page.getByRole("dialog", { name: "End the session for everyone?" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Keep singing" })).toBeFocused();
+  expect(api.sent).toHaveLength(0); // opening the question sends nothing
 
   api.state = session({ isHost: true, archived: true, current: null, queue: [] });
-  await page.getByRole("button", { name: "End for everyone?" }).click();
+  await dialog.getByRole("button", { name: "End session" }).click();
   await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "DELETE", path: "" });
   await expect(page.getByRole("heading", { name: "This session has ended" })).toBeVisible();
 });
 
-test("an unconfirmed End session goes back to normal by itself", async ({ page }) => {
-  await page.clock.install();
+test("Keep singing closes the End session question and ends nothing", async ({ page }) => {
   const api = await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
 
+  await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: "End session" }).click();
-  await expect(page.getByRole("button", { name: "End for everyone?" })).toBeVisible();
-  await page.clock.fastForward(6_000);
-  await expect(page.getByRole("button", { name: "End session" })).toBeVisible();
+  await page.getByRole("button", { name: "Keep singing" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(api.sent).toHaveLength(0);
 });
 
 test("the host can switch taking turns off and on", async ({ page }) => {
   const api = await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
 
   const toggle = page.getByRole("switch", { name: "Take turns" });
   await expect(toggle).toBeChecked();
@@ -189,7 +258,7 @@ test("the host can switch taking turns off and on", async ({ page }) => {
 test("the main screen shows who has the remote, and can free it", async ({ page }) => {
   const api = await mockSession(page, hosting({ remote: "taken", remoteName: "Ana" }));
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
 
   await expect(page.getByText("Remote: Ana")).toBeVisible();
   api.state = hosting({ remote: "free", remoteName: null });
@@ -202,30 +271,25 @@ test("the main screen shows who has the remote, and can free it", async ({ page 
 test("the main screen says who will get the remote before anyone has it", async ({ page }) => {
   await mockSession(page, hosting({ remote: "unclaimed", remoteName: null }));
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByText("Remote: first phone to join")).toBeVisible();
 });
 
 test("a remote with no songs yet is still shown", async ({ page }) => {
   await mockSession(page, hosting({ remote: "taken", remoteName: null }));
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByText("Remote: a phone")).toBeVisible();
   await expect(page.getByRole("button", { name: "Free the remote" })).toBeVisible();
 });
 
-test("only the host is offered the take-turns switch", async ({ page }) => {
+test("another computer's Settings only hides the queue: no volume, turns or End session", async ({ page }) => {
   await mockSession(page, session());
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("button", { name: "Hide queue" })).toBeVisible();
+  await expect(page.getByRole("slider", { name: "Volume" })).toHaveCount(0);
   await expect(page.getByRole("switch", { name: "Take turns" })).toHaveCount(0);
-});
-
-test("only the host is offered End session", async ({ page }) => {
-  await mockSession(page, session());
-  await page.goto(`/s/${CODE}`);
-  await expect(page.getByRole("button", { name: "Hide queue" })).toBeVisible();
   await expect(page.getByRole("button", { name: "End session" })).toHaveCount(0);
 });
 
@@ -233,8 +297,13 @@ test("the main screen breaks none of the Content-Security-Policy", async ({ page
   const api = await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
   await page.getByRole("button", { name: "Start now" }).first().click();
-  await page.getByRole("tab", { name: "Edit queue" }).click();
-  await page.getByRole("tab", { name: "Add a song" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Play Song C now" }).click();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await page.getByRole("button", { name: "Edit queue" }).click();
+  await page.getByRole("button", { name: "Add a song" }).click();
   await page.getByRole("searchbox").fill("abba");
   await page.getByRole("searchbox").press("Enter");
   await expect(page.getByText("Result song 8")).toBeVisible();
@@ -245,7 +314,7 @@ test("30 seconds after the host adds a song, the panel goes back to Up next", as
   await page.clock.install();
   await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Add a song" }).click();
+  await page.getByRole("button", { name: "Add a song" }).click();
   await page.getByRole("searchbox").fill("queen");
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByRole("button", { name: "Add Result song 8 (Karaoke) to the queue" }).click();
@@ -255,19 +324,30 @@ test("30 seconds after the host adds a song, the panel goes back to Up next", as
   await page.clock.fastForward(20_000);
   await page.getByRole("searchbox").press("End");
   await page.clock.fastForward(20_000);
-  await expect(page.getByRole("tab", { name: "Add a song" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("searchbox")).toBeVisible();
 
   await page.clock.fastForward(11_000);
-  await expect(page.getByRole("tab", { name: "Up next" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Up next" })).toBeVisible();
+  await expect(page.getByRole("searchbox")).toHaveCount(0);
 });
 
-test("without adding a song, the Add a song tab stays open", async ({ page }) => {
+test("Back to Up next leaves search straight away", async ({ page }) => {
+  await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Add a song" }).click();
+  await expect(page.getByRole("searchbox")).toBeFocused();
+  await page.getByRole("button", { name: "Back to Up next" }).click();
+  await expect(page.getByRole("heading", { name: "Up next" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add a song" })).toBeFocused();
+});
+
+test("without adding a song, search stays open", async ({ page }) => {
   await page.clock.install();
   await mockSession(page, hosting());
   await page.goto(`/s/${CODE}`);
-  await page.getByRole("tab", { name: "Add a song" }).click();
+  await page.getByRole("button", { name: "Add a song" }).click();
   await page.clock.fastForward(60_000);
-  await expect(page.getByRole("tab", { name: "Add a song" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("searchbox")).toBeVisible();
 });
 
 test("the main screen follows a pause from the phone remote", async ({ page }) => {

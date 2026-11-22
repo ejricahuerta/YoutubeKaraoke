@@ -6,6 +6,7 @@ const store = {
   addQueueItem: vi.fn(),
   removeQueueItem: vi.fn(),
   moveQueueItem: vi.fn(),
+  playQueueItem: vi.fn(),
   updatePlayback: vi.fn(),
   endSession: vi.fn(),
   setTakeTurns: vi.fn(),
@@ -223,8 +224,18 @@ describe("/api/sessions/[code]/queue/[id]", () => {
     expect(store.moveQueueItem).toHaveBeenCalledWith("ABC234", "host-hash", "guest-1", ITEM_ID, null);
   });
 
+  it("plays a picked song now, naming the song it interrupts", async () => {
+    store.playQueueItem.mockResolvedValue("stale");
+    const current = "00000000-0000-4000-8000-000000000001";
+    const res = await itemRoute.POST(json("POST", { expectedItemId: current }), ctx({ code: "ABC234", id: ITEM_ID }));
+    expect(await res.json()).toEqual({ ok: true, result: "stale" });
+    expect(store.playQueueItem).toHaveBeenCalledWith("ABC234", "host-hash", "guest-1", ITEM_ID, current);
+  });
+
   it("answers 404 for an id that is not a UUID and 400 for a bad target", async () => {
     expect((await itemRoute.DELETE(json("DELETE"), ctx({ code: "ABC234", id: "1" }))).status).toBe(404);
+    expect((await itemRoute.POST(json("POST", {}), ctx({ code: "ABC234", id: "1" }))).status).toBe(404);
+    expect(store.playQueueItem).not.toHaveBeenCalled();
     expect((await itemRoute.PATCH(json("PATCH", { afterId: "top" }), ctx({ code: "ABC234", id: ITEM_ID }))).status).toBe(400);
     expect(store.moveQueueItem).not.toHaveBeenCalled();
   });

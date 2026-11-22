@@ -42,6 +42,11 @@ export function moveSong(code: string, itemId: string, afterId: string | null) {
   return mutate(`${sessionStateUrl(code)}/queue/${itemId}`, "PATCH", { afterId });
 }
 
+/** Host only: ends `expectedItemId`, the song playing now, and plays the waiting song `itemId` instead. */
+export function playSongNow(code: string, itemId: string, expectedItemId: string) {
+  return mutate(`${sessionStateUrl(code)}/queue/${itemId}`, "POST", { expectedItemId });
+}
+
 /** Host only. For "next", pass the item the host believes is playing so a repeat cannot skip two songs. */
 export function sendPlayback(code: string, action: PlaybackAction, expectedItemId?: string) {
   return mutate(`${sessionStateUrl(code)}/playback`, "POST", { action, expectedItemId });

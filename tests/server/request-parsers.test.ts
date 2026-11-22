@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { thumbnailUrl } from "@/lib/domain/video";
-import { isUuid, parseAddSongRequest, parseMoveRequest, parseSettingsRequest, parsePlaybackRequest } from "@/lib/server/request-parsers";
+import { isUuid, parseAddSongRequest, parseMoveRequest, parsePlayNowRequest, parseSettingsRequest, parsePlaybackRequest } from "@/lib/server/request-parsers";
 
 const ITEM_ID = "3f2c1b7e-8a4d-4e6f-9b0a-1c2d3e4f5a6b";
 
@@ -66,6 +66,17 @@ describe("parsePlaybackRequest", () => {
   it("rejects any other action", () => {
     expect(parsePlaybackRequest({ action: "stop" })).toBeNull();
     expect(parsePlaybackRequest({})).toBeNull();
+  });
+});
+
+describe("parsePlayNowRequest", () => {
+  it("reads the song being interrupted", () => {
+    expect(parsePlayNowRequest({ expectedItemId: ITEM_ID })).toEqual({ expectedItemId: ITEM_ID });
+  });
+
+  it("treats a missing or malformed one as nothing playing, which the database calls stale if wrong", () => {
+    expect(parsePlayNowRequest({})).toEqual({ expectedItemId: null });
+    expect(parsePlayNowRequest({ expectedItemId: "abc" })).toEqual({ expectedItemId: null });
   });
 });
 

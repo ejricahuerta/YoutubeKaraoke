@@ -21,7 +21,8 @@ had it (issue #48).
   takes it (`claim_remote`, `POST .../remote`).
 - The main screen shows this, with **Free the remote**, at the top of its **Edit queue**
   tab, next to **Take turns**: the night's settings sit with the queue they change, and
-  the header stays short enough for a laptop.
+  the header stays short enough for a laptop. (Since [0023](0023-main-screen-controls.md),
+  both are in the main screen's Settings menu, as the tabs are gone.)
 
 ## Why
 - Picking a phone from a list would need the server to show guest ids or remember every

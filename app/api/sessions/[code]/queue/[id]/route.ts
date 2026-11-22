@@ -1,7 +1,7 @@
 import { errorResponse, readJsonBody, resultResponse, sessionRoute } from "@/lib/server/api";
 import { getHostTokenHash, getOrCreateGuestId } from "@/lib/server/auth";
-import { isUuid, parseMoveRequest } from "@/lib/server/request-parsers";
-import { moveQueueItem, removeQueueItem } from "@/lib/server/session-store";
+import { isUuid, parseMoveRequest, parsePlayNowRequest } from "@/lib/server/request-parsers";
+import { moveQueueItem, playQueueItem, removeQueueItem } from "@/lib/server/session-store";
 
 export const dynamic = "force-dynamic";
 
@@ -19,4 +19,14 @@ export const PATCH = sessionRoute<Params>(async (req, { code, params }) => {
   const request = parseMoveRequest(await readJsonBody(req));
   if (!request) return errorResponse("invalid", 400);
   return resultResponse(await moveQueueItem(code, await getHostTokenHash(code), await getOrCreateGuestId(), params.id, request.afterId));
+});
+
+/**
+ * The main screen or the remote: plays this waiting song now, ending `expectedItemId`, the song
+ * the caller believes is being sung (so a repeated press cannot end a second one).
+ */
+export const POST = sessionRoute<Params>(async (req, { code, params }) => {
+  if (!isUuid(params.id)) return errorResponse("not_found", 404);
+  const { expectedItemId } = parsePlayNowRequest(await readJsonBody(req));
+  return resultResponse(await playQueueItem(code, await getHostTokenHash(code), await getOrCreateGuestId(), params.id, expectedItemId));
 });

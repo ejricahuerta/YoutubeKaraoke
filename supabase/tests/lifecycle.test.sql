@@ -39,6 +39,7 @@ begin
   assert karaoke.remove_item('LIFE22', gen_random_uuid(), 'host-hash', 'ana') = 'archived';
   assert karaoke.move_item('LIFE22', 'host-hash', gen_random_uuid(), null) = 'archived';
   assert karaoke.playback('LIFE22', 'host-hash', 'play', null) = 'archived';
+  assert karaoke.play_item('LIFE22', 'host-hash', gen_random_uuid(), null) = 'archived';
   assert karaoke.set_take_turns('LIFE22', 'host-hash', false) = 'archived';
   update karaoke.sessions set last_active_at = now() where code = 'LIFE22';
   assert (karaoke.get_state('LIFE22', 'host-hash', null)->>'archived')::boolean, 'new activity does not reopen it';
@@ -150,7 +151,8 @@ begin
       'karaoke.playback(text, text, text, uuid, text)', 'karaoke.move_item(text, text, uuid, uuid, text)',
       'karaoke.set_take_turns(text, text, boolean)',
       'karaoke.claim_remote(text, text)', 'karaoke.free_remote(text, text, text)', 'karaoke.recently_played()',
-      'karaoke.start_handoff(text, text, text)', 'karaoke.take_over(text, text, text)'
+      'karaoke.start_handoff(text, text, text)', 'karaoke.take_over(text, text, text)',
+      'karaoke.play_item(text, text, uuid, uuid, text)'
     ] loop
       assert has_function_privilege(v_role, v_fn, 'execute'), v_role || ' can call ' || v_fn;
     end loop;
@@ -159,7 +161,7 @@ begin
     for v_fn in
       select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'karaoke'
-        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over')
+        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over', 'play_item')
     loop
       assert not has_function_privilege(v_role, v_fn, 'execute'), v_role || ' cannot call internal ' || v_fn;
     end loop;

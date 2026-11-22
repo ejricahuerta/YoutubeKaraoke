@@ -1,4 +1,5 @@
 import type { RemoteStatus } from "@/lib/domain/types";
+import { RemoteIcon } from "../Icons";
 
 const LABELS: Record<RemoteStatus, string> = {
   unclaimed: "first phone to join",
@@ -7,22 +8,35 @@ const LABELS: Record<RemoteStatus, string> = {
 };
 
 /**
- * Who has the remote (migrations 0010, 0012), on the main screen, with a way to free it
- * when the wrong phone has it. Then the first phone to ask takes it.
+ * Who has the remote (migrations 0010, 0012), as a row of the main screen's Settings menu,
+ * with a way to free it when the wrong phone has it. Then the first phone to ask takes it.
+ * `itemProps` marks the button as one of the menu's controls, for moving with the arrows.
  */
-export function RemoteIndicator({ remote, name, onFree }: { remote: RemoteStatus; name: string | null; onFree: () => void }) {
+export function RemoteIndicator({
+  remote,
+  name,
+  onFree,
+  itemProps,
+}: {
+  remote: RemoteStatus;
+  name: string | null;
+  onFree: () => void;
+  itemProps: Record<string, string>;
+}) {
   return (
-    <span className="flex h-14 shrink-0 items-center gap-1 rounded-full pl-6 pr-1.5 text-[1.375rem] font-semibold text-ink-muted">
-      <span className="max-w-[16rem] truncate">Remote: {remote === "taken" && name ? name : LABELS[remote]}</span>
+    <div className="flex min-h-[4.5rem] w-full items-center gap-4 rounded-row px-[1.125rem] text-[1.5rem] font-semibold">
+      <RemoteIcon className="h-[1.875rem] w-[1.875rem] shrink-0" />
+      <span className="min-w-0 flex-1 truncate">Remote: {remote === "taken" && name ? name : LABELS[remote]}</span>
       {remote === "taken" ? (
         <button
+          {...itemProps}
           type="button"
           onClick={onFree}
-          className="h-11 rounded-full px-4 text-[1.125rem] font-semibold text-ink transition hover:bg-stage-200 active:scale-[0.97]"
+          className="h-12 shrink-0 rounded-full bg-stage-300 px-5 text-[1.25rem] font-semibold transition hover:bg-stage-100 active:scale-[0.97]"
         >
           Free the remote
         </button>
       ) : null}
-    </span>
+    </div>
   );
 }
