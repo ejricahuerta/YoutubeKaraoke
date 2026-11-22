@@ -1,0 +1,38 @@
+# A local database and API for `npm run dev`, shaped like the test stack
+# (docker/compose.test.yml) but kept between runs. Started by scripts/dev-db.mjs, which
+# creates docker/.env.local (gitignored) holding JWT_SECRET. Nothing here is for production.
+name: youoke-dev
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      # Reachable only from this machine: no password to keep.
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports: ["127.0.0.1:${DEV_DB_PORT:-54429}:5432"]
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      retries: 30
+
+  rest:
+    image: postgrest/postgrest:v12.2.3
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGRST_DB_URI: postgres://authenticator@db:5432/postgres
+      PGRST_DB_SCHEMAS: karaoke
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET:?run npm run dev:db, which sets it}
+
+  api:
+    image: nginx:1.27-alpine
+    depends_on: [rest]
+    ports: ["127.0.0.1:${DEV_API_PORT:-54421}:80"]
+    volumes: ["./nginx.conf:/etc/nginx/nginx.conf:ro"]
+
+volumes:
+  db-data:
