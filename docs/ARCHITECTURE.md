@@ -69,6 +69,7 @@ app/                    Routes only: pages and API route handlers
     queue/[id]          DELETE remove, PATCH move        (PATCH: host)
   s/[code]              Host screen
   join/[code]           Guest screen
+  (legal)/              Terms, privacy policy and cookie policy: /terms, /privacy, /cookies
 components/             React components shared by both screens
   host/                 Only on the host screen
   guest/                Only on the guest screen
@@ -112,7 +113,8 @@ Record: [0011 layered lib](adr/0011-layered-lib.md).
 | A new API call | Route handler in `app/api`, body parser in `lib/server/request-parsers.ts`, database call in `lib/server/session-store.ts`, browser call in `lib/client/session-api.ts` |
 | Anything that touches YouTube search | `lib/server/youtube-search.ts` only |
 | A piece of one screen | `components/host` or `components/guest` |
-| A value kept in the browser | A key in `STORAGE_KEYS` (`lib/client/browser-hooks.ts`) |
+| A value kept in the browser | A key in `STORAGE_KEYS` (`lib/client/browser-hooks.ts`), and a row in `BROWSER_STORAGE` (`lib/domain/legal.ts`) for the cookie policy |
+| A cookie, a new kind of personal data, or a new service that sees visitors' requests | The matching section of `app/(legal)`, and a new `LEGAL_UPDATED_ON` in `lib/domain/legal.ts` |
 
 ## Data
 

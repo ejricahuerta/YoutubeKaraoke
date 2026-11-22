@@ -7,10 +7,13 @@ import { cookies } from "next/headers";
 import { isUuid } from "./request-parsers";
 
 /** Cookie names are short on purpose: one host cookie per session rides on every request. */
-const HOST_COOKIE_PREFIX = "kh_";
-const GUEST_COOKIE = "kg";
-const HOST_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
-const GUEST_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+/** Exported for the cookie policy's test: lib/domain/legal.ts lists each with this lifetime. */
+export const HOST_COOKIE_PREFIX = "kh_";
+export const GUEST_COOKIE = "kg";
+/** Seconds. */
+export const HOST_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+/** Seconds. */
+export const GUEST_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 const COOKIE_OPTIONS = { httpOnly: true, sameSite: "lax" as const, path: "/", secure: process.env.NODE_ENV === "production" };
 
 /** The database stores only this hash, so reading the table does not hand out host rights. */
