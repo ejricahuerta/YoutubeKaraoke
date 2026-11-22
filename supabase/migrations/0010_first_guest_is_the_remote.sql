@@ -2,9 +2,10 @@
 --
 -- The host often sits across the room from the main screen. Whoever opens the session on
 -- a phone first can now play, pause, skip, remove and reorder from that phone, like the
--- main screen. And whoever added the song being sung may skip it, but nothing more. Nothing to set up: get_state records the first guest id it sees (never
+-- main screen. Nothing to set up: get_state records the first guest id it sees (never
 -- the main screen's own browser) in sessions.remote_guest_id, and reports isRemote.
--- Ending the session stays with the main screen.
+-- Ending the session stays with the main screen. Separately, whoever added the song
+-- being sung may skip it, and do nothing else.
 --
 -- playback and move_item get a new signature with p_guest_id last, next to the old
 -- ones, so nothing is dropped and the app now deployed keeps working (host only) until
