@@ -27,6 +27,7 @@ import { NameForm } from "./NameForm";
 import { OtherRoomMessage } from "./OtherRoomMessage";
 import { RemoteBar } from "./RemoteBar";
 import { SungTonight } from "./SungTonight";
+import { TakeRemoteBar } from "./TakeRemoteBar";
 import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
 
 type Tab = "search" | "queue" | "mine";
@@ -221,6 +222,8 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
 
       {state.isRemote ? (
         <RemoteBar code={code} current={current} isPlaying={state.isPlaying} onDone={refresh} onFailed={setNotice} />
+      ) : state.remote === "free" ? (
+        <TakeRemoteBar code={code} onDone={refresh} onFailed={setNotice} />
       ) : current && tab !== "queue" ? (
         <div className="mx-2 mb-2 flex items-center gap-2.5 rounded-row bg-stage-100 px-3 py-2">
           <Avatar name={current.addedBy} className="h-8 w-8 text-sm" />

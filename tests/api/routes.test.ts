@@ -9,6 +9,8 @@ const store = {
   updatePlayback: vi.fn(),
   endSession: vi.fn(),
   setTakeTurns: vi.fn(),
+  claimRemote: vi.fn(),
+  freeRemote: vi.fn(),
   createSession: vi.fn(),
 };
 vi.mock("@/lib/server/session-store", () => store);
@@ -28,6 +30,7 @@ const sessionRoute = await import("@/app/api/sessions/[code]/route");
 const queueRoute = await import("@/app/api/sessions/[code]/queue/route");
 const itemRoute = await import("@/app/api/sessions/[code]/queue/[id]/route");
 const playbackRoute = await import("@/app/api/sessions/[code]/playback/route");
+const remoteRoute = await import("@/app/api/sessions/[code]/remote/route");
 const sessionsRoute = await import("@/app/api/sessions/route");
 const searchRoute = await import("@/app/api/search/route");
 
@@ -109,6 +112,27 @@ describe("PATCH /api/sessions/[code]", () => {
   it("passes a refusal on", async () => {
     store.setTakeTurns.mockResolvedValue("forbidden");
     expect((await sessionRoute.PATCH(json("PATCH", { takeTurns: true }), ctx({ code: "ABC234" }))).status).toBe(403);
+  });
+});
+
+describe("/api/sessions/[code]/remote", () => {
+  it("POST asks for a freed remote for this browser's guest id", async () => {
+    store.claimRemote.mockResolvedValue("ok");
+    const res = await remoteRoute.POST(json("POST"), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok" });
+    expect(store.claimRemote).toHaveBeenCalledWith("ABC234", "guest-1");
+  });
+
+  it("POST passes on that someone already has it", async () => {
+    store.claimRemote.mockResolvedValue("forbidden");
+    expect((await remoteRoute.POST(json("POST"), ctx({ code: "ABC234" }))).status).toBe(403);
+  });
+
+  it("DELETE frees the remote with this browser's host token and guest id, and lets the database decide", async () => {
+    store.freeRemote.mockResolvedValue("ok");
+    const res = await remoteRoute.DELETE(json("DELETE"), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok" });
+    expect(store.freeRemote).toHaveBeenCalledWith("ABC234", "host-hash", "guest-1");
   });
 });
 

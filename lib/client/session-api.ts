@@ -47,6 +47,16 @@ export function setTakeTurns(code: string, on: boolean) {
   return mutate(sessionStateUrl(code), "PATCH", { takeTurns: on });
 }
 
+/** Takes the remote for this phone, if it is free. */
+export function claimRemote(code: string) {
+  return mutate(`${sessionStateUrl(code)}/remote`, "POST");
+}
+
+/** The main screen or the remote itself: lets the remote go, for another phone to take. */
+export function freeRemote(code: string) {
+  return mutate(`${sessionStateUrl(code)}/remote`, "DELETE");
+}
+
 /** Host only: closes the session for everyone. It cannot be reopened. */
 export function endSession(code: string) {
   return mutate(sessionStateUrl(code), "DELETE");

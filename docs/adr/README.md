@@ -29,6 +29,8 @@ at that point. Later records are written when the decision is made.
 | [0016](0016-singers-take-turns.md) | Singers take turns, one song per round | Accepted |
 | [0017](0017-one-room-per-browser.md) | One room per browser, shared by its tabs | Accepted |
 | [0018](0018-privacy-enhanced-youtube-player.md) | YouTube's privacy-enhanced player, with our own controls | Accepted |
+| [0019](0019-integration-tests-in-docker.md) | Test the built app against a real database in Docker | Accepted |
+| [0020](0020-hand-over-the-remote.md) | The remote can be freed and taken by another phone | Accepted |
 
 ## Template
 
