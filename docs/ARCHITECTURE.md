@@ -61,6 +61,7 @@ Records: [0001 Next.js monolith](adr/0001-nextjs-monolith.md),
 ```
 app/                    Routes only: pages and API route handlers
   api/search            GET   search YouTube (needs a live session code)
+  api/csp-report        POST  browsers report what the Content-Security-Policy would block
   api/sessions          POST  start a session
   api/sessions/[code]   GET   session state, DELETE end it (host)
     playback            POST  play | pause | next        (host)
