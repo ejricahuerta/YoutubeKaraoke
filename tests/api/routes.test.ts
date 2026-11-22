@@ -10,27 +10,38 @@ const store = {
   updatePlayback: vi.fn(),
   endSession: vi.fn(),
   setTakeTurns: vi.fn(),
+  claimRemote: vi.fn(),
+  freeRemote: vi.fn(),
+  startHandoff: vi.fn(),
+  takeOver: vi.fn(),
   createSession: vi.fn(),
+  getRecentlyPlayedVideoIds: vi.fn(),
 };
 vi.mock("@/lib/server/session-store", () => store);
 const clearHostCookie = vi.fn();
+const setHostCookie = vi.fn();
 vi.mock("@/lib/server/auth", () => ({
   getHostTokenHash: async () => "host-hash",
   getOrCreateGuestId: async () => "guest-1",
   createHostToken: () => "token",
-  hashHostToken: () => "host-hash",
-  setHostCookie: vi.fn(),
+  hashHostToken: (token: string) => `hash(${token})`,
+  setHostCookie,
   clearHostCookie,
 }));
 const searchVideos = vi.fn();
-vi.mock("@/lib/server/youtube-search", () => ({ searchVideos }));
+const videoTitle = vi.fn();
+vi.mock("@/lib/server/youtube-search", () => ({ searchVideos, videoTitle }));
 
 const sessionRoute = await import("@/app/api/sessions/[code]/route");
 const queueRoute = await import("@/app/api/sessions/[code]/queue/route");
 const itemRoute = await import("@/app/api/sessions/[code]/queue/[id]/route");
 const playbackRoute = await import("@/app/api/sessions/[code]/playback/route");
+const remoteRoute = await import("@/app/api/sessions/[code]/remote/route");
+const handoffRoute = await import("@/app/api/sessions/[code]/handoff/route");
+const hostRoute = await import("@/app/api/sessions/[code]/host/route");
 const sessionsRoute = await import("@/app/api/sessions/route");
 const searchRoute = await import("@/app/api/search/route");
+const recentSongsRoute = await import("@/app/api/recent-songs/route");
 
 const ITEM_ID = "3f2c1b7e-8a4d-4e6f-9b0a-1c2d3e4f5a6b";
 const ctx = <P>(params: P) => ({ params: Promise.resolve(params) });
@@ -113,6 +124,68 @@ describe("PATCH /api/sessions/[code]", () => {
   });
 });
 
+describe("/api/sessions/[code]/remote", () => {
+  it("POST asks for a freed remote for this browser's guest id", async () => {
+    store.claimRemote.mockResolvedValue("ok");
+    const res = await remoteRoute.POST(json("POST"), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok" });
+    expect(store.claimRemote).toHaveBeenCalledWith("ABC234", "guest-1");
+  });
+
+  it("POST passes on that someone already has it", async () => {
+    store.claimRemote.mockResolvedValue("forbidden");
+    expect((await remoteRoute.POST(json("POST"), ctx({ code: "ABC234" }))).status).toBe(403);
+  });
+
+  it("DELETE frees the remote with this browser's host token and guest id, and lets the database decide", async () => {
+    store.freeRemote.mockResolvedValue("ok");
+    const res = await remoteRoute.DELETE(json("DELETE"), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok" });
+    expect(store.freeRemote).toHaveBeenCalledWith("ABC234", "host-hash", "guest-1");
+  });
+});
+
+describe("POST /api/sessions/[code]/handoff", () => {
+  it("makes a one-time link secret, gives the database only its hash, and returns the secret", async () => {
+    store.startHandoff.mockResolvedValue("ok");
+    const res = await handoffRoute.POST(json("POST"), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok", token: "token" });
+    expect(store.startHandoff).toHaveBeenCalledWith("ABC234", "guest-1", "hash(token)");
+  });
+
+  it("returns no secret when the database refuses", async () => {
+    store.startHandoff.mockResolvedValue("main_screen_here");
+    const res = await handoffRoute.POST(json("POST"), ctx({ code: "ABC234" }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ ok: false, error: "main_screen_here" });
+  });
+});
+
+describe("POST /api/sessions/[code]/host", () => {
+  const LINK = "x".repeat(43);
+
+  it("takes over with the link's hash, and makes this browser the host with a fresh token", async () => {
+    store.takeOver.mockResolvedValue("ok");
+    const res = await hostRoute.POST(json("POST", { token: LINK }), ctx({ code: "abc234" }));
+    expect(await res.json()).toEqual({ ok: true, result: "ok" });
+    expect(store.takeOver).toHaveBeenCalledWith("ABC234", `hash(${LINK})`, "hash(token)");
+    expect(setHostCookie).toHaveBeenCalledWith("ABC234", "token");
+  });
+
+  it("sets no cookie when the database refuses", async () => {
+    store.takeOver.mockResolvedValue("forbidden");
+    expect((await hostRoute.POST(json("POST", { token: LINK }), ctx({ code: "ABC234" }))).status).toBe(403);
+    expect(setHostCookie).not.toHaveBeenCalled();
+  });
+
+  it("refuses a body without a link secret, and phones, which are never the main screen", async () => {
+    expect((await hostRoute.POST(json("POST", { token: 5 }), ctx({ code: "ABC234" }))).status).toBe(400);
+    const phone = json("POST", { token: LINK }, { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148" });
+    expect((await hostRoute.POST(phone, ctx({ code: "ABC234" }))).status).toBe(403);
+    expect(store.takeOver).not.toHaveBeenCalled();
+  });
+});
+
 describe("POST /api/sessions/[code]/queue", () => {
   const song = { videoId: "dQw4w9WgXcQ", title: "Song", name: "Maya" };
 
@@ -190,7 +263,7 @@ describe("POST /api/sessions", () => {
     const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, "x-forwarded-for": "198.51.100.1" }));
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toBe("/s/ABC234");
-    expect(store.createSession).toHaveBeenCalledWith("host-hash");
+    expect(store.createSession).toHaveBeenCalledWith("hash(token)");
   });
 
   it("answers with JSON when asked to", async () => {
@@ -280,5 +353,27 @@ describe("GET /api/search", () => {
     let last = 200;
     for (let i = 0; i < 41; i++) last = (await search("code=ABC234&q=hello", "198.51.100.99")).status;
     expect(last).toBe(429);
+  });
+});
+
+describe("GET /api/recent-songs", () => {
+  it("answers the songs sung recently with YouTube's titles, cacheable for everyone", async () => {
+    store.getRecentlyPlayedVideoIds.mockResolvedValue(["aaaaaaaaaaa", "bbbbbbbbbbb", "ccccccccccc"]);
+    videoTitle.mockImplementation(async (id: string) => ({ aaaaaaaaaaa: "Valerie (Karaoke)", ccccccccccc: "Dancing Queen" })[id] ?? null);
+    const res = await recentSongsRoute.GET();
+    expect(await res.json()).toEqual({
+      songs: [
+        { videoId: "aaaaaaaaaaa", title: "Valerie (Karaoke)" },
+        { videoId: "ccccccccccc", title: "Dancing Queen" },
+      ],
+    });
+    expect(res.headers.get("cache-control")).toMatch(/^public, s-maxage=\d+/);
+  });
+
+  it("is a 500 when the database fails", async () => {
+    store.getRecentlyPlayedVideoIds.mockRejectedValue(new Error("down"));
+    const res = await recentSongsRoute.GET();
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ ok: false, error: "server_error" });
   });
 });

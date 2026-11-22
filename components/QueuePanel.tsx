@@ -16,7 +16,7 @@ import { SongRow } from "./SongRow";
  * only the songs they added.
  *
  * The main screen can also play any waiting song now (`onPlayNow`, which asks first); there
- * it takes the place of "Play next", which Move covers (docs/adr/0019).
+ * it takes the place of "Play next", which Move covers (docs/adr/0023).
  *
  * Reordering works two ways. Dragging, for a mouse. And "Move", for touch screens, keyboards
  * and TV remotes, where dragging does not work: press Move on a song, then press where it goes.

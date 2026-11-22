@@ -4,7 +4,8 @@ import { normalizeSessionCode } from "@/lib/domain/session-code";
 const rpc = vi.fn();
 vi.mock("@/lib/server/supabase", () => ({ getSupabaseServerClient: () => ({ rpc }) }));
 
-const { addQueueItem, createSession, endSession, generateSessionCode, getSessionState, moveQueueItem, playQueueItem, updatePlayback } = await import("@/lib/server/session-store");
+const { addQueueItem, createSession, endSession, generateSessionCode, getRecentlyPlayedVideoIds, getSessionState, moveQueueItem, playQueueItem, updatePlayback } =
+  await import("@/lib/server/session-store");
 
 const answer = (data: unknown) => ({ data, error: null });
 
@@ -67,6 +68,12 @@ describe("database calls", () => {
 
     await moveQueueItem("ABC234", "hash", "guest", "item", null);
     expect(rpc).toHaveBeenLastCalledWith("move_item", { p_code: "ABC234", p_host_hash: "hash", p_guest_id: "guest", p_item_id: "item", p_after_id: null });
+  });
+
+  it("asks for the songs sung recently in any session, as video ids", async () => {
+    rpc.mockResolvedValue(answer(["dQw4w9WgXcQ"]));
+    expect(await getRecentlyPlayedVideoIds()).toEqual(["dQw4w9WgXcQ"]);
+    expect(rpc).toHaveBeenLastCalledWith("recently_played", {});
   });
 
   it("throws with the function name when the database reports an error", async () => {

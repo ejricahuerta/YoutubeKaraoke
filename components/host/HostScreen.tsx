@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
-import { endSession, playSongNow, sendPlayback, setTakeTurns, type MutationOutcome } from "@/lib/client/session-api";
+import { endSession, freeRemote, playSongNow, sendPlayback, setTakeTurns, takeOver, type MutationOutcome } from "@/lib/client/session-api";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatDuration } from "@/lib/domain/format";
-import { failureMessage, isFailure } from "@/lib/domain/messages";
+import { failureMessage, idleNotice, isFailure } from "@/lib/domain/messages";
 import { clampVolume, playingLabel, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
 import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
@@ -47,7 +48,7 @@ type RailView = "next" | "edit" | "add";
 const NO_PROGRESS: Progress = { seconds: 0, duration: 0 };
 
 /** The main screen (/s/CODE): the video with the host's controls, and the queue beside it. */
-export function HostScreen({ code }: { code: string }) {
+export function HostScreen({ code, takeover }: { code: string; takeover?: string }) {
   const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
   const { state, status, reconnecting, refresh, remove, move } = useSessionState(code, setNotice);
   const origin = useOrigin();
@@ -123,6 +124,21 @@ export function HostScreen({ code }: { code: string }) {
     [setNotice],
   );
 
+  // Opened from a "move the main screen" link (migration 0014): become the main screen once,
+  // then drop the secret from the address so a reload or a shared screenshot cannot reuse it.
+  const router = useRouter();
+  const tookOver = useRef(false);
+  useEffect(() => {
+    if (!takeover || tookOver.current) return;
+    tookOver.current = true;
+    takeOver(code, takeover).then((outcome) => {
+      router.replace(`/s/${code}`);
+      if (outcome === "forbidden") setNotice("That link has expired or was already used. Ask the remote for a new one.");
+      else if (isFailure(outcome)) setNotice(failureMessage(outcome, "Couldn't move the main screen here. Try the link again."));
+      refresh();
+    });
+  }, [code, takeover, router, refresh, setNotice]);
+
   const setPlaying = useCallback(
     async (next: boolean) => {
       setLocalPlaying(next);
@@ -145,7 +161,7 @@ export function HostScreen({ code }: { code: string }) {
     [code, refresh, reportIfFailed],
   );
 
-  // Ending a session and playing a picked song cannot be undone, so both ask first (docs/adr/0019).
+  // Ending a session and playing a picked song cannot be undone, so both ask first (docs/adr/0023).
   const [askingEnd, setAskingEnd] = useState(false);
   const confirmEnd = async () => {
     setAskingEnd(false);
@@ -161,6 +177,11 @@ export function HostScreen({ code }: { code: string }) {
     // Someone else removed it, or it started meanwhile.
     if (outcome === "not_found") setNotice(`"${displayTitle(item.title)}" isn't waiting any more.`);
     else reportIfFailed(outcome, "Couldn't play that song. Try again.");
+    refresh();
+  };
+
+  const onFreeRemote = async () => {
+    reportIfFailed(await freeRemote(code), "Couldn't free the remote. Try again.");
     refresh();
   };
 
@@ -210,6 +231,7 @@ export function HostScreen({ code }: { code: string }) {
   if (!state) return <SessionLoadingMessage status={status} />;
 
   const { isHost, queue } = state;
+  const idle = idleNotice({ hasSongs: !!current || queue.length > 0, closesInSeconds: state.closesInSeconds });
   // Only the host edits and adds here: anyone else on this page has no name yet, and goes to the guest screen for one.
   const shownView: RailView = isHost ? railView : "next";
   const duration = progress.duration || current?.durationSeconds || 0;
@@ -243,6 +265,9 @@ export function HostScreen({ code }: { code: string }) {
             }}
             takeTurns={state.takeTurns}
             onTakeTurns={onTakeTurns}
+            remote={state.remote}
+            remoteName={state.remoteName}
+            onFreeRemote={onFreeRemote}
             showQueue={showQueue}
             queueLength={queue.length}
             onToggleQueue={() => setQueueHidden(showQueue ? "1" : null)}
@@ -252,6 +277,9 @@ export function HostScreen({ code }: { code: string }) {
 
         {notice ? (
           <p role="status" className="animate-rise rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{notice}</p>
+        ) : null}
+        {isHost && idle ? (
+          <p role="status" className="rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{idle}</p>
         ) : null}
 
         <div ref={stageRef} className="relative aspect-video w-full overflow-hidden rounded-card bg-stage-100 lg:aspect-auto lg:min-h-0 lg:flex-1">

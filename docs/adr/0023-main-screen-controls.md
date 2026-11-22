@@ -1,4 +1,4 @@
-# 0019. Main screen controls: four buttons, a Settings menu, and confirmations
+# 0023. Main screen controls: four buttons, a Settings menu, and confirmations
 
 - Status: Accepted
 - Date: 2026-11-22
@@ -18,15 +18,17 @@ The owner reviewed a mockup in the YouOke design canvas and chose this layout.
   readers and tooltips): play or pause, forward 10 seconds, next song, full screen.
   Next song is the screen's one `encore` button; play or pause is `ink`; the other two
   are `stage-200`.
-- **A Settings menu** in the header holds everything else: volume, Take turns, hide or
-  show the queue, and End session. It is a disclosure (a button and a panel), not an
+- **A Settings menu** in the header holds everything else: volume, Take turns, who has the
+  remote with **Free the remote** (from [0020](0020-hand-over-the-remote.md), which had put
+  these two in the Edit queue tab), hide or show the queue, and End session. It is a disclosure (a button and a panel), not an
   ARIA menu, because it holds a slider and a switch. Escape closes it; up and down move
   between its controls for TV remotes.
 - **The queue panel has no tabs.** It is "Up next" with an edit button beside the
   heading. Editing shows Play now, Move and Remove on each song. "Add a song" is a
   button above the join card; it swaps the list for search, with a way back.
 - **Play now** starts a picked waiting song at once and ends the one being sung, through
-  the database function `play_item` (migration 0012). Like "next", it names the song it
+  the database function `play_item` (migration 0015). As for play, pause and next, a
+  phone cannot use it while the main screen is away ([0022](0022-when-the-main-screen-is-away.md)). Like "next", it names the song it
   interrupts, so a repeated press cannot end a second song.
 - **Play now and End session ask first**, in a modal dialog whose Cancel button has the
   focus, so a double press on a remote cancels instead of confirming. This replaces the

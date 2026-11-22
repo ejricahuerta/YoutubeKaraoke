@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 
 /**
- * Asks before something that cannot be taken back (docs/adr/0019). A modal dialog: the rest
+ * Asks before something that cannot be taken back (docs/adr/0023). A modal dialog: the rest
  * of the screen is inert while it is open, Escape or a press outside it cancels, and Cancel
  * has the focus, so a second press of a remote's OK button never confirms by accident.
  */

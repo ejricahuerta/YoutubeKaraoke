@@ -78,3 +78,57 @@ body {
 .animate-rise {
   animation: rise 0.3s ease-out both;
 }
+
+/*
+ * The start page's songs sung lately (components/RecentSongs.tsx): each goes up from below
+ * the cards like a rocket, a note and the song's name, and bursts into sparks
+ * from the note above them.
+ * Set per launch: --rise (how high), --drift (sideways), --spark (note and spark colour).
+ */
+.firework, .firework-still {
+  --lift: var(--rise);
+}
+@media (max-width: 40rem) {
+  /* On a phone the card sits under the headline: burst just above the card, not over the words. */
+  .firework, .firework-still {
+    --lift: calc(var(--rise) * 0.55);
+  }
+}
+.firework {
+  animation: firework-rise 6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+.firework-burst {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin: -0.2rem 0 0 -0.2rem;
+  border-radius: 999px;
+  z-index: -1;
+  animation: firework-burst 6s ease-out both;
+}
+.firework-still {
+  opacity: 0.45;
+  transform: translate(-50%, calc(-1 * var(--lift)));
+}
+
+@keyframes firework-rise {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.55) rotate(-4deg); }
+  10% { opacity: 1; }
+  68% { opacity: 1; transform: translate(calc(-50% + var(--drift)), calc(-1 * var(--lift))) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--drift)), calc(-1 * var(--lift) - 2.5rem)) scale(1.3); filter: blur(3px); }
+}
+@keyframes firework-burst {
+  0%, 62% { opacity: 0; transform: scale(0.1); }
+  70% { opacity: 1; }
+  85% { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(1.2) translateY(1.5rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .firework, .firework-burst {
+    animation: none;
+  }
+}

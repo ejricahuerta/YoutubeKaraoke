@@ -1,6 +1,6 @@
 # 0008. Sessions archive after 15 idle minutes, checked on access
 
-- Status: Accepted
+- Status: Accepted, amended by 0022 (what ends a session: the main screen away 15 minutes, or 30 idle minutes)
 - Date: 2026-11-21 (recorded; in the code since commit `0c680a4`)
 
 ## Context
@@ -40,7 +40,7 @@ reused by a stranger.
 ## Update, 2026-11-22: the host can end a session
 
 Migration 0004 adds `end_session`, behind an "End session" button on the host screen
-that needs two presses (since [0019](0019-main-screen-controls.md), an item in the Settings
+that needs two presses (since [0023](0023-main-screen-controls.md), an item in the Settings
 menu that asks first). It archives the session at once and by the same means as a
 timeout, so everything above about archived sessions still holds: final, refused by
 every entry point, deleted 24 hours later. The first "Revisit when" item below is

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { addSong, endSession, moveSong, playSongNow, removeSong, searchSongs, sendPlayback, sessionStateUrl } from "@/lib/client/session-api";
+import { addSong, endSession, fetchRecentSongs, moveSong, playSongNow, removeSong, searchSongs, sendPlayback, sessionStateUrl } from "@/lib/client/session-api";
 
 const video = { videoId: "dQw4w9WgXcQ", title: "Song", channel: "Sing King", thumbnailUrl: "u", durationSeconds: 200 };
 const ITEM_ID = "3f2c1b7e-8a4d-4e6f-9b0a-1c2d3e4f5a6b";
@@ -92,5 +92,22 @@ describe("searchSongs", () => {
 describe("sessionStateUrl", () => {
   it("is the session's API address", () => {
     expect(sessionStateUrl("ABC234")).toBe("/api/sessions/ABC234");
+  });
+});
+
+describe("fetchRecentSongs", () => {
+  const songs = [{ videoId: "dQw4w9WgXcQ", title: "Valerie" }];
+
+  it("returns the songs sung recently", async () => {
+    const mock = stubFetch(200, { songs });
+    expect(await fetchRecentSongs()).toEqual(songs);
+    expect(sent(mock).url).toBe("/api/recent-songs");
+  });
+
+  it("returns nothing when they cannot be fetched", async () => {
+    stubFetch(500, { ok: false, error: "server_error" });
+    expect(await fetchRecentSongs()).toEqual([]);
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("offline"); }));
+    expect(await fetchRecentSongs()).toEqual([]);
   });
 });

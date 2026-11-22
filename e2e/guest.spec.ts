@@ -213,12 +213,12 @@ test("guests are warned when the main screen has been closed for a while", async
   await setSingerName(page, "Leo");
   await page.goto(`/join/${CODE}`);
   await expect(page.getByRole("searchbox")).toBeVisible();
-  await expect(page.getByText(/main screen seems to be closed/)).toHaveCount(0);
+  await expect(page.getByText(/main screen is away/)).toHaveCount(0);
 
-  api.state = session({ hostAwaySeconds: 300, closesInSeconds: 600 });
+  api.state = session({ mainScreenAway: true, isPlaying: false, hostAwaySeconds: 300, closesInSeconds: 600 });
   await page.getByRole("button", { name: /Queue · 3/ }).click(); // any refetch will do; focus is one
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-  await expect(page.getByRole("status").filter({ hasText: "main screen seems to be closed" })).toContainText("about 10 min");
+  await expect(page.getByRole("status").filter({ hasText: "main screen is away, so nothing is playing" })).toContainText("about 10 min");
 });
 
 test("the guest screen breaks none of the Content-Security-Policy", async ({ page }) => {
@@ -318,3 +318,69 @@ test("nobody else is offered a skip", async ({ page }) => {
   await page.getByRole("button", { name: /Queue · 3/ }).click();
   await expect(page.getByRole("button", { name: "Skip your song" })).toHaveCount(0);
 });
+
+test("the remote can give the remote up", async ({ page }) => {
+  const api = await mockSession(page, session({ isRemote: true, remote: "taken" }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  const giveUp = page.getByRole("button", { name: "Stop being the remote" });
+  await expect(giveUp).toBeVisible();
+  // The page refetches right after the change, so the fake answers with the result first.
+  api.state = session({ isRemote: false, remote: "free" });
+  await giveUp.click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "DELETE", path: "/remote" });
+  await expect(page.getByRole("button", { name: "Use this phone as the remote" })).toBeVisible();
+});
+
+test("any phone can take a freed remote", async ({ page }) => {
+  const api = await mockSession(page, session({ remote: "free" }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  const take = page.getByRole("button", { name: "Use this phone as the remote" });
+  await expect(take).toBeVisible();
+  api.state = session({ isRemote: true, remote: "taken", remoteName: "Leo" });
+  await take.click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "POST", path: "/remote" });
+  await expect(page.getByText("You're the remote")).toBeVisible();
+});
+
+test("nobody is offered a remote someone already has", async ({ page }) => {
+  await mockSession(page, session({ remote: "taken", remoteName: "Ana" }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByRole("button", { name: "Leo, change name" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Use this phone as the remote" })).toHaveCount(0);
+});
+
+test("while the main screen is away, the remote cannot play or skip, and can move it instead", async ({ page }) => {
+  const LINK_SECRET = "s".repeat(43);
+  const api = await mockSession(page, session({ isRemote: true, mainScreenAway: true, isPlaying: false, closesInSeconds: 600 }));
+  await page.route(`**/api/sessions/${CODE}/handoff`, (route) => {
+    api.sent.push({ method: "POST", path: "/handoff", body: null });
+    return route.fulfill({ json: { ok: true, result: "ok", token: LINK_SECRET } });
+  });
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+
+  await expect(page.getByText("Main screen away")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Play" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Next song" })).toBeDisabled();
+
+  await page.getByRole("button", { name: "Move the main screen" }).click();
+  const sheet = page.getByRole("dialog", { name: "Move the main screen" });
+  const link = new URL(`/s/${CODE}?takeover=${LINK_SECRET}`, page.url()).href;
+  await expect(sheet.getByText(link)).toBeVisible();
+  await expect(sheet.getByRole("img", { name: "QR code to open the main screen" })).toBeVisible();
+  expect(api.sent.filter((request) => request.path === "/handoff")).toHaveLength(1);
+});
+
+test("a singer cannot skip their own song while the main screen is away", async ({ page }) => {
+  await mockSession(page, session({ current: { ...song(1, "Leo", "Mine", true) }, mainScreenAway: true, isPlaying: false }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByText(/main screen is away/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Skip your song" })).toHaveCount(0);
+});
+

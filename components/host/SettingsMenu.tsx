@@ -1,18 +1,21 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
+import type { RemoteStatus } from "@/lib/domain/types";
 import { ChevronDownIcon, PowerIcon, QueueIcon, SettingsIcon, TurnsIcon, VolumeIcon } from "../Icons";
+import { RemoteIndicator } from "./RemoteIndicator";
 
 /** Marks the controls that up and down move between. */
 const ITEM_ATTRIBUTE = "data-settings-item";
 const ITEM_ROW = "flex h-[4.5rem] w-full items-center gap-4 rounded-row px-[1.125rem] text-left text-[1.5rem] font-semibold transition";
 
 /**
- * The main screen's less used controls, behind one button (docs/adr/0019). A disclosure rather
+ * The main screen's less used controls, behind one button (docs/adr/0023). A disclosure rather
  * than an ARIA menu, because it holds a slider and a switch. Up and down move between its
  * controls, as a TV remote expects; Escape or a press outside closes it.
  *
- * Volume, taking turns and ending the session are the host's; any screen can hide the queue.
+ * Volume, taking turns, the remote and ending the session are the host's; any screen can hide
+ * the queue.
  */
 export function SettingsMenu({
   isHost,
@@ -20,6 +23,9 @@ export function SettingsMenu({
   onVolume,
   takeTurns,
   onTakeTurns,
+  remote,
+  remoteName,
+  onFreeRemote,
   showQueue,
   queueLength,
   onToggleQueue,
@@ -30,6 +36,10 @@ export function SettingsMenu({
   onVolume: (volume: number) => void;
   takeTurns: boolean;
   onTakeTurns: (on: boolean) => void;
+  /** Who has the phone remote, and a way to free it (migration 0012). */
+  remote: RemoteStatus;
+  remoteName: string | null;
+  onFreeRemote: () => void;
   showQueue: boolean;
   queueLength: number;
   onToggleQueue: () => void;
@@ -130,6 +140,7 @@ export function SettingsMenu({
                 </span>
               </MenuButton>
             ) : null}
+            {isHost ? <RemoteIndicator remote={remote} name={remoteName} onFree={onFreeRemote} itemProps={item} /> : null}
             <MenuButton
               {...item}
               aria-controls="queue-panel"

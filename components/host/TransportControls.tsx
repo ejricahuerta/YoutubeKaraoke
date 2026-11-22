@@ -23,7 +23,7 @@ export function SeekBar({ seconds, duration, onSeek }: { seconds: number; durati
   );
 }
 
-/** The four buttons under the video, one size, icons only, readable from the sofa (docs/adr/0019). */
+/** The four buttons under the video, one size, icons only, readable from the sofa (docs/adr/0023). */
 export function TransportControls({
   hasCurrent,
   intro,

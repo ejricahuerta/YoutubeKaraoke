@@ -62,8 +62,12 @@ Records: [0001 Next.js monolith](adr/0001-nextjs-monolith.md),
 app/                    Routes only: pages and API route handlers
   api/search            GET   search YouTube (needs a live session code)
   api/csp-report        POST  browsers report what the Content-Security-Policy would block
+  api/recent-songs      GET   songs sung lately in any session, for the start page (titles from YouTube)
   api/sessions          POST  start a session
   api/sessions/[code]   GET   session state, PATCH settings (host), DELETE end it (host)
+    remote              POST  take a freed remote, DELETE free it (host or remote)
+    handoff             POST  a one-time link to move an away main screen (remote)
+    host                POST  open that link: this browser becomes the main screen
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
     queue/[id]          DELETE remove, PATCH move, POST play it now  (PATCH, POST: host)
@@ -130,7 +134,7 @@ Two tables in the `karaoke` schema:
   session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The nine public functions are the whole API of the database:
+policies. The fourteen public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
@@ -142,10 +146,15 @@ policies. The nine public functions are the whole API of the database:
 | `playback(code, host_hash, action, expected_item_id, guest_id)` | `POST .../playback` | a result code |
 | `play_item(code, host_hash, item_id, expected_item_id, guest_id)` | `POST .../queue/[id]` | a result code |
 | `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
+| `free_remote(code, host_hash, guest_id)` | `DELETE .../remote` | a result code |
+| `claim_remote(code, guest_id)` | `POST .../remote` | a result code |
+| `start_handoff(code, guest_id, link_hash)` | `POST .../handoff` | a result code |
+| `take_over(code, link_hash, new_host_hash)` | `POST .../host` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
+| `recently_played()` | `GET /api/recent-songs` | Video ids of songs finished in the last day, in any session, newest first, at most 24 ([0021](adr/0021-recently-sung-songs-on-the-start-page.md)) |
 
 Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`, `guest_limit`,
-`archived` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
+`archived`, `main_screen_away`, `main_screen_here` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
 each to an HTTP status and the body `{ ok, result }` or `{ ok: false, error }`.
 
 Session lifecycle: [0008](adr/0008-archive-on-access.md).
@@ -169,6 +178,8 @@ guest view ([0007](adr/0007-phones-are-guests.md)). The exception is the **remot
 the first guest whose phone loads the session may play, pause, skip, remove and reorder
 like the main screen, from the guest view. Ending the session stays with the main
 screen. It is stored as `sessions.remote_guest_id` ([0014](adr/0014-first-guest-is-the-remote.md)).
+The main screen or the remote can free it; then the first phone to ask takes it
+([0020](adr/0020-hand-over-the-remote.md)).
 Any guest may also skip their own song while it is being sung.
 
 ## How a change reaches every screen
@@ -190,7 +201,7 @@ mode (`youtube-nocookie.com`), with YouTube's controls turned off and the app's 
 TV-sized controls in their place ([0018](adr/0018-privacy-enhanced-youtube-player.md),
 which supersedes [0005](adr/0005-youtube-iframe-player.md)). Four buttons sit under the
 video and the rest is in a Settings menu; playing a picked song and ending the session
-both ask first ([0019](adr/0019-main-screen-controls.md)). The screen is drawn on a 1920 × 1080
+both ask first ([0023](adr/0023-main-screen-controls.md)). The screen is drawn on a 1920 × 1080
 grid that scales with the window ([0009](adr/0009-tv-scale-grid.md)). Search runs on
 the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 

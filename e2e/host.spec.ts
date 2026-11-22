@@ -186,6 +186,8 @@ test("the Settings menu works from a remote: arrows move through it and Escape c
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("switch", { name: "Take turns" })).toBeFocused();
   await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("button", { name: "Free the remote" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("button", { name: "Hide queue" })).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("button", { name: "End session" })).toBeFocused();
@@ -251,6 +253,34 @@ test("the host can switch taking turns off and on", async ({ page }) => {
   await toggle.click();
   await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "PATCH", body: { takeTurns: true } });
   await expect(toggle).toBeChecked();
+});
+
+test("the main screen shows who has the remote, and can free it", async ({ page }) => {
+  const api = await mockSession(page, hosting({ remote: "taken", remoteName: "Ana" }));
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Settings" }).click();
+
+  await expect(page.getByText("Remote: Ana")).toBeVisible();
+  api.state = hosting({ remote: "free", remoteName: null });
+  await page.getByRole("button", { name: "Free the remote" }).click();
+  await expect.poll(() => api.sent.at(-1)).toMatchObject({ method: "DELETE", path: "/remote" });
+  await expect(page.getByText("Remote: free, any phone can take it")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Free the remote" })).toHaveCount(0);
+});
+
+test("the main screen says who will get the remote before anyone has it", async ({ page }) => {
+  await mockSession(page, hosting({ remote: "unclaimed", remoteName: null }));
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByText("Remote: first phone to join")).toBeVisible();
+});
+
+test("a remote with no songs yet is still shown", async ({ page }) => {
+  await mockSession(page, hosting({ remote: "taken", remoteName: null }));
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByText("Remote: a phone")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Free the remote" })).toBeVisible();
 });
 
 test("another computer's Settings only hides the queue: no volume, turns or End session", async ({ page }) => {
@@ -357,3 +387,26 @@ test("the main screen asks YouTube for its privacy-enhanced player, with YouTube
     playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0 },
   });
 });
+
+test("opening a move-the-main-screen link makes this screen the main screen", async ({ page }) => {
+  const LINK_SECRET = "s".repeat(43);
+  const api = await mockSession(page, session({ isHost: false }));
+  await page.goto(`/s/${CODE}?takeover=${LINK_SECRET}`);
+
+  await expect.poll(() => api.sent.find((request) => request.path === "/host")).toMatchObject({ method: "POST", body: { token: LINK_SECRET } });
+  await expect(page).toHaveURL(new RegExp(`/s/${CODE}$`));
+});
+
+test("a used or expired link says so", async ({ page }) => {
+  await mockSession(page, session({ isHost: false }));
+  await page.route(`**/api/sessions/${CODE}/host`, (route) => route.fulfill({ status: 403, json: { ok: false, error: "forbidden" } }));
+  await page.goto(`/s/${CODE}?takeover=${"s".repeat(43)}`);
+  await expect(page.getByText("That link has expired or was already used. Ask the remote for a new one.")).toBeVisible();
+});
+
+test("an idle session warns the main screen before it ends", async ({ page }) => {
+  await mockSession(page, hosting({ current: null, queue: [], closesInSeconds: 300 }));
+  await page.goto(`/s/${CODE}`);
+  await expect(page.getByText("Nothing's queued. This session ends in about 5 min unless someone adds a song.")).toBeVisible();
+});
+

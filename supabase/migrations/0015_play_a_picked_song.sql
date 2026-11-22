@@ -23,6 +23,10 @@ begin
   if not karaoke.can_control(v_session, p_host_hash, p_guest_id) then
     return 'forbidden';
   end if;
+  -- As for play, pause and next: a phone cannot play with no main screen to play on (0014).
+  if (p_host_hash is null or v_session.host_token_hash <> p_host_hash) and karaoke.main_screen_away(v_session) then
+    return 'main_screen_away';
+  end if;
   if v_session.current_item_id is distinct from p_expected_item_id then
     return 'stale';
   end if;
