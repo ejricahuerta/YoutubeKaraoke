@@ -34,9 +34,9 @@ Two facts shaped the choice:
   30 seconds or until the panel closes, without turning the mic on.
 - **Delay**: the panel shows the delay the browser reports (capture, audio buffer and output)
   as "at least N ms": it leaves out the device's own audio engine and the mic's capture, and
-  came to about half the real delay when measured (45 ms reported, 85 ms measured on a Windows
-  laptop, with the phone-mic prototype on branch `claude/phone-mic-prototype`). **Measure delay** gives the real figure: it plays six short beeps through the
-  speakers, records them side by side with the mic, and reports the median gap and spread
+  came to about half the real delay when measured (45 ms reported, 85 ms measured with the beep
+  test below on a Windows laptop's own mic and speakers). **Measure delay** gives the real
+  figure: it plays six short beeps through the speakers, records them side by side with the mic, and reports the median gap and spread
   (`clickDelaysMs`, `summarizeDelays`). The voice is muted while it runs, and echo
   cancellation has to be off (Low latency), or it removes the beeps. The panel also
   warns when the mic's name says it is on Bluetooth, which adds about 100–300 ms the
