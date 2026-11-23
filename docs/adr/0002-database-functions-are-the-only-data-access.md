@@ -1,6 +1,6 @@
 # 0002. All rules live in Postgres functions; tables are closed
 
-- Status: Accepted
+- Status: Accepted, amended by 0026 (the server holds a secret key, used only to start sessions)
 - Date: 2026-11-21 (recorded; in the code since commit `fa72792`)
 
 ## Context

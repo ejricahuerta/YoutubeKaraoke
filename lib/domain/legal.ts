@@ -9,11 +9,13 @@ export const OPERATOR = {
   name: "edmel.dev",
   url: "https://edmel.dev",
   email: "me@edmel.dev",
+  /** Where tips go, by e-Transfer; shown when a session ends. */
+  tipEmail: "pay@edmel.dev",
   location: "Thornhill, Ontario, Canada",
 } as const;
 
 /** Shown at the top of each legal page. Change it whenever any of them changes. */
-export const LEGAL_UPDATED_ON = "22 November 2026";
+export const LEGAL_UPDATED_ON = "23 November 2026";
 
 export const LEGAL_PAGES = [
   { href: "/terms", label: "Terms", title: "Terms of Use" },
@@ -40,7 +42,8 @@ export const BROWSER_STORAGE: readonly BrowserStorageEntry[] = [
   {
     name: "kg",
     kind: "cookie",
-    purpose: "A random guest id, so the app knows which songs in the queue you added and lets you remove them.",
+    purpose:
+      "A random guest id, signed so it cannot be changed, so the app knows which songs in the queue you added and lets you remove them, and which sessions this browser started, so it waits 15 minutes after one runs its full hour before starting another.",
     lifetimeSeconds: SECONDS_PER_DAY * DAYS_PER_YEAR,
   },
   {

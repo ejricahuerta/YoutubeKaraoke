@@ -80,6 +80,8 @@ test("ended, unknown and malformed sessions each get their own message", async (
   const api = await mockSession(page, session({ archived: true, current: null, queue: [] }));
   await page.goto(`/join/${CODE}`);
   await expect(page.getByRole("heading", { name: "This session has ended" })).toBeVisible();
+  await expect(page.getByText(/we accept tips by e-Transfer to pay@edmel\.dev/)).toBeVisible();
+  await expect(page.getByText(/Want to work together on a karaoke system\? Contact me@edmel\.dev/)).toBeVisible();
 
   api.state = null;
   await page.goto(`/join/${CODE}`);
@@ -219,6 +221,13 @@ test("guests are warned when the main screen has been closed for a while", async
   await page.getByRole("button", { name: /Queue · 3/ }).click(); // any refetch will do; focus is one
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByRole("status").filter({ hasText: "main screen is away, so nothing is playing" })).toContainText("about 10 min");
+});
+
+test("guests are warned before the session's hour is up", async ({ page }) => {
+  await mockSession(page, session({ limitInSeconds: 480, closesInSeconds: 480 }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByRole("status").filter({ hasText: "Sessions last an hour at most" })).toContainText("about 8 min");
 });
 
 test("the guest screen breaks none of the Content-Security-Policy", async ({ page }) => {

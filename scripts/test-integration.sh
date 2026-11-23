@@ -15,12 +15,17 @@ compose=(docker compose -f docker/compose.test.yml)
 
 # A fresh secret each run, so nothing secret is committed; the anon key is a JWT signed with it, as on Supabase.
 export JWT_SECRET="$(node -e 'console.log(require("crypto").randomBytes(32).toString("hex"))')"
-ANON_KEY="$(node -e '
-  const { createHmac } = require("crypto");
-  const part = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
-  const unsigned = part({ alg: "HS256", typ: "JWT" }) + "." + part({ role: "anon" });
-  console.log(unsigned + "." + createHmac("sha256", process.env.JWT_SECRET).update(unsigned).digest("base64url"));
-')"
+# The secret key is the same for the service_role role, which alone may start sessions (ADR 0026).
+api_key() {
+  ROLE="$1" node -e '
+    const { createHmac } = require("crypto");
+    const part = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+    const unsigned = part({ alg: "HS256", typ: "JWT" }) + "." + part({ role: process.env.ROLE });
+    console.log(unsigned + "." + createHmac("sha256", process.env.JWT_SECRET).update(unsigned).digest("base64url"));
+  '
+}
+ANON_KEY="$(api_key anon)"
+SECRET_KEY="$(api_key service_role)"
 
 server_pid=""
 cleanup() {
@@ -45,7 +50,9 @@ for _ in $(seq 1 30); do
 done
 
 echo "• Building and starting the app against it"
-export NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY"
+export NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" SUPABASE_SECRET_KEY="$SECRET_KEY"
+SESSION_SECRET="$(node -e 'console.log(require("crypto").randomBytes(32).toString("hex"))')"
+export SESSION_SECRET
 if curl -s -o /dev/null "http://127.0.0.1:$PORT/"; then
   echo "Port $PORT is already in use; stop what is on it or set INTEGRATION_PORT." >&2
   exit 1

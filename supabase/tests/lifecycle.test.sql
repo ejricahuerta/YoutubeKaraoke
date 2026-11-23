@@ -99,8 +99,8 @@ begin
   assert karaoke.idle_limit() = interval '15 minutes';
   assert not exists (
     select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'karaoke' and p.proname <> 'idle_limit' and p.prosrc like '%15 minutes%'
-  ), 'no other function writes 15 minutes itself';
+    where n.nspname = 'karaoke' and p.proname not in ('idle_limit', 'restart_after') and p.prosrc like '%15 minutes%'
+  ), 'no other function writes 15 minutes itself (restart_after is the wait after an hour-long session)';
 end $$;
 
 -- The host can end a session on purpose, at once, for everyone.
@@ -157,7 +157,8 @@ begin
       assert has_function_privilege(v_role, v_fn, 'execute'), v_role || ' can call ' || v_fn;
     end loop;
 
-    -- Anything else in the schema is an internal helper, including ones added later.
+    -- Anything else in the schema is an internal helper, including ones added later, or, like
+    -- start_session (ADR 0026), only for the server's secret key.
     for v_fn in
       select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'karaoke'

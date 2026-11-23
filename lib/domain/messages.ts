@@ -31,8 +31,19 @@ const START_ERRORS: Record<string, string> = {
   slow_down: "That's a lot of new sessions. Wait a minute, then try again.",
 };
 
-/** The notice for `/?error=…` after a failed "Start a session"; null for anything unknown. */
-export function startErrorMessage(code: string | undefined): string | null {
+/** The longest wait the start page names; anything else in the link is not ours, and gets vaguer words. */
+const MAX_WAIT_MINUTES = 60;
+
+/**
+ * The notice for `/?error=…` after a failed "Start a session"; null for anything unknown.
+ * `minutes` comes with "too_soon": how long until this browser may start another session.
+ */
+export function startErrorMessage(code: string | undefined, minutes?: string): string | null {
+  if (code === "too_soon") {
+    const wait = /^\d+$/.test(minutes ?? "") ? Number(minutes) : 0;
+    const when = wait >= 1 && wait <= MAX_WAIT_MINUTES ? `in about ${wait} min` : "in a few minutes";
+    return `Your last session reached its one-hour limit. You can start a new one ${when}.`;
+  }
   return (code && Object.hasOwn(START_ERRORS, code) ? START_ERRORS[code] : null) ?? null;
 }
 
@@ -47,11 +58,17 @@ export function mainScreenGoneNotice(state: { mainScreenAway?: boolean; closesIn
   return `The main screen is away, so nothing is playing. If it doesn't come back, this session ends in ${timeLeft(state.closesInSeconds)}.`;
 }
 
-/** Warn the main screen this long before an idle session (nothing playing or queued) ends. */
-const IDLE_NOTICE_SECONDS = 10 * 60;
+/** Warn this long before a session ends for being idle or for reaching its hour. */
+const END_NOTICE_SECONDS = 10 * 60;
 
 /** For the main screen when nothing is playing or queued and the session ends soon; null otherwise. */
 export function idleNotice({ hasSongs, closesInSeconds }: { hasSongs: boolean; closesInSeconds: number | null }): string | null {
-  if (hasSongs || closesInSeconds == null || closesInSeconds > IDLE_NOTICE_SECONDS) return null;
+  if (hasSongs || closesInSeconds == null || closesInSeconds > END_NOTICE_SECONDS) return null;
   return `Nothing's queued. This session ends in ${timeLeft(closesInSeconds)} unless someone adds a song.`;
+}
+
+/** For every screen when the session's hour (the database decides, migration 0016) is nearly up; null otherwise. */
+export function timeLimitNotice({ limitInSeconds }: { limitInSeconds?: number | null }): string | null {
+  if (limitInSeconds == null || limitInSeconds > END_NOTICE_SECONDS) return null;
+  return `Sessions last an hour at most, so this one ends in ${timeLeft(limitInSeconds)}.`;
 }

@@ -4,7 +4,7 @@
  * before, so they run in order on one session.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { Browser, idOf, mainScreenSeen, titles } from "./browser";
+import { Browser, idOf, mainScreenSeen, sessionStarted, titles } from "./browser";
 
 const screen = Browser.screen();
 const ana = Browser.phone();
@@ -22,6 +22,12 @@ describe("a night of karaoke", () => {
     expect(code).toMatch(/^[A-Z0-9]{6}$/);
     const state = await screen.state(code);
     expect(state).toMatchObject({ isHost: true, isRemote: false, archived: false, takeTurns: true, current: null, queue: [] });
+  });
+
+  it("gives the session an hour at most", async () => {
+    const { limitInSeconds } = await screen.state(code);
+    expect(limitInSeconds).toBeGreaterThan(3500);
+    expect(limitInSeconds).toBeLessThanOrEqual(3600);
   });
 
   it("makes the first phone to join the remote, and nobody else", async () => {
@@ -131,5 +137,41 @@ describe("a night of karaoke", () => {
     expect((await newScreen.end(code)).status).toBe(200);
     expect((await ben.state(code)).archived).toBe(true);
     expect((await ben.add(code, "late", "Ben")).status).toBe(410);
+  });
+});
+
+describe("an hour at most", () => {
+  it("ends a session after its hour, and lets the screen that started it start another 15 minutes later", async () => {
+    const tv = Browser.screen();
+    const party = await tv.startSession();
+    await sessionStarted(party, 62 * 60);
+    expect((await tv.state(party)).archived).toBe(true);
+
+    const { status, body } = await tv.tryStartSession();
+    expect(status).toBe(429);
+    expect(body.error).toBe("too_soon");
+    expect(body.waitSeconds).toBeGreaterThan(770);
+    expect(body.waitSeconds).toBeLessThanOrEqual(780);
+    expect((await Browser.screen().tryStartSession()).status).toBe(200);
+    expect((await Browser.screen(tv.ip).tryStartSession()).body.error, "a private window on the same network").toBe("too_soon");
+
+    await sessionStarted(party, 76 * 60);
+    expect((await tv.tryStartSession()).status).toBe(200);
+  });
+});
+
+describe("cookies a browser changes", () => {
+  it("are not trusted: an edited guest cookie is a stranger, and gets a fresh id", async () => {
+    const tv = Browser.screen();
+    const party = await tv.startSession();
+    const dee = Browser.phone();
+    expect((await dee.add(party, "D1", "Dee")).status).toBe(200);
+    const signed = dee.cookie("kg")!;
+    expect(signed).toMatch(/^[0-9a-f-]{36}\.[A-Za-z0-9_-]{43}$/);
+
+    // Keep the signature, change the id: someone else's id would need its own signature.
+    dee.setCookie("kg", `00000000-0000-4000-8000-000000000000.${signed.split(".")[1]}`);
+    expect((await dee.state(party)).current).toMatchObject({ title: "D1", mine: false });
+    expect(dee.cookie("kg")).not.toBe(signed);
   });
 });

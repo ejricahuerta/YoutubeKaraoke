@@ -37,6 +37,7 @@ export function session(overrides: Partial<SessionState> = {}): SessionState {
     mainScreenAway: false,
     hostAwaySeconds: 10,
     closesInSeconds: 890,
+    limitInSeconds: 3000,
     ...overrides,
   };
 }

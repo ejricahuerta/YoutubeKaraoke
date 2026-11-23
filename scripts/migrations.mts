@@ -12,6 +12,8 @@
 import type { Client } from "pg";
 
 const FILE_PATTERN = /^\d{4}_([a-z0-9_]+)\.sql$/;
+/** Mirrors SESSION_SECRET_MIN_LENGTH in lib/server/auth.ts, which enforces it; this file imports nothing from the app. */
+const SESSION_SECRET_MIN_LENGTH = 32;
 /** Any constant key works; it only has to be the same for every build. */
 const LOCK_KEY = 4815162342;
 
@@ -52,6 +54,13 @@ export function deployPlan(env: Record<string, string | undefined>): DeployPlan 
       "DATABASE_URL is not set for Production in Vercel. Without it the new app would go live before its " +
         "migrations, so the build stops here. See supabase/migrations/README.md.",
     );
+  }
+  // Without these the app could not sign cookies or start sessions; stop before migrating (ADR 0026).
+  if ((env.SESSION_SECRET ?? "").length < SESSION_SECRET_MIN_LENGTH) {
+    throw new Error(`SESSION_SECRET is not set for Production in Vercel, or is shorter than ${SESSION_SECRET_MIN_LENGTH} characters. See .env.example.`);
+  }
+  if (!env.SUPABASE_SECRET_KEY) {
+    throw new Error("SUPABASE_SECRET_KEY is not set for Production in Vercel. See .env.example.");
   }
   return { run: true, databaseUrl: env.DATABASE_URL };
 }

@@ -25,6 +25,7 @@ vi.mock("@/lib/server/auth", () => ({
   getOrCreateGuestId: async () => "guest-1",
   createHostToken: () => "token",
   hashHostToken: (token: string) => `hash(${token})`,
+  hashNetwork: (ip: string) => `net(${ip})`,
   setHostCookie,
   clearHostCookie,
 }));
@@ -259,15 +260,27 @@ describe("POST /api/sessions", () => {
   const phone = { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148 Safari/604.1" };
 
   it("starts a session and sends a big screen to it", async () => {
-    store.createSession.mockResolvedValue("ABC234");
+    store.createSession.mockResolvedValue({ code: "ABC234" });
     const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, "x-forwarded-for": "198.51.100.1" }));
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toBe("/s/ABC234");
-    expect(store.createSession).toHaveBeenCalledWith("hash(token)");
+    expect(store.createSession).toHaveBeenCalledWith("hash(token)", "guest-1", "net(198.51.100.1)");
+  });
+
+  it("sends a browser whose last session ran its full hour back to wait, saying for how long", async () => {
+    store.createSession.mockResolvedValue({ waitSeconds: 721 });
+    const form = await sessionsRoute.POST(json("POST", undefined, { ...desktop, "x-forwarded-for": "198.51.100.4" }));
+    expect(form.status).toBe(303);
+    expect(form.headers.get("location")).toBe("/?error=too_soon&minutes=13");
+    expect(setHostCookie).not.toHaveBeenCalled();
+
+    const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, accept: "application/json", "x-forwarded-for": "198.51.100.4" }));
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ ok: false, error: "too_soon", waitSeconds: 721 });
   });
 
   it("answers with JSON when asked to", async () => {
-    store.createSession.mockResolvedValue("ABC234");
+    store.createSession.mockResolvedValue({ code: "ABC234" });
     const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, accept: "application/json", "x-forwarded-for": "198.51.100.2" }));
     expect(await res.json()).toEqual({ ok: true, code: "ABC234" });
   });
@@ -279,7 +292,7 @@ describe("POST /api/sessions", () => {
   });
 
   it("limits how many sessions one address can start per minute, sending a form post back with the reason", async () => {
-    store.createSession.mockResolvedValue("ABC234");
+    store.createSession.mockResolvedValue({ code: "ABC234" });
     const headers = { ...desktop, "x-forwarded-for": "198.51.100.3" };
     const responses = [];
     for (let i = 0; i < 11; i++) responses.push(await sessionsRoute.POST(json("POST", undefined, headers)));
@@ -289,7 +302,7 @@ describe("POST /api/sessions", () => {
   });
 
   it("answers a script over the limit with 429 JSON", async () => {
-    store.createSession.mockResolvedValue("ABC234");
+    store.createSession.mockResolvedValue({ code: "ABC234" });
     const headers = { ...desktop, accept: "application/json", "x-forwarded-for": "198.51.100.4" };
     let last = new Response();
     for (let i = 0; i < 11; i++) last = await sessionsRoute.POST(json("POST", undefined, headers));

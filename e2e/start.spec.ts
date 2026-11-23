@@ -82,6 +82,11 @@ test("when a session cannot be started, the start page says so", async ({ page }
   await expect(page.getByRole("alert").filter({ hasText: "couldn't start a session" })).toBeVisible();
 });
 
+test("a screen whose last session ran its full hour is told when it can start another", async ({ page }) => {
+  await page.goto("/?error=too_soon&minutes=12");
+  await expect(page.getByRole("alert").filter({ hasText: "Your last session reached its one-hour limit. You can start a new one in about 12 min." })).toBeVisible();
+});
+
 test("an error code the page does not know shows nothing", async ({ page }) => {
   await page.goto("/?error=%3Cscript%3Ealert(1)%3C%2Fscript%3E");
   await expect(page.getByRole("button", { name: "Start a session" })).toBeVisible();

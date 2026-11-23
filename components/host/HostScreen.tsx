@@ -8,13 +8,14 @@ import { endSession, freeRemote, playSongNow, sendPlayback, setTakeTurns, takeOv
 import { useMicrophone } from "@/lib/client/use-microphone";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatDuration } from "@/lib/domain/format";
-import { failureMessage, idleNotice, isFailure } from "@/lib/domain/messages";
+import { failureMessage, idleNotice, isFailure, timeLimitNotice } from "@/lib/domain/messages";
 import { micStatusMessage } from "@/lib/domain/microphone";
 import { clampVolume, playingLabel, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
 import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
 import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
+import { EndedNote } from "../EndedNote";
 import { BackIcon, CheckIcon, EditIcon, MicIcon, PlayIcon, PlusIcon, PowerIcon } from "../Icons";
 import { Logo } from "../Logo";
 import { QueuePanel } from "../QueuePanel";
@@ -228,8 +229,9 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
 
   if (status === "not_found" || status === "archived") {
     return (
-      <CenteredMessage title="This session has ended">
-        It was ended from the main screen, or closed itself after 15 minutes without one.{" "}
+      <CenteredMessage title="This session has ended" aside={<EndedNote />}>
+        It was ended from the main screen, closed itself after 15 minutes without one, or reached its one-hour limit.
+        After a full hour, a new one can start 15 minutes later.{" "}
         <Link href="/" className="font-semibold text-encore underline">Start a new session</Link>.
       </CenteredMessage>
     );
@@ -237,7 +239,8 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
   if (!state) return <SessionLoadingMessage status={status} />;
 
   const { isHost, queue } = state;
-  const idle = idleNotice({ hasSongs: !!current || queue.length > 0, closesInSeconds: state.closesInSeconds });
+  // The hour running out comes first: adding a song would not put it off.
+  const endingNotice = timeLimitNotice(state) ?? idleNotice({ hasSongs: !!current || queue.length > 0, closesInSeconds: state.closesInSeconds });
   // Only the host edits and adds here: anyone else on this page has no name yet, and goes to the guest screen for one.
   const shownView: RailView = isHost ? railView : "next";
   const duration = progress.duration || current?.durationSeconds || 0;
@@ -298,8 +301,8 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
         {micNotice && !showMic ? (
           <p role="status" className="rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{micNotice}</p>
         ) : null}
-        {isHost && idle ? (
-          <p role="status" className="rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{idle}</p>
+        {isHost && endingNotice ? (
+          <p role="status" className="rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{endingNotice}</p>
         ) : null}
 
         <div ref={stageRef} className="relative aspect-video w-full overflow-hidden rounded-card bg-stage-100 lg:aspect-auto lg:min-h-0 lg:flex-1">

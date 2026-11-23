@@ -67,8 +67,9 @@ More detail, and the reasons behind each of these choices:
    builds on Vercel do this themselves; see `supabase/migrations/README.md`.
 2. In the Supabase dashboard, open Project Settings > API (Data API) and add
    `karaoke` to **Exposed schemas**.
-3. Copy `.env.example` to `.env.local` and fill in the project URL and
-   publishable (anon) key. No secret key is needed.
+3. Copy `.env.example` to `.env.local` and fill in the project URL, the
+   publishable (anon) key, a secret key (`SUPABASE_SECRET_KEY`, used only to start
+   sessions) and a random `SESSION_SECRET` (signs cookies). See the comments there.
 4. Run it:
 
    ```bash
@@ -98,8 +99,11 @@ update through the 15 s poll and the browser logs a failed websocket.
 
 ## Deploy
 
-Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL` and
-`NEXT_PUBLIC_SUPABASE_ANON_KEY` in the project's environment variables.
+Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SECRET_KEY` and `SESSION_SECRET` in the
+project's environment variables (see `.env.example`). A Vercel production build stops
+before migrating if either secret is missing. Set them for Preview too, or sessions
+cannot be started on preview deployments.
 
 Optionally also set `YOUTUBE_API_KEY` (a YouTube Data API v3 key from Google Cloud).
 Search then falls back to YouTube's official API when the keyless search breaks; without

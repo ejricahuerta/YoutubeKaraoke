@@ -25,10 +25,11 @@ async function hostedSessions() {
   return states.filter((s) => s?.isHost && !s.archived).map((s) => s!);
 }
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string; minutes?: string }> }) {
   const configured = isSupabaseConfigured();
   // Set by POST /api/sessions when "Start a session" could not start one.
-  const startError = startErrorMessage((await searchParams).error);
+  const { error, minutes } = await searchParams;
+  const startError = startErrorMessage(error, minutes);
   // Phones only join sessions; starting one and the main screen are for big screens.
   const phone = isPhone(await headers());
   const sessions = configured && !phone ? await hostedSessions() : [];

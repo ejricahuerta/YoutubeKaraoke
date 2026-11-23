@@ -1,6 +1,6 @@
 # 0022. When the main screen is away
 
-- Status: Accepted
+- Status: Accepted, amended by 0025 (every session also ends an hour after it started)
 - Date: 2026-11-22
 - Amends: 0008 (sessions archive after 15 idle minutes)
 
