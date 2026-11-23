@@ -52,6 +52,10 @@ export default function CookiesPage() {
 
       <h2>What we don&apos;t use</h2>
       <p>No analytics, advertising, social media or tracking cookies, and no browser fingerprinting.</p>
+      <p>
+        We count page views with Vercel Web Analytics, which sets no cookies and stores nothing in your browser (see the{" "}
+        <Link href="/privacy">Privacy Policy</Link>).
+      </p>
 
       <h2>Other companies&apos; cookies</h2>
       <p>

@@ -21,8 +21,9 @@ export function contentSecurityPolicy({ supabaseUrl, dev }: Options): string {
   const supabase = supabaseUrl ? ` ${supabaseUrl} ${supabaseUrl.replace(/^http/, "ws")}` : "";
   return [
     "default-src 'self'",
-    // YouTube's IFrame API script loads its player script from the same host.
-    `script-src 'self' 'unsafe-inline' https://www.youtube.com${dev ? " 'unsafe-eval'" : ""}`,
+    // YouTube's IFrame API script loads its player script from the same host. Vercel Web Analytics
+    // is served from /_vercel/insights in production and from its own host only in development.
+    `script-src 'self' 'unsafe-inline' https://www.youtube.com${dev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     // Thumbnails come from YouTube; the QR code is a data URL.
     "img-src 'self' data: blob: https://i.ytimg.com",

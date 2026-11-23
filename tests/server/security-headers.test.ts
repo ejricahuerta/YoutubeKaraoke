@@ -47,6 +47,13 @@ describe("contentSecurityPolicy", () => {
     expect(directive(contentSecurityPolicy({ supabaseUrl: undefined, dev: true }), "script-src")).toContain("'unsafe-eval'");
   });
 
+  it("allows Vercel's analytics debug script only in development; production serves it from the app's own origin", () => {
+    expect(directive(policy, "script-src")).not.toContain("https://va.vercel-scripts.com");
+    expect(directive(contentSecurityPolicy({ supabaseUrl: undefined, dev: true }), "script-src")).toContain(
+      "https://va.vercel-scripts.com",
+    );
+  });
+
   it("is one line", () => {
     expect(policy).not.toMatch(/\n/);
   });

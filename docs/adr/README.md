@@ -37,6 +37,7 @@ at that point. Later records are written when the decision is made.
 | [0024](0024-main-screen-microphone.md) | The main screen's microphone: echo, reverb, test mic | Accepted |
 | [0025](0025-sessions-last-an-hour.md) | Sessions last an hour at most, then a 15-minute wait | Accepted, amended by 0026 |
 | [0026](0026-server-only-session-start.md) | Signed guest cookie, a wait per network, and only the server starts sessions | Accepted |
+| [0027](0027-page-view-analytics.md) | Page views counted by Vercel Web Analytics, without session codes | Accepted |
 
 ## Template
 
