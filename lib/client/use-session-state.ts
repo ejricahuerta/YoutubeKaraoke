@@ -40,13 +40,18 @@ export function useSessionState(code: string, onActionFailed?: (message: string)
       if (res.status === 404) return setStatus("not_found");
       if (!res.ok) throw new Error(String(res.status));
       const body = (await res.json()) as SessionState;
-      // A database without migrations 0005 and 0007 leaves these out: nothing sung yet, nothing to warn about.
+      // A database without migrations 0005, 0007 and 0016 leaves these out: nothing sung yet, nothing to warn about.
       const next = {
         ...body,
         played: body.played ?? [],
         isRemote: body.isRemote ?? false,
+        takeTurns: body.takeTurns ?? true,
+        remote: body.remote ?? "unclaimed",
+        remoteName: body.remoteName ?? null,
+        mainScreenAway: body.mainScreenAway ?? false,
         hostAwaySeconds: body.hostAwaySeconds ?? null,
         closesInSeconds: body.closesInSeconds ?? null,
+        limitInSeconds: body.limitInSeconds ?? null,
       };
       setFailures(0);
       setState(next);

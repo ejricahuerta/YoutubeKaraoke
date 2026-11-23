@@ -23,6 +23,7 @@ export function SearchPanel({
   queue,
   played,
   onAdded,
+  autoFocus = false,
 }: {
   code: string;
   /** The singer name new songs are added under. */
@@ -34,6 +35,8 @@ export function SearchPanel({
   queue: QueueItem[];
   played: QueueItem[];
   onAdded: (video: SearchResult) => void;
+  /** Put the cursor in the search field at once, when the panel opens on request. */
+  autoFocus?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<SearchKind>("karaoke");
@@ -95,6 +98,7 @@ export function SearchPanel({
         <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
         <input
           type="search"
+          autoFocus={autoFocus}
           enterKeyHint="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

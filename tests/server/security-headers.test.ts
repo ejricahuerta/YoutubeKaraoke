@@ -9,8 +9,12 @@ describe("contentSecurityPolicy", () => {
 
   it("allows YouTube's player script, its frame and its thumbnails", () => {
     expect(directive(policy, "script-src")).toContain("https://www.youtube.com");
-    expect(directive(policy, "frame-src")).toContain("https://www.youtube.com");
+    expect(directive(policy, "frame-src")).toContain("https://www.youtube-nocookie.com");
     expect(directive(policy, "img-src")).toContain("https://i.ytimg.com");
+  });
+
+  it("frames only YouTube's privacy-enhanced player, so a regular youtube.com embed is reported", () => {
+    expect(directive(policy, "frame-src")).toBe("frame-src https://www.youtube-nocookie.com");
   });
 
   it("allows the QR code, which is a data URL", () => {
@@ -56,5 +60,13 @@ describe("securityHeaders", () => {
     expect(headers["X-Frame-Options"]).toBe("DENY");
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
+  });
+
+  it("lets the app's own pages use the microphone, for singing on the main screen, and nothing else", () => {
+    const headers = Object.fromEntries(securityHeaders({ supabaseUrl: undefined, dev: false }).map((h) => [h.key, h.value]));
+    const policy = headers["Permissions-Policy"];
+    expect(policy).toContain("microphone=(self)");
+    expect(policy).toContain("camera=()");
+    expect(policy).toContain("geolocation=()");
   });
 });

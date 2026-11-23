@@ -17,8 +17,11 @@ export const viewport: Viewport = { themeColor: "#0b0a10", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
-      <body>
+    // Browser extensions add attributes to <html> (Scribe's data-scribe-recorder-ready) and
+    // <body> (Grammarly's data-gr-*) before React hydrates. This silences attribute mismatches
+    // on these two tags only; their children are still checked.
+    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         {children}
         <Analytics />
       </body>

@@ -31,8 +31,13 @@ export function session(overrides: Partial<SessionState> = {}): SessionState {
     queue: [song(2, "Leo", "Dancing Queen (Karaoke Version)", true), song(3, "Sam", "Mr. Brightside - Karaoke"), song(4, "Ana", "Valerie")],
     played: [],
     isRemote: false,
+    takeTurns: true,
+    remote: "taken",
+    remoteName: null,
+    mainScreenAway: false,
     hostAwaySeconds: 10,
     closesInSeconds: 890,
+    limitInSeconds: 3000,
     ...overrides,
   };
 }
@@ -91,4 +96,18 @@ export async function mockSession(page: Page, state: SessionState | null) {
 /** Skips the name form by setting the singer name the way the app stores it. */
 export async function setSingerName(page: Page, name: string) {
   await page.addInitScript((value) => window.localStorage.setItem("karaoke:name", value), name);
+}
+
+/** Answers GET for another session code: its state, or 404 when null. For tests about more than one room. */
+export async function mockOtherRoom(page: Page, code: string, state: SessionState | null) {
+  await page.route(`**/api/sessions/${code}`, (route) =>
+    state ? route.fulfill({ json: { ...state, code } }) : route.fulfill({ status: 404, json: { ok: false, error: "not_found" } }),
+  );
+}
+
+/** Puts this browser in a room the way the guest screen does, before any page loads. */
+export async function setRoom(page: Page, code: string) {
+  await page.addInitScript((value) => {
+    if (!window.localStorage.getItem("karaoke:room")) window.localStorage.setItem("karaoke:room", value);
+  }, code);
 }

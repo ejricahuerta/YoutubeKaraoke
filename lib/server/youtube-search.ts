@@ -62,7 +62,29 @@ export function mapVideoNode(raw: unknown): SearchResult | null {
   };
 }
 
-const embeddable = new Map<string, boolean>();
+type OembedAnswer = { embeddable: boolean; title: string | null };
+const oembed = new Map<string, OembedAnswer>();
+
+/** What YouTube's oEmbed endpoint says about a video, remembered; null when it could not be asked. */
+async function askOembed(videoId: string): Promise<OembedAnswer | null> {
+  const known = oembed.get(videoId);
+  if (known) return known;
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`,
+      { signal: AbortSignal.timeout(EMBED_CHECK_TIMEOUT_MS) },
+    );
+    const embeddable = res.status !== 401 && res.status !== 403 && res.status !== 404;
+    const body = embeddable ? await res.json().catch(() => null) : null;
+    const title = typeof body?.title === "string" ? body.title.trim() || null : null;
+    if (oembed.size > EMBED_CACHE_MAX_VIDEOS) oembed.clear();
+    const answer = { embeddable, title };
+    oembed.set(videoId, answer);
+    return answer;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Whether the video can play in an embedded player. Many karaoke channels turn
@@ -70,20 +92,16 @@ const embeddable = new Map<string, boolean>();
  * check itself fails we assume yes: the main screen skips unplayable videos anyway.
  */
 export async function isEmbeddable(videoId: string): Promise<boolean> {
-  const known = embeddable.get(videoId);
-  if (known !== undefined) return known;
-  try {
-    const res = await fetch(
-      `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`,
-      { signal: AbortSignal.timeout(EMBED_CHECK_TIMEOUT_MS) },
-    );
-    const ok = res.status !== 401 && res.status !== 403 && res.status !== 404;
-    if (embeddable.size > EMBED_CACHE_MAX_VIDEOS) embeddable.clear();
-    embeddable.set(videoId, ok);
-    return ok;
-  } catch {
-    return true;
-  }
+  return (await askOembed(videoId))?.embeddable ?? true;
+}
+
+/**
+ * YouTube's own title for a video, or null when it cannot play here, is gone, or YouTube
+ * could not be asked. For places anyone can see, where a title a browser sent cannot be trusted.
+ */
+export async function videoTitle(videoId: string): Promise<string | null> {
+  const answer = await askOembed(videoId);
+  return answer?.embeddable ? answer.title : null;
 }
 
 /** Videos for a query from keyless search, or from the official API when that fails and a key is set. */

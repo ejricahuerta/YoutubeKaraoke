@@ -17,4 +17,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Rules about permissions and queue behaviour belong in a new migration under
   `supabase/migrations` (never edit an applied one), with assertions in `supabase/tests`.
 - Write the failing test first. `npm run check` must pass before pushing;
-  `npm run test:db` too if you touched SQL, and `npm run test:e2e` if you touched a screen.
+  `npm run test:db` too if you touched SQL, `npm run test:e2e` if you touched a screen, and
+  `npm run test:integration` (needs Docker) if you touched SQL, a route or `lib/server/session-store.ts`.

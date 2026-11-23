@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { thumbnailUrl } from "@/lib/domain/video";
-import { isUuid, parseAddSongRequest, parseMoveRequest, parsePlaybackRequest } from "@/lib/server/request-parsers";
+import { isUuid, parseAddSongRequest, parseMoveRequest, parsePlayNowRequest, parseSettingsRequest, parsePlaybackRequest } from "@/lib/server/request-parsers";
 
 const ITEM_ID = "3f2c1b7e-8a4d-4e6f-9b0a-1c2d3e4f5a6b";
 
@@ -69,6 +69,17 @@ describe("parsePlaybackRequest", () => {
   });
 });
 
+describe("parsePlayNowRequest", () => {
+  it("reads the song being interrupted", () => {
+    expect(parsePlayNowRequest({ expectedItemId: ITEM_ID })).toEqual({ expectedItemId: ITEM_ID });
+  });
+
+  it("treats a missing or malformed one as nothing playing, which the database calls stale if wrong", () => {
+    expect(parsePlayNowRequest({})).toEqual({ expectedItemId: null });
+    expect(parsePlayNowRequest({ expectedItemId: "abc" })).toEqual({ expectedItemId: null });
+  });
+});
+
 describe("parseMoveRequest", () => {
   it("reads the row to move after, or the top of the queue", () => {
     expect(parseMoveRequest({ afterId: ITEM_ID })).toEqual({ afterId: ITEM_ID });
@@ -79,5 +90,16 @@ describe("parseMoveRequest", () => {
   it("rejects an id that is not a UUID", () => {
     expect(parseMoveRequest({ afterId: "top" })).toBeNull();
     expect(parseMoveRequest({ afterId: 3 })).toBeNull();
+  });
+});
+
+describe("parseSettingsRequest", () => {
+  it("reads whether singers take turns", () => {
+    expect(parseSettingsRequest({ takeTurns: true })).toEqual({ takeTurns: true });
+    expect(parseSettingsRequest({ takeTurns: false })).toEqual({ takeTurns: false });
+  });
+
+  it("rejects anything but true or false", () => {
+    for (const takeTurns of ["true", 1, null, undefined]) expect(parseSettingsRequest({ takeTurns })).toBeNull();
   });
 });

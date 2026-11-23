@@ -11,6 +11,8 @@ const RESULT_STATUS: Record<MutationResult, number> = {
   queue_full: 409,
   guest_limit: 409,
   archived: 410,
+  main_screen_away: 409,
+  main_screen_here: 409,
 };
 
 /** The HTTP answer for what a database function returned. */

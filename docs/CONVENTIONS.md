@@ -85,8 +85,11 @@ Work test-first:
   Find things the way a person would, by role and visible text, never by class
   name or test id, and assert on what the page sent (`api.sent`) rather than on
   internals. Freeze time with `page.clock` instead of waiting.
+- A new route, or a new call from `lib/server/session-store.ts` to the database,
+  comes with a step in `tests/integration`, which runs the built app against a real
+  database (`npm run test:integration`, needs Docker).
 - `npm run check` (lint, types, unit tests) must pass before pushing. CI also runs
-  the build, the browser tests and the database tests.
+  the build, the browser tests, the database tests and the integration tests.
 
 ## Database migrations
 

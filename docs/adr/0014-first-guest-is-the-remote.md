@@ -1,6 +1,6 @@
 # 0014. The first guest to join is the remote
 
-- Status: Accepted
+- Status: Accepted, amended by 0020 (the remote can be freed and taken by another phone)
 - Date: 2026-11-22
 - Amends: 0004 (one browser holds host rights), 0007 (phones are only ever guests)
 
@@ -38,8 +38,8 @@ QR code; the owner asked for something simpler.
 - A guest's phone is a phone (0007 still sends phones to the guest screen); the remote
   only adds controls to that screen.
 - `playback` and `move_item` gained a signature with `p_guest_id`. The old signatures
-  still exist, host only, so the previous app kept working during the rollout. They can
-  be dropped once nothing calls them.
+  stayed, host only, so the previous app kept working during the rollout; migration
+  0011 dropped them.
 
 ## Revisit when
 - The wrong person ends up as the remote at real parties: add a way for the main screen

@@ -3,12 +3,13 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { readStorage, STORAGE_KEYS, writeStorage } from "@/lib/client/browser-hooks";
 import { resumePosition } from "@/lib/domain/playback";
-import { thumbnailUrl } from "@/lib/domain/video";
+import { thumbnailUrl, YOUTUBE_PLAYER_HOST } from "@/lib/domain/video";
 import { PlayIcon } from "../Icons";
 
 /**
- * The main screen's video: YouTube's IFrame player with its own controls turned off
- * (docs/adr/0005). Play, pause, seek and volume come from the parent through props and `ref`.
+ * The main screen's video: YouTube's IFrame player, in privacy-enhanced mode, with its own
+ * controls turned off (docs/adr/0018). Play, pause, seek and volume come from the parent
+ * through props and `ref`.
  */
 
 // Minimal typing for the parts of the YouTube IFrame Player API we use.
@@ -31,6 +32,8 @@ type YTNamespace = {
   Player: new (
     el: HTMLElement,
     opts: {
+      /** The origin the player's iframe is loaded from. */
+      host: string;
       width: string;
       height: string;
       playerVars: Record<string, number | string>;
@@ -119,6 +122,10 @@ export function Player({
   ref?: Ref<PlayerHandle>;
 }) {
   const mountRef = useRef<HTMLDivElement>(null);
+  /**
+   * Set only once YouTube says the player is ready: before `onReady` the object exists but its
+   * methods do not, so anything that finds a player here can call them.
+   */
   const playerRef = useRef<YTPlayer | null>(null);
   const [ready, setReady] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -145,13 +152,16 @@ export function Player({
   useEffect(() => {
     let cancelled = false;
     let pauseTimer: ReturnType<typeof setTimeout> | undefined;
+    let player: YTPlayer | undefined;
     const el = document.createElement("div");
     mountRef.current?.appendChild(el);
 
     loadApi()
       .then((YT) => {
         if (cancelled) return;
-        playerRef.current = new YT.Player(el, {
+        player = new YT.Player(el, {
+          // Privacy-enhanced mode: no YouTube cookies before a video plays (docs/adr/0018).
+          host: YOUTUBE_PLAYER_HOST,
           width: "100%",
           height: "100%",
           // controls/disablekb/fs off: the app provides its own transport controls.
@@ -161,6 +171,8 @@ export function Player({
           },
           events: {
             onReady: (e) => {
+              if (cancelled) return;
+              playerRef.current = e.target;
               e.target.setVolume(latest.current.volume);
               setReady(true);
             },
@@ -193,8 +205,8 @@ export function Player({
     return () => {
       cancelled = true;
       clearTimeout(pauseTimer);
-      playerRef.current?.destroy();
       playerRef.current = null;
+      player?.destroy();
       el.remove();
     };
   }, []);

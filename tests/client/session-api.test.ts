@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { addSong, endSession, moveSong, removeSong, searchSongs, sendPlayback, sessionStateUrl } from "@/lib/client/session-api";
+import { addSong, endSession, fetchRecentSongs, moveSong, playSongNow, removeSong, searchSongs, sendPlayback, sessionStateUrl } from "@/lib/client/session-api";
 
 const video = { videoId: "dQw4w9WgXcQ", title: "Song", channel: "Sing King", thumbnailUrl: "u", durationSeconds: 200 };
 const ITEM_ID = "3f2c1b7e-8a4d-4e6f-9b0a-1c2d3e4f5a6b";
@@ -37,6 +37,16 @@ describe("session mutations", () => {
     const mock = stubFetch(200, { ok: true, result: "stale" });
     expect(await sendPlayback("ABC234", "next", ITEM_ID)).toBe("stale");
     expect(sent(mock)).toEqual({ url: "/api/sessions/ABC234/playback", method: "POST", body: { action: "next", expectedItemId: ITEM_ID } });
+  });
+
+  it("plays a picked song now, naming the song it interrupts", async () => {
+    const mock = stubFetch(200, { ok: true, result: "ok" });
+    expect(await playSongNow("ABC234", ITEM_ID, "00000000-0000-4000-8000-000000000001")).toBe("ok");
+    expect(sent(mock)).toEqual({
+      url: `/api/sessions/ABC234/queue/${ITEM_ID}`,
+      method: "POST",
+      body: { expectedItemId: "00000000-0000-4000-8000-000000000001" },
+    });
   });
 
   it("ends the session", async () => {
@@ -82,5 +92,22 @@ describe("searchSongs", () => {
 describe("sessionStateUrl", () => {
   it("is the session's API address", () => {
     expect(sessionStateUrl("ABC234")).toBe("/api/sessions/ABC234");
+  });
+});
+
+describe("fetchRecentSongs", () => {
+  const songs = [{ videoId: "dQw4w9WgXcQ", title: "Valerie" }];
+
+  it("returns the songs sung recently", async () => {
+    const mock = stubFetch(200, { songs });
+    expect(await fetchRecentSongs()).toEqual(songs);
+    expect(sent(mock).url).toBe("/api/recent-songs");
+  });
+
+  it("returns nothing when they cannot be fetched", async () => {
+    stubFetch(500, { ok: false, error: "server_error" });
+    expect(await fetchRecentSongs()).toEqual([]);
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("offline"); }));
+    expect(await fetchRecentSongs()).toEqual([]);
   });
 });

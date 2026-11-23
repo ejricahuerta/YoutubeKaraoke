@@ -34,9 +34,27 @@ export function parsePlaybackRequest(body: Body): { action: PlaybackAction; expe
   return { action: body.action as PlaybackAction, expectedItemId: isUuid(body.expectedItemId) ? body.expectedItemId : null };
 }
 
+/**
+ * `expectedItemId` is the song the caller believes is being sung, which playing a picked song
+ * ends. Missing or malformed reads as nothing playing; the database answers stale if that is wrong.
+ */
+export function parsePlayNowRequest(body: Body): { expectedItemId: string | null } {
+  return { expectedItemId: isUuid(body.expectedItemId) ? body.expectedItemId : null };
+}
+
 /** `afterId` is the queue item to move after; null or missing means the top of the queue. */
 export function parseMoveRequest(body: Body): { afterId: string | null } | null {
   const afterId = body.afterId ?? null;
   if (afterId !== null && !isUuid(afterId)) return null;
   return { afterId };
+}
+
+/** The secret from a "move the main screen" link: base64url, as createHostToken makes it. */
+export function parseTakeOverRequest(body: Body): { token: string } | null {
+  return typeof body.token === "string" && /^[A-Za-z0-9_-]{20,200}$/.test(body.token) ? { token: body.token } : null;
+}
+
+/** The main screen's settings for a session: for now, whether singers take turns. */
+export function parseSettingsRequest(body: Body): { takeTurns: boolean } | null {
+  return typeof body.takeTurns === "boolean" ? { takeTurns: body.takeTurns } : null;
 }

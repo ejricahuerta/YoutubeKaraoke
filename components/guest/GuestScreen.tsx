@@ -1,42 +1,72 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState, type ReactNode } from "react";
-import { STORAGE_KEYS, useExpiringState, useStoredString, useTurnAlert } from "@/lib/client/browser-hooks";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { STORAGE_KEYS, useExpiringState, useOrigin, useStoredString, useTurnAlert } from "@/lib/client/browser-hooks";
 import { addSong, sendPlayback } from "@/lib/client/session-api";
+import { useRoom } from "@/lib/client/use-room";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { countSongs, formatWait } from "@/lib/domain/format";
 import { playingLabel } from "@/lib/domain/playback";
-import { failureMessage, isFailure, mainScreenGoneNotice } from "@/lib/domain/messages";
+import { failureMessage, isFailure, mainScreenGoneNotice, timeLimitNotice } from "@/lib/domain/messages";
 import { guestLineup, songOf, turnAlertKey, waitSeconds } from "@/lib/domain/queue";
 import type { QueueItem, SearchResult } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
 import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
+import { EndedNote } from "../EndedNote";
 import { IconButton } from "../IconButton";
-import { MicIcon, NextIcon, QueueIcon, SearchIcon } from "../Icons";
+import { InviteIcon, MicIcon, NextIcon, QueueIcon, SearchIcon } from "../Icons";
 import { Logo } from "../Logo";
 import { QueuePanel } from "../QueuePanel";
 import { SearchPanel } from "../SearchPanel";
 import { SongRow } from "../SongRow";
 import { AddedToast } from "./AddedToast";
+import { InviteSheet } from "./InviteSheet";
 import { MySongs } from "./MySongs";
 import { NameForm } from "./NameForm";
+import { OtherRoomMessage } from "./OtherRoomMessage";
 import { RemoteBar } from "./RemoteBar";
 import { SungTonight } from "./SungTonight";
+import { TakeRemoteBar } from "./TakeRemoteBar";
 import { isTurnSoon, NextSongCard, TurnBanner } from "./TurnBanner";
 
 type Tab = "search" | "queue" | "mine";
 const TAB_TITLES: Record<Tab, string> = { search: "Find a song", queue: "Queue", mine: "My songs" };
 const NOTICE_MS = 6000;
 
-/** The phone view (/join/CODE): pick a name, search, add songs, and watch your place in line. */
+/**
+ * The phone view (/join/CODE). A browser is in one room at a time (lib/client/use-room):
+ * a tab on another room's link asks first, and loads nothing of this room until then,
+ * since loading it counts as joining.
+ */
 export function GuestScreen({ code }: { code: string }) {
+  const room = useRoom(code);
+  const router = useRouter();
+  if (room.status.kind === "checking") return <SessionLoadingMessage status="loading" />;
+  if (room.status.kind === "elsewhere") return <OtherRoomMessage room={room.status.room} code={code} onSwitch={room.switchHere} />;
+  return (
+    <GuestRoom
+      code={code}
+      onEnded={room.ended}
+      onLeave={() => {
+        room.leave();
+        router.push("/");
+      }}
+    />
+  );
+}
+
+/** Pick a name, search, add songs, and watch your place in line. */
+function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => void; onLeave: () => void }) {
   const [notice, setNotice] = useExpiringState<string>(NOTICE_MS);
   const { state, status, reconnecting, refresh, remove, move } = useSessionState(code, setNotice);
   const [name, setName] = useStoredString(STORAGE_KEYS.name);
   const [editingName, setEditingName] = useState(false);
   const [tab, setTab] = useState<Tab>("search");
+  const [inviting, setInviting] = useState(false);
+  const origin = useOrigin();
   /**
    * Video id of the song this guest just added, while its toast shows. It stays until
    * dismissed or replaced by the next add, so Undo has no time limit (WCAG 2.2.1).
@@ -75,9 +105,14 @@ export function GuestScreen({ code }: { code: string }) {
     [code, name, onAdded, setNotice],
   );
 
+  const isOver = status === "archived" || status === "not_found";
+  useEffect(() => {
+    if (isOver) onEnded();
+  }, [isOver, onEnded]);
+
   if (status === "archived") {
     return (
-      <CenteredMessage title="This session has ended">
+      <CenteredMessage title="This session has ended" aside={<EndedNote />}>
         Ask the host to start a new one, then scan its QR code.
       </CenteredMessage>
     );
@@ -101,13 +136,15 @@ export function GuestScreen({ code }: { code: string }) {
           setEditingName(false);
         }}
         onCancel={name ? () => setEditingName(false) : undefined}
+        onLeave={name ? onLeave : undefined}
       />
     );
   }
 
   const { current, queue } = state;
   const { onNow, queued, next, songCount } = lineup;
-  const awayNotice = mainScreenGoneNotice(state);
+  // The hour running out comes first: the main screen coming back would not put it off.
+  const endingNotice = timeLimitNotice(state) ?? mainScreenGoneNotice(state);
   const wait = (index: number) => formatWait(waitSeconds(current, queue, index));
   const turnBanner = <TurnBanner onNow={onNow} next={next} hasCurrent={!!current} />;
 
@@ -121,19 +158,22 @@ export function GuestScreen({ code }: { code: string }) {
     <div className="mx-auto flex h-dvh w-full max-w-xl flex-col">
       <header className="flex items-center gap-2.5 px-4 pb-3 pt-4">
         <Logo label={TAB_TITLES[tab]} />
+        <IconButton label="Invite a friend" onClick={() => setInviting(true)} className="ml-auto">
+          <InviteIcon />
+        </IconButton>
         <button
           type="button"
           onClick={() => setEditingName(true)}
           aria-label={`${name}, change name`}
-          className="ml-auto flex h-11 max-w-[45%] shrink-0 items-center gap-2 rounded-full bg-stage-200 pl-1.5 pr-3.5 text-sm font-semibold transition hover:bg-stage-300"
+          className=" flex h-11 max-w-[45%] shrink-0 items-center gap-2 rounded-full bg-stage-200 pl-1.5 pr-3.5 text-sm font-semibold transition hover:bg-stage-300"
         >
           <Avatar name={name} className="h-8 w-8 text-sm" />
           <span className="truncate">{name}</span>
         </button>
       </header>
 
-      {awayNotice ? (
-        <p role="status" className="mx-4 mb-2 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{awayNotice}</p>
+      {endingNotice ? (
+        <p role="status" className="mx-4 mb-2 rounded-row bg-notice-ground px-4 py-3 text-sm font-semibold text-notice">{endingNotice}</p>
       ) : null}
 
       {notice ? (
@@ -156,7 +196,7 @@ export function GuestScreen({ code }: { code: string }) {
               </p>
             ) : null}
             <div className="-mx-2">
-              {current ? <NowRow current={current} playing={state.isPlaying} onSkip={state.isRemote ? undefined : skipOwnSong} /> : null}
+              {current ? <NowRow current={current} playing={state.isPlaying} onSkip={state.isRemote || state.mainScreenAway ? undefined : skipOwnSong} /> : null}
               <QueuePanel
                 queue={queue}
                 canControl={state.isRemote}
@@ -189,7 +229,9 @@ export function GuestScreen({ code }: { code: string }) {
       ) : null}
 
       {state.isRemote ? (
-        <RemoteBar code={code} current={current} isPlaying={state.isPlaying} onDone={refresh} onFailed={setNotice} />
+        <RemoteBar code={code} current={current} isPlaying={state.isPlaying} mainScreenAway={state.mainScreenAway} onDone={refresh} onFailed={setNotice} />
+      ) : state.remote === "free" ? (
+        <TakeRemoteBar code={code} onDone={refresh} onFailed={setNotice} />
       ) : current && tab !== "queue" ? (
         <div className="mx-2 mb-2 flex items-center gap-2.5 rounded-row bg-stage-100 px-3 py-2">
           <Avatar name={current.addedBy} className="h-8 w-8 text-sm" />
@@ -199,9 +241,11 @@ export function GuestScreen({ code }: { code: string }) {
             </p>
             <p className="truncate text-sm font-semibold leading-5">{current.addedBy} · {displayTitle(current.title)}</p>
           </div>
-          {current.mine ? <SkipOwnSongButton onSkip={() => skipOwnSong(current.id)} /> : null}
+          {current.mine && !state.mainScreenAway ? <SkipOwnSongButton onSkip={() => skipOwnSong(current.id)} /> : null}
         </div>
       ) : null}
+
+      <InviteSheet code={code} joinUrl={origin ? `${origin}/join/${code}` : ""} open={inviting} onClose={() => setInviting(false)} />
 
       <nav aria-label="Sections" className="flex border-t border-line bg-stage-100 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5">
         {tabs.map(([id, label, icon]) => (

@@ -67,8 +67,9 @@ More detail, and the reasons behind each of these choices:
    builds on Vercel do this themselves; see `supabase/migrations/README.md`.
 2. In the Supabase dashboard, open Project Settings > API (Data API) and add
    `karaoke` to **Exposed schemas**.
-3. Copy `.env.example` to `.env.local` and fill in the project URL and
-   publishable (anon) key. No secret key is needed.
+3. Copy `.env.example` to `.env.local` and fill in the project URL, the
+   publishable (anon) key, a secret key (`SUPABASE_SECRET_KEY`, used only to start
+   sessions) and a random `SESSION_SECRET` (signs cookies). See the comments there.
 4. Run it:
 
    ```bash
@@ -80,10 +81,29 @@ More detail, and the reasons behind each of these choices:
    be able to reach the same address, so for a real party deploy it (below) or
    use your computer's LAN address.
 
+### Local database (Docker)
+
+To develop without a Supabase project, run the database in Docker instead of steps 1 to 3:
+
+```bash
+npm install
+npm run dev:db
+npm run dev
+```
+
+`npm run dev:db` starts Postgres, PostgREST and a `/rest/v1` proxy
+(`docker/compose.dev.yml`, ports 54429 and 54421), applies pending migrations and
+writes `.env.local` to point at it. Data is kept between runs; `npm run dev:db -- down`
+stops it and `npm run dev:db -- reset` deletes its data. It has no Realtime, so screens
+update through the 15 s poll and the browser logs a failed websocket.
+
 ## Deploy
 
-Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL` and
-`NEXT_PUBLIC_SUPABASE_ANON_KEY` in the project's environment variables.
+Deploy to Vercel (or any Node host) and set `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SECRET_KEY` and `SESSION_SECRET` in the
+project's environment variables (see `.env.example`). A Vercel production build stops
+before migrating if either secret is missing. Set them for Preview too, or sessions
+cannot be started on preview deployments.
 
 Optionally also set `YOUTUBE_API_KEY` (a YouTube Data API v3 key from Google Cloud).
 Search then falls back to YouTube's official API when the keyless search breaks; without
@@ -94,6 +114,7 @@ it, a broken keyless search means no search. See `docs/adr/0013`.
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Development server |
+| `npm run dev:db` | Local database in Docker for `npm run dev` (above) |
 | `npm run build` / `npm start` | Production build and server |
 | `npm run check` | Lint, types and unit tests: run before pushing |
 | `npm run lint` | ESLint, including the layer rules in `docs/ARCHITECTURE.md` |
@@ -101,6 +122,7 @@ it, a broken keyless search means no search. See `docs/adr/0013`.
 | `npm test` / `npm run test:watch` | Unit tests (Vitest) |
 | `npm run test:db` | Database function tests (needs a local Postgres, below) |
 | `npm run test:e2e` | Browser tests for the screens (first time: `npx playwright install chromium`) |
+| `npm run test:integration` | The built app against a real database and API, in Docker (below) |
 
 ### Database tests
 
@@ -112,6 +134,15 @@ it only accepts a local server:
 docker run --rm -d --name youoke-test-db -e POSTGRES_HOST_AUTH_METHOD=trust -p 127.0.0.1:5432:5432 postgres:16
 TEST_DATABASE_URL=postgres://postgres@localhost:5432/postgres npm run test:db
 ```
+
+### Integration tests
+
+`npm run test:integration` runs the app the way production does, against a real
+database: Postgres, PostgREST (what Supabase serves the database with) and an nginx
+proxy start in Docker (`docker/compose.test.yml`), the migrations are applied with the
+production runner, and `tests/integration` drives the built app over HTTP as a main
+screen and several phones. It needs Docker running and ports 3230, 54321 and 54329
+free, and cleans up after itself.
 
 CI runs all of the above on every pull request.
 

@@ -20,6 +20,11 @@ export default defineConfig({
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,
     // A closed local port: the pages only need the variables to exist, and anything that does call the database fails at once.
-    env: { NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:9", NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder" },
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:9",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder",
+      SUPABASE_SECRET_KEY: "placeholder",
+      SESSION_SECRET: "e2e-only-not-a-real-secret-0123456789abcdef",
+    },
   },
 });

@@ -62,13 +62,18 @@ Records: [0001 Next.js monolith](adr/0001-nextjs-monolith.md),
 app/                    Routes only: pages and API route handlers
   api/search            GET   search YouTube (needs a live session code)
   api/csp-report        POST  browsers report what the Content-Security-Policy would block
+  api/recent-songs      GET   songs sung lately in any session, for the start page (titles from YouTube)
   api/sessions          POST  start a session
-  api/sessions/[code]   GET   session state, DELETE end it (host)
+  api/sessions/[code]   GET   session state, PATCH settings (host), DELETE end it (host)
+    remote              POST  take a freed remote, DELETE free it (host or remote)
+    handoff             POST  a one-time link to move an away main screen (remote)
+    host                POST  open that link: this browser becomes the main screen
     playback            POST  play | pause | next        (host)
     queue               POST  add a song
-    queue/[id]          DELETE remove, PATCH move        (PATCH: host)
+    queue/[id]          DELETE remove, PATCH move, POST play it now  (PATCH, POST: host)
   s/[code]              Host screen
   join/[code]           Guest screen
+  (legal)/              Terms, privacy policy and cookie policy: /terms, /privacy, /cookies
 components/             React components shared by both screens
   host/                 Only on the host screen
   guest/                Only on the guest screen
@@ -112,36 +117,50 @@ Record: [0011 layered lib](adr/0011-layered-lib.md).
 | A new API call | Route handler in `app/api`, body parser in `lib/server/request-parsers.ts`, database call in `lib/server/session-store.ts`, browser call in `lib/client/session-api.ts` |
 | Anything that touches YouTube search | `lib/server/youtube-search.ts` only |
 | A piece of one screen | `components/host` or `components/guest` |
-| A value kept in the browser | A key in `STORAGE_KEYS` (`lib/client/browser-hooks.ts`) |
+| A value kept in the browser | A key in `STORAGE_KEYS` (`lib/client/browser-hooks.ts`), and a row in `BROWSER_STORAGE` (`lib/domain/legal.ts`) for the cookie policy |
+| A cookie, a new kind of personal data, or a new service that sees visitors' requests | The matching section of `app/(legal)`, and a new `LEGAL_UPDATED_ON` in `lib/domain/legal.ts` |
 
 ## Data
 
 Two tables in the `karaoke` schema:
 
-- `sessions`: `code`, `host_token_hash`, `current_item_id`, `is_playing`,
+- `sessions`: `code`, `host_token_hash`, `started_by` (guest id of the browser that started
+  it), `started_from` (keyed hash of its network, [0026](adr/0026-server-only-session-start.md)), `current_item_id`, `is_playing`, `created_at` (the session's hour counts from it),
   `last_active_at`, `host_seen_at` (last poll from the main screen), `archived_at`.
 - `queue_items`: one row per added song with `status` `queued` → `playing` → `played`
   (with `played_at` set when it finishes),
-  a floating-point `position` for ordering, the singer's name and the adder's guest id.
+  a floating-point `position` for ordering, the singer's name, the adder's guest id, and
+  `singer`, who takes turns (`guest:<id>`, or `name:<name>` for songs the main screen adds).
+  With 3 or more singers, `add_item` places each new song by turns (ADR 0016), unless the
+  session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The seven public functions are the whole API of the database:
+policies. The fifteen public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
-| `create_session(code, host_hash)` | `POST /api/sessions` | `true`, or `false` if the code is taken |
+| `start_session(code, host_hash, guest_id, network)` | `POST /api/sessions`, with the secret key: the only function the publishable key cannot call ([0026](adr/0026-server-only-session-start.md)) | `{ result }`: `ok`, `taken` (the code is in use), `invalid`, or `wait` with `waitSeconds` after an hour-long session from this browser or network ([0025](adr/0025-sessions-last-an-hour.md)) |
+| `create_session(code, host_hash)` | nothing since migration 0017; kept for the app live while it deploys, to be dropped | `true`, or `false` if the code is taken |
 | `get_state(code, host_hash, guest_id)` | `GET /api/sessions/[code]`, search, start page | The `SessionState` JSON (current song, queue, and the last 50 sung), or null |
 | `add_item(...)` | `POST .../queue` | a result code |
 | `remove_item(code, item_id, host_hash, guest_id)` | `DELETE .../queue/[id]` | a result code |
-| `move_item(code, host_hash, item_id, after_id)` | `PATCH .../queue/[id]` | a result code |
-| `playback(code, host_hash, action, expected_item_id)` | `POST .../playback` | a result code |
+| `move_item(code, host_hash, item_id, after_id, guest_id)` | `PATCH .../queue/[id]` | a result code |
+| `playback(code, host_hash, action, expected_item_id, guest_id)` | `POST .../playback` | a result code |
+| `play_item(code, host_hash, item_id, expected_item_id, guest_id)` | `POST .../queue/[id]` | a result code |
+| `set_take_turns(code, host_hash, on)` | `PATCH /api/sessions/[code]` | a result code |
+| `free_remote(code, host_hash, guest_id)` | `DELETE .../remote` | a result code |
+| `claim_remote(code, guest_id)` | `POST .../remote` | a result code |
+| `start_handoff(code, guest_id, link_hash)` | `POST .../handoff` | a result code |
+| `take_over(code, link_hash, new_host_hash)` | `POST .../host` | a result code |
 | `end_session(code, host_hash)` | `DELETE /api/sessions/[code]` | a result code |
+| `recently_played()` | `GET /api/recent-songs` | Video ids of songs finished in the last day, in any session, newest first, at most 24 ([0021](adr/0021-recently-sung-songs-on-the-start-page.md)) |
 
 Result codes are `ok`, `stale`, `not_found`, `forbidden`, `invalid`, `queue_full`, `guest_limit`,
-`archived` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
+`archived`, `main_screen_away`, `main_screen_here` (`MutationResult` in `lib/domain/types.ts`). `lib/server/api.ts` maps
 each to an HTTP status and the body `{ ok, result }` or `{ ok: false, error }`.
 
-Session lifecycle: [0008](adr/0008-archive-on-access.md).
+Session lifecycle: [0008](adr/0008-archive-on-access.md), [0022](adr/0022-when-the-main-screen-is-away.md),
+[0025](adr/0025-sessions-last-an-hour.md).
 
 ## Who is who
 
@@ -149,16 +168,22 @@ There are no accounts ([0004](adr/0004-anonymous-cookie-identity.md)).
 
 - **Host**: the browser that started the session holds a random token in an httpOnly
   cookie `kh_<CODE>`. The database stores only its SHA-256 hash and compares hashes.
-- **Guest**: every browser gets a random id in the httpOnly cookie `kg`. It marks
+- **Guest**: every browser gets a random id in the httpOnly cookie `kg`, signed with
+  `SESSION_SECRET` so it cannot be edited ([0026](adr/0026-server-only-session-start.md)). It marks
   which queued songs are "mine" and may be removed by that browser.
 - **Singer name**: typed on the phone, kept in localStorage, sent with each add. It
   is a label, not an identity.
+- **Room**: a guest's browser is in one room at a time, kept in localStorage next to the
+  name, so all its tabs share both. A tab on another room's link asks before switching;
+  the start page sends the browser back to its room ([0017](adr/0017-one-room-per-browser.md)).
 
 Phones are always guests: the server sends a phone that opens a host URL to the
 guest view ([0007](adr/0007-phones-are-guests.md)). The exception is the **remote**:
 the first guest whose phone loads the session may play, pause, skip, remove and reorder
 like the main screen, from the guest view. Ending the session stays with the main
 screen. It is stored as `sessions.remote_guest_id` ([0014](adr/0014-first-guest-is-the-remote.md)).
+The main screen or the remote can free it; then the first phone to ask takes it
+([0020](adr/0020-hand-over-the-remote.md)).
 Any guest may also skip their own song while it is being sung.
 
 ## How a change reaches every screen
@@ -175,9 +200,12 @@ playing in that browser.
 
 ## Playback
 
-Only the host screen plays video, through YouTube's IFrame player with YouTube's
-controls turned off and the app's own TV-sized controls in their place
-([0005](adr/0005-youtube-iframe-player.md)). The screen is drawn on a 1920 × 1080
+Only the host screen plays video, through YouTube's IFrame player in privacy-enhanced
+mode (`youtube-nocookie.com`), with YouTube's controls turned off and the app's own
+TV-sized controls in their place ([0018](adr/0018-privacy-enhanced-youtube-player.md),
+which supersedes [0005](adr/0005-youtube-iframe-player.md)). Four buttons sit under the
+video and the rest is in a Settings menu; playing a picked song and ending the session
+both ask first ([0023](adr/0023-main-screen-controls.md)). The screen is drawn on a 1920 × 1080
 grid that scales with the window ([0009](adr/0009-tv-scale-grid.md)). Search runs on
 the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 
@@ -190,6 +218,8 @@ the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 | Waiting songs per guest | 3, only once 3 or more people have songs on the list; never for the main screen | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Singer name | 40 chars | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Search query | 120 chars | `lib/domain/video.ts` |
+| Session length | 1 hour from its start, whatever is happening | `max_length()` (used by `closes_at`, `get_state`) |
+| Wait before the same browser or network starts again, after a session that ran its full hour | 15 min | `restart_after()` (used by `start_session`) |
 | Inactivity before archive | 15 min | `idle_limit()` (used by `check_archived`, `cleanup`, `get_state`) |
 | Archive kept for | 24 h | `cleanup` |
 | Requests per minute | search 40/IP, start 10/IP, add 30/guest | `lib/server/rate-limit.ts` ([0010](adr/0010-in-memory-limits-and-caches.md)) |

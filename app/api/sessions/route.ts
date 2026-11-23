@@ -1,10 +1,12 @@
 import { clientIp, errorResponse } from "@/lib/server/api";
-import { createHostToken, hashHostToken, setHostCookie } from "@/lib/server/auth";
+import { createHostToken, getOrCreateGuestId, hashHostToken, hashNetwork, setHostCookie } from "@/lib/server/auth";
 import { isPhone } from "@/lib/server/device";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/server/rate-limit";
-import { createSession } from "@/lib/server/session-store";
+import { createSession, type StartedSession } from "@/lib/server/session-store";
 
 export const dynamic = "force-dynamic";
+
+const SECONDS_PER_MINUTE = 60;
 
 const seeOther = (location: string) => new Response(null, { status: 303, headers: { Location: location } });
 
@@ -18,14 +20,21 @@ export async function POST(req: Request) {
   if (!checkRateLimit(`create:${clientIp(req.headers)}`, RATE_LIMITS.createSession)) {
     return wantsJson ? errorResponse("rate_limited", 429) : seeOther("/?error=slow_down");
   }
-  let code: string;
+  let started: StartedSession;
+  const token = createHostToken();
   try {
-    const token = createHostToken();
-    code = await createSession(hashHostToken(token));
-    await setHostCookie(code, token);
+    started = await createSession(hashHostToken(token), await getOrCreateGuestId(), hashNetwork(clientIp(req.headers)));
+    if ("code" in started) await setHostCookie(started.code, token);
   } catch (err) {
     console.error("Could not start a session:", err);
     return wantsJson ? errorResponse("server_error", 500) : seeOther("/?error=unavailable");
   }
-  return wantsJson ? Response.json({ ok: true, code }) : seeOther(`/s/${code}`);
+  // This browser's or this network's last session ran its full hour: the next starts 15 minutes after (ADR 0025, 0026).
+  if ("waitSeconds" in started) {
+    const { waitSeconds } = started;
+    return wantsJson
+      ? Response.json({ ok: false, error: "too_soon", waitSeconds }, { status: 429 })
+      : seeOther(`/?error=too_soon&minutes=${Math.ceil(waitSeconds / SECONDS_PER_MINUTE)}`);
+  }
+  return wantsJson ? Response.json({ ok: true, code: started.code }) : seeOther(`/s/${started.code}`);
 }
