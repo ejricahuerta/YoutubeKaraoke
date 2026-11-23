@@ -20,8 +20,9 @@ declare
   v_state jsonb;
 begin
   -- Sessions
-  assert karaoke.create_session('TEST22', 'host-hash'), 'a new code creates a session';
-  assert not karaoke.create_session('TEST22', 'other-hash'), 'a taken code is refused, so the app retries with another';
+  assert karaoke.start_session('TEST22', 'host-hash', 'starter-TEST22', 'net-TEST22')->>'result' = 'ok', 'a new code creates a session';
+  assert karaoke.start_session('TEST22', 'other-hash', 'starter-2', 'net-2')->>'result' = 'taken',
+    'a taken code is refused, so the app retries with another';
   -- Someone else's phone joins first and becomes the remote (migration 0010), so the
   -- guests below are ordinary guests.
   perform karaoke.get_state('TEST22', null, 'first-phone');
@@ -100,7 +101,7 @@ end $$;
 -- everyone else wait. The host can switch it off.
 do $$
 begin
-  assert karaoke.create_session('TURN22', 'host-hash');
+  assert karaoke.start_session('TURN22', 'host-hash', 'starter-TURN22', 'net-TURN22')->>'result' = 'ok';
   assert (karaoke.get_state('TURN22', null, null)->>'takeTurns')::boolean, 'taking turns is on for a new session';
 
   -- The example from issue #21. With one or two people there is nobody to keep waiting.
@@ -164,7 +165,7 @@ end $$;
 -- The queue is capped at 200 waiting songs.
 do $$
 begin
-  assert karaoke.create_session('FULL22', 'h');
+  assert karaoke.start_session('FULL22', 'h', 'starter-FULL22', 'net-FULL22')->>'result' = 'ok';
   for i in 1..201 loop
     assert pg_temp.add('FULL22', 'guest' || i, 'S' || i) = 'ok';
   end loop;
@@ -175,7 +176,7 @@ end $$;
 -- 3 people have songs on the list. With 1 or 2 people there is nobody to keep waiting.
 do $$
 begin
-  assert karaoke.create_session('CAP222', 'host-hash');
+  assert karaoke.start_session('CAP222', 'host-hash', 'starter-CAP222', 'net-CAP222')->>'result' = 'ok';
   assert pg_temp.add('CAP222', 'ana', 'A1') = 'ok';
   assert karaoke.get_state('CAP222', null, null)->'current'->>'title' = 'A1';
   for i in 2..5 loop
@@ -199,7 +200,7 @@ end $$;
 -- towards their 3.
 do $$
 begin
-  assert karaoke.create_session('CAP333', 'host-hash');
+  assert karaoke.start_session('CAP333', 'host-hash', 'starter-CAP333', 'net-CAP333')->>'result' = 'ok';
   assert pg_temp.add('CAP333', 'cy', 'C1') = 'ok';
   assert pg_temp.add('CAP333', 'ana', 'A1') = 'ok';
   assert pg_temp.add('CAP333', 'ana', 'A2') = 'ok';
@@ -220,7 +221,7 @@ end $$;
 -- even once enough people have songs on the list for it to apply to guests.
 do $$
 begin
-  assert karaoke.create_session('HOST22', 'host-hash');
+  assert karaoke.start_session('HOST22', 'host-hash', 'starter-HOST22', 'net-HOST22')->>'result' = 'ok';
   assert pg_temp.add('HOST22', 'ana', 'A1') = 'ok';
   assert pg_temp.add('HOST22', 'ben', 'B1') = 'ok';
   for i in 1..5 loop

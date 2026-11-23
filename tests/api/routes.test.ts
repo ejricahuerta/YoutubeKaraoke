@@ -311,14 +311,14 @@ describe("POST /api/sessions", () => {
   });
 
   it("sends a form post back to the start page when the database is down", async () => {
-    store.createSession.mockRejectedValue(new Error("create_session failed"));
+    store.createSession.mockRejectedValue(new Error("start_session failed"));
     const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, "x-forwarded-for": "198.51.100.5" }));
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toBe("/?error=unavailable");
   });
 
   it("answers a script with 500 JSON when the database is down", async () => {
-    store.createSession.mockRejectedValue(new Error("create_session failed"));
+    store.createSession.mockRejectedValue(new Error("start_session failed"));
     const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, accept: "application/json", "x-forwarded-for": "198.51.100.6" }));
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ ok: false, error: "server_error" });

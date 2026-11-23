@@ -6,7 +6,7 @@ declare
   v_a uuid;
   v_b uuid;
 begin
-  assert karaoke.create_session('PLAY22', 'host-hash');
+  assert karaoke.start_session('PLAY22', 'host-hash', 'starter-PLAY22', 'net-PLAY22')->>'result' = 'ok';
   perform karaoke.add_item('PLAY22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
   perform karaoke.add_item('PLAY22', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B', '', '', 200);
   select id into v_a from karaoke.queue_items where title = 'A';
@@ -44,7 +44,7 @@ declare
   v_state jsonb;
   v_ids uuid[];
 begin
-  assert karaoke.create_session('SUNG22', 'host-hash');
+  assert karaoke.start_session('SUNG22', 'host-hash', 'starter-SUNG22', 'net-SUNG22')->>'result' = 'ok';
   assert jsonb_array_length(karaoke.get_state('SUNG22', null, null)->'played') = 0, 'a new session has sung nothing';
   perform karaoke.add_item('SUNG22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', 'Chan', '', 200);
   perform karaoke.add_item('SUNG22', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B', 'Chan', '', 210);
@@ -89,7 +89,7 @@ declare
   v_d uuid;
   v_state jsonb;
 begin
-  assert karaoke.create_session('PICK22', 'host-hash');
+  assert karaoke.start_session('PICK22', 'host-hash', 'starter-PICK22', 'net-PICK22')->>'result' = 'ok';
   perform karaoke.get_state('PICK22', null, 'remo'); -- the first guest to look is the remote
   perform karaoke.add_item('PICK22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
   perform karaoke.add_item('PICK22', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B', '', '', 200);
@@ -121,7 +121,7 @@ begin
   assert karaoke.get_state('PICK22', null, null)->'current'->>'title' = 'D';
 
   -- Songs in other sessions are out of reach.
-  assert karaoke.create_session('OTHR22', 'other-hash');
+  assert karaoke.start_session('OTHR22', 'other-hash', 'starter-OTHR22', 'net-OTHR22')->>'result' = 'ok';
   perform karaoke.add_item('OTHR22', 'eve', 'Eve', 'dQw4w9WgXcQ', 'E', '', '', 200);
   perform karaoke.add_item('OTHR22', 'fay', 'Fay', 'dQw4w9WgXcQ', 'F', '', '', 200);
   assert karaoke.play_item('PICK22', 'host-hash', (select id from karaoke.queue_items where title = 'F'), v_d) = 'not_found';
