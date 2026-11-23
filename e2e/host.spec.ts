@@ -391,6 +391,39 @@ test("the main screen asks YouTube for its privacy-enhanced player, with YouTube
   });
 });
 
+test("the main screen waits for YouTube's player to be ready before asking where the song is", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.clock.install();
+  await mockSession(page, hosting());
+  // Like YouTube's real IFrame API, this player has no methods until just before onReady.
+  await page.route("https://www.youtube.com/iframe_api", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: `window.YT = { Player: function (el, options) { const player = this; window.finishLoadingPlayer = () => {
+        Object.assign(player, {
+          loadVideoById() {}, cueVideoById() {}, playVideo() {}, pauseVideo() {}, seekTo() {}, setVolume() {},
+          getCurrentTime() { return 42; }, getDuration() { return 180; }, getPlayerState() { return 1; }, destroy() {},
+        });
+        options.events.onReady({ data: 0, target: player });
+      }; } }; window.onYouTubeIframeAPIReady();`,
+    }),
+  );
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Start now" }).first().click();
+  await page.waitForFunction(() => "finishLoadingPlayer" in window);
+
+  // Still loading: several rounds of saving the position pass without an error.
+  await page.clock.fastForward(10_000);
+  expect(errors).toEqual([]);
+
+  // Once ready, the position is saved so a reload resumes the song.
+  await page.evaluate(() => (window as unknown as { finishLoadingPlayer(): void }).finishLoadingPlayer());
+  await page.clock.fastForward(4_000);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("karaoke:position"))).toContain('"seconds":42');
+  expect(errors).toEqual([]);
+});
+
 test("opening a move-the-main-screen link makes this screen the main screen", async ({ page }) => {
   const LINK_SECRET = "s".repeat(43);
   const api = await mockSession(page, session({ isHost: false }));
