@@ -15,7 +15,7 @@ import type { QueueItem, SearchResult } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
 import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
-import { TipNote } from "../TipNote";
+import { EndedNote } from "../EndedNote";
 import { IconButton } from "../IconButton";
 import { InviteIcon, MicIcon, NextIcon, QueueIcon, SearchIcon } from "../Icons";
 import { Logo } from "../Logo";
@@ -112,7 +112,7 @@ function GuestRoom({ code, onEnded, onLeave }: { code: string; onEnded: () => vo
 
   if (status === "archived") {
     return (
-      <CenteredMessage title="This session has ended" aside={<TipNote />}>
+      <CenteredMessage title="This session has ended" aside={<EndedNote />}>
         Ask the host to start a new one, then scan its QR code.
       </CenteredMessage>
     );

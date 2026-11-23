@@ -81,6 +81,7 @@ test("ended, unknown and malformed sessions each get their own message", async (
   await page.goto(`/join/${CODE}`);
   await expect(page.getByRole("heading", { name: "This session has ended" })).toBeVisible();
   await expect(page.getByText(/we accept tips by e-Transfer to pay@edmel\.dev/)).toBeVisible();
+  await expect(page.getByText(/Want to work together on a karaoke system\? Contact me@edmel\.dev/)).toBeVisible();
 
   api.state = null;
   await page.goto(`/join/${CODE}`);

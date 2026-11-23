@@ -21,8 +21,8 @@ export default function TermsPage() {
       <p>
         YouOke lets one screen play karaoke videos from YouTube while guests add songs from their phones. It is free, needs no
         account, and a session closes for good an hour after it started, or sooner: 15 minutes after the main screen was last
-        open, or after 30 minutes with nothing playing or queued. After a session runs its full hour, the browser that
-        started it can start a new one 15 minutes later. We may change, limit or stop any part of
+        open, or after 30 minutes with nothing playing or queued. After a session runs its full hour, a new one can be
+        started from the same browser or network 15 minutes later. We may change, limit or stop any part of
         YouOke at any time, with or without notice.
       </p>
 

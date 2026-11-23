@@ -13,17 +13,34 @@ export const VIDEO_ID = "dQw4w9WgXcQ";
 
 type Answer = { status: number; body: { ok?: boolean; result?: string; error?: string; code?: string; waitSeconds?: number } };
 
+let lastAddress = 0;
+/** A documentation address of its own for each browser, unless it shares one, like a private window. */
+const nextAddress = () => `198.51.100.${++lastAddress}`;
+
 export class Browser {
   private cookies = new Map<string, string>();
 
-  private constructor(private readonly userAgent: string) {}
+  private constructor(
+    private readonly userAgent: string,
+    /** The address the app sees, as Vercel's proxy would report it. */
+    readonly ip: string,
+  ) {}
 
-  static screen() {
-    return new Browser(DESKTOP);
+  static screen(ip = nextAddress()) {
+    return new Browser(DESKTOP, ip);
   }
 
-  static phone() {
-    return new Browser(PHONE);
+  static phone(ip = nextAddress()) {
+    return new Browser(PHONE, ip);
+  }
+
+  /** A cookie as this browser holds it, to read or to tamper with. */
+  cookie(name: string) {
+    return this.cookies.get(name);
+  }
+
+  setCookie(name: string, value: string) {
+    this.cookies.set(name, value);
   }
 
   async request(method: string, path: string, body?: unknown): Promise<Response> {
@@ -32,6 +49,7 @@ export class Browser {
       redirect: "manual",
       headers: {
         "user-agent": this.userAgent,
+        "x-forwarded-for": this.ip,
         accept: "application/json",
         ...(body === undefined ? {} : { "content-type": "application/json" }),
         ...(this.cookies.size ? { cookie: [...this.cookies].map(([k, v]) => `${k}=${v}`).join("; ") } : {}),

@@ -1,6 +1,6 @@
 # 0025. Sessions last an hour at most, then a 15-minute wait
 
-- Status: Accepted
+- Status: Accepted, amended by 0026 (signed cookie, the wait per network too, only the server starts sessions)
 - Date: 2026-11-23
 - Amends: 0008 (sessions archive when idle), 0022 (when the main screen is away)
 
@@ -32,7 +32,8 @@ most.
   start page says how many minutes. A session that ended early, from the main screen or for
   being idle, means no wait. Other browsers are never held up.
 - When a session has ended, the main screen and the phones say tips are welcome by
-  e-Transfer (the address is `OPERATOR.tipEmail` in `lib/domain/legal.ts`).
+  e-Transfer, and to get in touch about a karaoke system (`OPERATOR.tipEmail` and
+  `OPERATOR.email` in `lib/domain/legal.ts`).
 
 ## Why
 - The wait keeps the hour meaningful (a new session cannot simply follow the old one at
@@ -53,6 +54,7 @@ most.
   15 minutes before starting another (Terms, Privacy Policy, Cookie Policy for `kg`).
 - The wait is easy to get round: a private window, cleared cookies, another browser, or
   ending the session from the main screen just before the hour. It is a nudge, not a lock.
+  (0026 closes the first three, and calling the database directly.)
 - A session archived late (nobody touched it, and cleanup had not run, when it would have
   ended for being idle) can look as if it ran its full hour, making its browser wait up to
   15 minutes it should not have.

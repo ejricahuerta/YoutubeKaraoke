@@ -153,8 +153,25 @@ describe("an hour at most", () => {
     expect(body.waitSeconds).toBeGreaterThan(770);
     expect(body.waitSeconds).toBeLessThanOrEqual(780);
     expect((await Browser.screen().tryStartSession()).status).toBe(200);
+    expect((await Browser.screen(tv.ip).tryStartSession()).body.error, "a private window on the same network").toBe("too_soon");
 
     await sessionStarted(party, 76 * 60);
     expect((await tv.tryStartSession()).status).toBe(200);
+  });
+});
+
+describe("cookies a browser changes", () => {
+  it("are not trusted: an edited guest cookie is a stranger, and gets a fresh id", async () => {
+    const tv = Browser.screen();
+    const party = await tv.startSession();
+    const dee = Browser.phone();
+    expect((await dee.add(party, "D1", "Dee")).status).toBe(200);
+    const signed = dee.cookie("kg")!;
+    expect(signed).toMatch(/^[0-9a-f-]{36}\.[A-Za-z0-9_-]{43}$/);
+
+    // Keep the signature, change the id: someone else's id would need its own signature.
+    dee.setCookie("kg", `00000000-0000-4000-8000-000000000000.${signed.split(".")[1]}`);
+    expect((await dee.state(party)).current).toMatchObject({ title: "D1", mine: false });
+    expect(dee.cookie("kg")).not.toBe(signed);
   });
 });

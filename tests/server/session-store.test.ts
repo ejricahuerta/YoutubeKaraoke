@@ -2,14 +2,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeSessionCode } from "@/lib/domain/session-code";
 
 const rpc = vi.fn();
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseServerClient: () => ({ rpc }) }));
+let secretClientUsed = false;
+vi.mock("@/lib/server/supabase", () => ({
+  getSupabaseServerClient: () => ({ rpc }),
+  // Only start_session needs the secret key (ADR 0026).
+  getSupabaseSecretClient: () => {
+    secretClientUsed = true;
+    return { rpc };
+  },
+}));
 
 const { addQueueItem, createSession, endSession, generateSessionCode, getRecentlyPlayedVideoIds, getSessionState, moveQueueItem, playQueueItem, updatePlayback } =
   await import("@/lib/server/session-store");
 
 const answer = (data: unknown) => ({ data, error: null });
 
-beforeEach(() => rpc.mockReset());
+beforeEach(() => {
+  rpc.mockReset();
+  secretClientUsed = false;
+});
 
 describe("generateSessionCode", () => {
   it("only makes codes that normalizeSessionCode accepts", () => {
@@ -23,33 +34,36 @@ describe("generateSessionCode", () => {
 describe("createSession", () => {
   it("returns the new code, for the browser that started it", async () => {
     rpc.mockResolvedValue(answer({ result: "ok" }));
-    const started = await createSession("hash", "guest");
+    const started = await createSession("hash", "guest", "net");
     expect(started).toEqual({ code: expect.any(String) });
-    expect(rpc).toHaveBeenCalledWith("start_session", { p_code: "code" in started && started.code, p_host_hash: "hash", p_guest_id: "guest" });
+    expect(rpc).toHaveBeenCalledWith("start_session", {
+      p_code: "code" in started && started.code, p_host_hash: "hash", p_guest_id: "guest", p_network: "net",
+    });
+    expect(secretClientUsed).toBe(true);
   });
 
   it("tries another code when one is taken", async () => {
     rpc.mockResolvedValueOnce(answer({ result: "taken" })).mockResolvedValueOnce(answer({ result: "ok" }));
-    const started = await createSession("hash", "guest");
+    const started = await createSession("hash", "guest", "net");
     expect(rpc).toHaveBeenCalledTimes(2);
     expect(started).toEqual({ code: rpc.mock.calls[1][1].p_code });
   });
 
   it("says how long to wait after this browser's session ran its full hour", async () => {
     rpc.mockResolvedValue(answer({ result: "wait", waitSeconds: 780 }));
-    expect(await createSession("hash", "guest")).toEqual({ waitSeconds: 780 });
+    expect(await createSession("hash", "guest", "net")).toEqual({ waitSeconds: 780 });
     expect(rpc).toHaveBeenCalledTimes(1);
   });
 
   it("gives up after a few collisions", async () => {
     rpc.mockResolvedValue(answer({ result: "taken" }));
-    await expect(createSession("hash", "guest")).rejects.toThrow("Could not allocate a session code");
+    await expect(createSession("hash", "guest", "net")).rejects.toThrow("Could not allocate a session code");
     expect(rpc).toHaveBeenCalledTimes(5);
   });
 
   it("fails on any other answer", async () => {
     rpc.mockResolvedValue(answer({ result: "invalid" }));
-    await expect(createSession("hash", "")).rejects.toThrow("start_session answered invalid");
+    await expect(createSession("hash", "", "net")).rejects.toThrow("start_session answered invalid");
   });
 });
 

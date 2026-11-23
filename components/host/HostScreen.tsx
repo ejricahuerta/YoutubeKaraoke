@@ -15,7 +15,7 @@ import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
 import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
-import { TipNote } from "../TipNote";
+import { EndedNote } from "../EndedNote";
 import { BackIcon, CheckIcon, EditIcon, MicIcon, PlayIcon, PlusIcon, PowerIcon } from "../Icons";
 import { Logo } from "../Logo";
 import { QueuePanel } from "../QueuePanel";
@@ -229,9 +229,9 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
 
   if (status === "not_found" || status === "archived") {
     return (
-      <CenteredMessage title="This session has ended" aside={<TipNote />}>
+      <CenteredMessage title="This session has ended" aside={<EndedNote />}>
         It was ended from the main screen, closed itself after 15 minutes without one, or reached its one-hour limit.
-        After a full hour, this screen can start a new one 15 minutes later.{" "}
+        After a full hour, a new one can start 15 minutes later.{" "}
         <Link href="/" className="font-semibold text-encore underline">Start a new session</Link>.
       </CenteredMessage>
     );

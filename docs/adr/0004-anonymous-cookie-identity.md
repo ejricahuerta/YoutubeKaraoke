@@ -1,6 +1,6 @@
 # 0004. No accounts: host token and guest id cookies
 
-- Status: Accepted
+- Status: Accepted, amended by 0026 (the guest cookie is signed)
 - Date: 2026-11-21 (recorded; in the code since commit `fa72792`)
 
 ## Context

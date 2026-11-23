@@ -5,12 +5,12 @@
 import { randomInt } from "node:crypto";
 import { SESSION_CODE_ALPHABET, SESSION_CODE_LENGTH } from "@/lib/domain/session-code";
 import type { MutationResult, PlaybackAction, SearchResult, SessionState } from "@/lib/domain/types";
-import { getSupabaseServerClient } from "./supabase";
+import { getSupabaseSecretClient, getSupabaseServerClient } from "./supabase";
 
 const CREATE_ATTEMPTS = 5;
 
-async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
-  const { data, error } = await getSupabaseServerClient().rpc(fn, args);
+async function rpc<T>(fn: string, args: Record<string, unknown>, client = getSupabaseServerClient()): Promise<T> {
+  const { data, error } = await client.rpc(fn, args);
   if (error) throw new Error(`${fn} failed: ${error.message}`);
   return data as T;
 }
@@ -28,11 +28,16 @@ export type StartedSession = { code: string } | { waitSeconds: number };
 
 type StartAnswer = { result: "ok" | "taken" | "invalid" } | { result: "wait"; waitSeconds: number };
 
-/** Creates a session with a fresh code for the browser with `guestId`; retries on the rare code collision. */
-export async function createSession(hostTokenHash: string, guestId: string): Promise<StartedSession> {
+/**
+ * Creates a session with a fresh code for the browser with `guestId` on the network `networkHash`
+ * (auth.ts hashNetwork); retries on the rare code collision. Only this call uses the secret key.
+ */
+export async function createSession(hostTokenHash: string, guestId: string, networkHash: string): Promise<StartedSession> {
+  const client = getSupabaseSecretClient();
   for (let attempt = 0; attempt < CREATE_ATTEMPTS; attempt++) {
     const code = generateSessionCode();
-    const answer = await rpc<StartAnswer>("start_session", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId });
+    const args = { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId, p_network: networkHash };
+    const answer = await rpc<StartAnswer>("start_session", args, client);
     if (answer.result === "ok") return { code };
     if (answer.result === "wait") return { waitSeconds: answer.waitSeconds };
     if (answer.result !== "taken") throw new Error(`start_session answered ${answer.result}`);

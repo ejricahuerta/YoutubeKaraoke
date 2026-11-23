@@ -54,8 +54,9 @@ export default function PrivacyPage() {
           only a scrambled (hashed) form of the host token.
         </li>
         <li>
-          Session activity: the session code, when it started and which guest id started it, when songs were added and
-          played, which guest id added each song, which phone
+          Session activity: the session code, when it started, which guest id started it and a scrambled (keyed hash) form
+          of the network address of the screen that started it, when songs were added and played, which guest id added
+          each song, which phone
           is the session&apos;s remote, and when the main screen last checked in. If the remote moves the main screen to
           another device, the one-time link it creates is stored only as a hash and expires after 10 minutes.
         </li>
@@ -90,8 +91,10 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>To keep YouOke safe and working</strong>: we use your IP address to limit how often a device can search or
-          start sessions, and our hosting provider records requests in logs we use to investigate errors and abuse. This is
-          in our legitimate interest in running a reliable, secure service.
+          start sessions, and our hosting provider records requests in logs we use to investigate errors and abuse. When a
+          screen starts a session, we keep a scrambled form of its network address so that, after a session runs its full
+          hour, the same network waits 15 minutes before starting another. This is in our legitimate interest in running a
+          reliable, secure and fair service.
         </li>
       </ul>
       <p>We do not use your information for advertising, profiling or automated decisions about you, and we do not sell it.</p>
@@ -132,6 +135,10 @@ export default function PrivacyPage() {
           24 hours later.
         </li>
         <li><strong>IP addresses for rate limits</strong>: held in server memory for about a minute, never saved to the database.</li>
+        <li>
+          <strong>The scrambled network address of the screen that started a session</strong>: kept with the session and
+          deleted with it. The address itself is never stored.
+        </li>
         <li><strong>Request logs and security reports</strong>: only for the limited time our hosting provider keeps them.</li>
         <li><strong>Cookies and local storage</strong>: for the times listed in the <Link href="/cookies">Cookie Policy</Link>, or until you clear them.</li>
       </ul>

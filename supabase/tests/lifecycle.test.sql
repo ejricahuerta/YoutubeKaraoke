@@ -152,16 +152,17 @@ begin
       'karaoke.set_take_turns(text, text, boolean)',
       'karaoke.claim_remote(text, text)', 'karaoke.free_remote(text, text, text)', 'karaoke.recently_played()',
       'karaoke.start_handoff(text, text, text)', 'karaoke.take_over(text, text, text)',
-      'karaoke.play_item(text, text, uuid, uuid, text)', 'karaoke.start_session(text, text, text)'
+      'karaoke.play_item(text, text, uuid, uuid, text)'
     ] loop
       assert has_function_privilege(v_role, v_fn, 'execute'), v_role || ' can call ' || v_fn;
     end loop;
 
-    -- Anything else in the schema is an internal helper, including ones added later.
+    -- Anything else in the schema is an internal helper, including ones added later, or, like
+    -- start_session (ADR 0026), only for the server's secret key.
     for v_fn in
       select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'karaoke'
-        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over', 'play_item', 'start_session')
+        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over', 'play_item')
     loop
       assert not has_function_privilege(v_role, v_fn, 'execute'), v_role || ' cannot call internal ' || v_fn;
     end loop;

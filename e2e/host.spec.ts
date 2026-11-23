@@ -457,7 +457,8 @@ test("an ended session says it may have reached its hour", async ({ page }) => {
   await mockSession(page, hosting({ archived: true, current: null, queue: [], closesInSeconds: null, limitInSeconds: null }));
   await page.goto(`/s/${CODE}`);
   await expect(page.getByText(/or reached its one-hour limit/)).toBeVisible();
-  await expect(page.getByText(/this screen can start a new one 15 minutes later/)).toBeVisible();
+  await expect(page.getByText(/After a full hour, a new one can start 15 minutes later/)).toBeVisible();
   await expect(page.getByText("we accept tips by e-Transfer to pay@edmel.dev")).toBeVisible();
+  await expect(page.getByRole("link", { name: "me@edmel.dev" })).toHaveAttribute("href", "mailto:me@edmel.dev");
 });
 

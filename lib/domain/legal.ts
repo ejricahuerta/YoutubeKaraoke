@@ -43,7 +43,7 @@ export const BROWSER_STORAGE: readonly BrowserStorageEntry[] = [
     name: "kg",
     kind: "cookie",
     purpose:
-      "A random guest id, so the app knows which songs in the queue you added and lets you remove them, and which sessions this browser started, so it waits 15 minutes after one runs its full hour before starting another.",
+      "A random guest id, signed so it cannot be changed, so the app knows which songs in the queue you added and lets you remove them, and which sessions this browser started, so it waits 15 minutes after one runs its full hour before starting another.",
     lifetimeSeconds: SECONDS_PER_DAY * DAYS_PER_YEAR,
   },
   {

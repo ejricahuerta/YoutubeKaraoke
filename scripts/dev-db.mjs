@@ -43,8 +43,15 @@ if (action !== "up") process.exit(0);
 
 // The anon key is a JWT signed with the secret, as on Supabase.
 const part = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
-const unsigned = `${part({ alg: "HS256", typ: "JWT" })}.${part({ role: "anon" })}`;
-const anonKey = `${unsigned}.${createHmac("sha256", secret).update(unsigned).digest("base64url")}`;
+const apiKey = (role) => {
+  const unsigned = `${part({ alg: "HS256", typ: "JWT" })}.${part({ role })}`;
+  return `${unsigned}.${createHmac("sha256", secret).update(unsigned).digest("base64url")}`;
+};
+const anonKey = apiKey("anon");
+// The secret key, which alone may start sessions (ADR 0026), and the secret that signs cookies,
+// derived from the machine's secret so they stay the same between runs.
+const secretKey = apiKey("service_role");
+const sessionSecret = createHmac("sha256", secret).update("session-secret").digest("hex");
 
 console.log("• Starting Postgres, PostgREST and the API proxy");
 run("docker", [...compose, "up", "-d", "--wait", "--quiet-pull"], { DEV_DB_PORT: DB_PORT, DEV_API_PORT: API_PORT });
@@ -62,11 +69,14 @@ if (existsSync(ENV_LOCAL) && !readFileSync(ENV_LOCAL, "utf8").includes(url)) {
   console.log("• .env.local exists and points elsewhere; left as is. Local values:");
   console.log(`  NEXT_PUBLIC_SUPABASE_URL=${url}`);
   console.log(`  NEXT_PUBLIC_SUPABASE_ANON_KEY=${anonKey}`);
+  console.log(`  SUPABASE_SECRET_KEY=${secretKey}`);
+  console.log(`  SESSION_SECRET=${sessionSecret}`);
 } else {
   writeFileSync(
     ENV_LOCAL,
     `# Local Docker database from scripts/dev-db.mjs. Not the production project.\n` +
-      `NEXT_PUBLIC_SUPABASE_URL=${url}\nNEXT_PUBLIC_SUPABASE_ANON_KEY=${anonKey}\n`,
+      `NEXT_PUBLIC_SUPABASE_URL=${url}\nNEXT_PUBLIC_SUPABASE_ANON_KEY=${anonKey}\n` +
+      `SUPABASE_SECRET_KEY=${secretKey}\nSESSION_SECRET=${sessionSecret}\n`,
   );
   console.log("• Wrote .env.local");
 }

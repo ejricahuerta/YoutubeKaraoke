@@ -1,5 +1,5 @@
 import { clientIp, errorResponse } from "@/lib/server/api";
-import { createHostToken, getOrCreateGuestId, hashHostToken, setHostCookie } from "@/lib/server/auth";
+import { createHostToken, getOrCreateGuestId, hashHostToken, hashNetwork, setHostCookie } from "@/lib/server/auth";
 import { isPhone } from "@/lib/server/device";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/server/rate-limit";
 import { createSession, type StartedSession } from "@/lib/server/session-store";
@@ -23,13 +23,13 @@ export async function POST(req: Request) {
   let started: StartedSession;
   const token = createHostToken();
   try {
-    started = await createSession(hashHostToken(token), await getOrCreateGuestId());
+    started = await createSession(hashHostToken(token), await getOrCreateGuestId(), hashNetwork(clientIp(req.headers)));
     if ("code" in started) await setHostCookie(started.code, token);
   } catch (err) {
     console.error("Could not start a session:", err);
     return wantsJson ? errorResponse("server_error", 500) : seeOther("/?error=unavailable");
   }
-  // This browser's last session ran its full hour: it starts the next one 15 minutes after (ADR 0025).
+  // This browser's or this network's last session ran its full hour: the next starts 15 minutes after (ADR 0025, 0026).
   if ("waitSeconds" in started) {
     const { waitSeconds } = started;
     return wantsJson

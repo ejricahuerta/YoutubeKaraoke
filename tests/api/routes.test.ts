@@ -25,6 +25,7 @@ vi.mock("@/lib/server/auth", () => ({
   getOrCreateGuestId: async () => "guest-1",
   createHostToken: () => "token",
   hashHostToken: (token: string) => `hash(${token})`,
+  hashNetwork: (ip: string) => `net(${ip})`,
   setHostCookie,
   clearHostCookie,
 }));
@@ -263,7 +264,7 @@ describe("POST /api/sessions", () => {
     const res = await sessionsRoute.POST(json("POST", undefined, { ...desktop, "x-forwarded-for": "198.51.100.1" }));
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toBe("/s/ABC234");
-    expect(store.createSession).toHaveBeenCalledWith("hash(token)", "guest-1");
+    expect(store.createSession).toHaveBeenCalledWith("hash(token)", "guest-1", "net(198.51.100.1)");
   });
 
   it("sends a browser whose last session ran its full hour back to wait, saying for how long", async () => {

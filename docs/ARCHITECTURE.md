@@ -125,7 +125,7 @@ Record: [0011 layered lib](adr/0011-layered-lib.md).
 Two tables in the `karaoke` schema:
 
 - `sessions`: `code`, `host_token_hash`, `started_by` (guest id of the browser that started
-  it), `current_item_id`, `is_playing`, `created_at` (the session's hour counts from it),
+  it), `started_from` (keyed hash of its network, [0026](adr/0026-server-only-session-start.md)), `current_item_id`, `is_playing`, `created_at` (the session's hour counts from it),
   `last_active_at`, `host_seen_at` (last poll from the main screen), `archived_at`.
 - `queue_items`: one row per added song with `status` `queued` → `playing` → `played`
   (with `played_at` set when it finishes),
@@ -139,7 +139,7 @@ policies. The fifteen public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
-| `start_session(code, host_hash, guest_id)` | `POST /api/sessions` | `{ result }`: `ok`, `taken` (the code is in use), `invalid`, or `wait` with `waitSeconds` after this browser's hour-long session ([0025](adr/0025-sessions-last-an-hour.md)) |
+| `start_session(code, host_hash, guest_id, network)` | `POST /api/sessions`, with the secret key: the only function the publishable key cannot call ([0026](adr/0026-server-only-session-start.md)) | `{ result }`: `ok`, `taken` (the code is in use), `invalid`, or `wait` with `waitSeconds` after an hour-long session from this browser or network ([0025](adr/0025-sessions-last-an-hour.md)) |
 | `create_session(code, host_hash)` | nothing since migration 0017; kept for the app live while it deploys, to be dropped | `true`, or `false` if the code is taken |
 | `get_state(code, host_hash, guest_id)` | `GET /api/sessions/[code]`, search, start page | The `SessionState` JSON (current song, queue, and the last 50 sung), or null |
 | `add_item(...)` | `POST .../queue` | a result code |
@@ -168,7 +168,8 @@ There are no accounts ([0004](adr/0004-anonymous-cookie-identity.md)).
 
 - **Host**: the browser that started the session holds a random token in an httpOnly
   cookie `kh_<CODE>`. The database stores only its SHA-256 hash and compares hashes.
-- **Guest**: every browser gets a random id in the httpOnly cookie `kg`. It marks
+- **Guest**: every browser gets a random id in the httpOnly cookie `kg`, signed with
+  `SESSION_SECRET` so it cannot be edited ([0026](adr/0026-server-only-session-start.md)). It marks
   which queued songs are "mine" and may be removed by that browser.
 - **Singer name**: typed on the phone, kept in localStorage, sent with each add. It
   is a label, not an identity.
@@ -218,7 +219,7 @@ the server without an API key ([0006](adr/0006-keyless-youtube-search.md)).
 | Singer name | 40 chars | `add_item`; mirrored in `lib/domain/singers.ts` |
 | Search query | 120 chars | `lib/domain/video.ts` |
 | Session length | 1 hour from its start, whatever is happening | `max_length()` (used by `closes_at`, `get_state`) |
-| Wait before the same browser starts again, after a session that ran its full hour | 15 min | `restart_after()` (used by `start_session`) |
+| Wait before the same browser or network starts again, after a session that ran its full hour | 15 min | `restart_after()` (used by `start_session`) |
 | Inactivity before archive | 15 min | `idle_limit()` (used by `check_archived`, `cleanup`, `get_state`) |
 | Archive kept for | 24 h | `cleanup` |
 | Requests per minute | search 40/IP, start 10/IP, add 30/guest | `lib/server/rate-limit.ts` ([0010](adr/0010-in-memory-limits-and-caches.md)) |
