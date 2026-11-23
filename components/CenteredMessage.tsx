@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { SessionStatus } from "@/lib/client/use-session-state";
 import { Credit } from "./Credit";
 import { Logo } from "./Logo";
+import { SplashScreen } from "./SplashScreen";
 
 /** A full-page message: bad codes, ended sessions, loading and connection trouble. `aside` goes below the message. */
 export function CenteredMessage({ title, children, aside }: { title: string; children?: ReactNode; aside?: ReactNode }) {
@@ -18,12 +19,8 @@ export function CenteredMessage({ title, children, aside }: { title: string; chi
   );
 }
 
-/** What every screen shows until the first session state arrives. */
+/** What every screen shows until the first session state arrives: the splash, or why it is taking so long. */
 export function SessionLoadingMessage({ status }: { status: SessionStatus }) {
-  const failed = status === "error";
-  return (
-    <CenteredMessage title={failed ? "Can't reach the server" : "Loading…"}>
-      {failed ? "Check your connection. This page will keep retrying." : null}
-    </CenteredMessage>
-  );
+  if (status !== "error") return <SplashScreen />;
+  return <CenteredMessage title="Can't reach the server">Check your connection. This page will keep retrying.</CenteredMessage>;
 }

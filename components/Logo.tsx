@@ -1,14 +1,24 @@
 /**
  * The YouOke mark: a K whose stem is a singer, with the sing-along ball for a head.
  * `app/icon.svg` and the files in `public/icons` are the same drawing.
+ * `animated` builds it piece by piece and then keeps the ball hopping (the `logo-*` classes in
+ * `app/globals.css`); with less motion asked for it stays still.
  */
-export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
+export function LogoMark({ className = "h-8 w-8", animated = false }: { className?: string; animated?: boolean }) {
+  const part = (name: string) => (animated ? `logo-${name} ` : "");
   return (
-    <svg viewBox="0 0 64 64" aria-hidden className={`shrink-0 ${className}`}>
-      <rect width="64" height="64" rx="15" className="fill-encore" />
-      <circle cx="21" cy="15.5" r="6.5" className="fill-spotlight" />
-      <rect x="16" y="26" width="10" height="28" rx="1.5" className="fill-on-encore" />
-      <path d="M47.5 29.5 29 40l18.5 10.5" fill="none" strokeWidth="10" strokeLinejoin="miter" className="stroke-on-encore" />
+    <svg viewBox="0 0 64 64" aria-hidden className={`shrink-0 ${animated ? "overflow-visible" : ""} ${className}`}>
+      <rect width="64" height="64" rx="15" className={`${part("tile")}fill-encore`} />
+      <circle cx="21" cy="15.5" r="6.5" className={`${part("ball")}fill-spotlight`} />
+      <rect x="16" y="26" width="10" height="28" rx="1.5" className={`${part("stem")}fill-on-encore`} />
+      <path
+        d="M47.5 29.5 29 40l18.5 10.5"
+        fill="none"
+        strokeWidth="10"
+        strokeLinejoin="miter"
+        pathLength={animated ? 1 : undefined}
+        className={`${part("arm")}stroke-on-encore`}
+      />
     </svg>
   );
 }
@@ -17,7 +27,7 @@ export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
  * "YouOke" with the k drawn as the singer from the mark: a short stem with the mic dot on top.
  * The k is sized in em on the font's own grid, so it follows the surrounding text.
  */
-function Wordmark() {
+export function Wordmark() {
   return (
     <span aria-label="YouOke" role="img" className="whitespace-nowrap">
       <span aria-hidden>
