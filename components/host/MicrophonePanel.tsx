@@ -3,10 +3,13 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import type { Microphone } from "@/lib/client/use-microphone";
 import {
+  delayReadoutText,
+  delaySummaryText,
   ECHO_DELAY_MAX_MS,
   ECHO_DELAY_MIN_MS,
   isBluetoothMic,
   micDelayHint,
+  summarizeDelays,
   micDeviceLabel,
   micStatusMessage,
   MIC_TEST_TIMEOUT_MS,
@@ -129,6 +132,7 @@ export function MicrophonePanel({ mic, onClose }: { mic: Microphone; onClose: ()
             <div className="flex flex-col gap-3 rounded-card bg-stage-200 p-5">
               <LevelMeter isLive={isLive} readLevel={mic.readLevel} />
               {isLive ? <DelayReadout readDelayMs={mic.readDelayMs} isBluetooth={isBluetoothMic(mic.activeLabel)} /> : null}
+              {isLive ? <MeasureDelay item={item} measure={mic.measureDelay} /> : null}
               {settings.isEnabled ? (
                 <p className="text-[1.375rem] font-medium text-ink-muted">
                   {isLive ? "Live. Sing or speak to see the level." : status === "starting" ? "Starting the microphone…" : " "}
@@ -326,12 +330,41 @@ function DelayReadout({ readDelayMs, isBluetooth }: { readDelayMs: () => number 
   return (
     <>
       {delayMs !== null ? (
-        <p className="text-[1.375rem] font-semibold tabular-nums">Delay ≈ {delayMs} ms{isBluetooth ? " + Bluetooth" : ""}</p>
+        <p className="text-[1.375rem] font-semibold tabular-nums">{delayReadoutText(delayMs, isBluetooth)}</p>
       ) : null}
       {hint ? (
         <p role="status" className="rounded-row bg-notice-ground px-5 py-3 text-[1.375rem] font-semibold leading-8 text-notice">{hint}</p>
       ) : null}
     </>
+  );
+}
+
+/** Times the whole mouth-to-speaker delay with beeps, since the browser's own figure leaves part of it out. */
+function MeasureDelay({ item, measure }: { item: ItemProps; measure: () => Promise<number[]> }) {
+  const [result, setResult] = useState<string | null>(null);
+  const [isMeasuring, setMeasuring] = useState(false);
+  const run = async () => {
+    setMeasuring(true);
+    setResult(null);
+    const delays = await measure();
+    setMeasuring(false);
+    setResult(delaySummaryText(summarizeDelays(delays)));
+  };
+  return (
+    <div className="flex items-center gap-4">
+      <button
+        {...item}
+        type="button"
+        disabled={isMeasuring}
+        onClick={() => void run()}
+        className="h-[4rem] shrink-0 rounded-full bg-stage-300 px-8 text-[1.5rem] font-bold transition hover:bg-stage-100 disabled:opacity-60"
+      >
+        {isMeasuring ? "Measuring…" : "Measure delay"}
+      </button>
+      <p role="status" className="text-[1.375rem] font-medium tabular-nums text-ink-muted">
+        {result ?? "Beeps through the speakers and times how late the mic hears them."}
+      </p>
+    </div>
   );
 }
 

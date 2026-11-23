@@ -33,7 +33,13 @@ Two facts shaped the choice:
 - **Test mic** makes the voice live with the current sound, and shows a level meter, for up to
   30 seconds or until the panel closes, without turning the mic on.
 - **Delay**: the panel shows the delay the browser reports (capture, audio buffer and output)
-  and warns when the mic's name says it is on Bluetooth, which adds about 100–300 ms the
+  as "at least N ms": it leaves out the device's own audio engine and the mic's capture, and
+  came to about half the real delay when measured (45 ms reported, 85 ms measured on a Windows
+  laptop, with the phone-mic prototype on branch `claude/phone-mic-prototype`). **Measure delay** gives the real figure: it plays six short beeps through the
+  speakers, records them side by side with the mic, and reports the median gap and spread
+  (`clickDelaysMs`, `summarizeDelays`). The voice is muted while it runs, and echo
+  cancellation has to be off (Low latency), or it removes the beeps. The panel also
+  warns when the mic's name says it is on Bluetooth, which adds about 100–300 ms the
   browser cannot see. **Low latency** turns the three clean-up switches off and asks for the
   smallest buffers; it keeps the host's own clean-up choices for when it is turned off again.
   No setting can take Bluetooth's delay away, so the panel points to wired, USB or 2.4 GHz
