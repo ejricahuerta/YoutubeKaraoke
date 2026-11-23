@@ -32,6 +32,8 @@ export type Microphone = {
   readDelayMs: () => number | null;
   /** The name of the mic in use; "" when none is open. */
   activeLabel: string;
+  /** Times the whole delay with beeps through the speakers; one value per beep heard, in ms. */
+  measureDelay: () => Promise<number[]>;
 };
 
 /**
@@ -135,6 +137,7 @@ export function useMicrophone(canUse: boolean): Microphone {
 
   const readLevel = useCallback(() => graphRef.current?.readLevel() ?? 0, []);
   const readDelayMs = useCallback(() => graphRef.current?.readDelayMs() ?? null, []);
+  const measureDelay = useCallback(() => graphRef.current?.measureDelay() ?? Promise.resolve([]), []);
 
-  return { settings, change, resetSound, status, devices, isTesting, setTesting, retry, readLevel, readDelayMs, activeLabel };
+  return { settings, change, resetSound, status, devices, isTesting, setTesting, retry, readLevel, readDelayMs, activeLabel, measureDelay };
 }

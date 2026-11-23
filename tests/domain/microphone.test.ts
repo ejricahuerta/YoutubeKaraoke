@@ -5,6 +5,10 @@ import {
   ECHO_DELAY_MIN_MS,
   ECHO_FEEDBACK_MAX,
   echoFeedbackGain,
+  clickDelaysMs,
+  delayReadoutText,
+  delaySummaryText,
+  findOnsets,
   isBluetoothMic,
   micDelayHint,
   micDelayMs,
@@ -21,6 +25,7 @@ import {
   reverbDecaySeconds,
   reverbImpulse,
   serializeMicSettings,
+  summarizeDelays,
 } from "@/lib/domain/microphone";
 
 describe("parseMicSettings", () => {
@@ -216,5 +221,78 @@ describe("mic copy", () => {
   it("names a mic the browser has not labelled yet", () => {
     expect(micDeviceLabel({ deviceId: "a", label: "USB Audio" }, 0)).toBe("USB Audio");
     expect(micDeviceLabel({ deviceId: "b", label: "" }, 1)).toBe("Microphone 2");
+  });
+});
+
+describe("delayReadoutText", () => {
+  it("says the browser's figure is a floor, not the whole delay", () => {
+    expect(delayReadoutText(45, false)).toBe("Delay at least 45 ms");
+    expect(delayReadoutText(45, true)).toBe("Delay at least 45 ms, plus Bluetooth");
+  });
+});
+
+const RATE = 48_000;
+const msToSamples = (ms: number) => Math.round((ms * RATE) / 1000);
+
+/** A quiet recording with a short loud burst at each of `atMs`. */
+function withClicks(lengthMs: number, atMs: number[], { level = 0.8, noise = 0.001 } = {}): Float32Array {
+  const samples = new Float32Array(msToSamples(lengthMs));
+  let seed = 1;
+  for (let i = 0; i < samples.length; i++) {
+    seed = (seed * 16807) % 2147483647;
+    samples[i] = (seed / 2147483647 - 0.5) * 2 * noise;
+  }
+  for (const at of atMs) {
+    const start = msToSamples(at);
+    for (let i = 0; i < msToSamples(10); i++) samples[start + i] = level * Math.sin(i / 3);
+  }
+  return samples;
+}
+
+describe("findOnsets", () => {
+  it("finds where each burst starts, once per burst", () => {
+    const onsets = findOnsets(withClicks(3000, [500, 1500, 2500]), RATE);
+    expect(onsets.map((i) => Math.round((i / RATE) * 1000))).toEqual([500, 1500, 2500]);
+  });
+
+  it("finds nothing in silence", () => {
+    expect(findOnsets(withClicks(1000, []), RATE)).toEqual([]);
+  });
+});
+
+describe("clickDelaysMs", () => {
+  it("measures how long after each beep the mic heard it", () => {
+    const reference = withClicks(4000, [500, 1500, 2500]);
+    const heard = withClicks(4000, [620, 1630, 2610], { level: 0.05 });
+    expect(clickDelaysMs(reference, heard, RATE)).toEqual([120, 130, 110]);
+  });
+
+  it("skips a beep the mic did not hear, rather than pairing it with the next one", () => {
+    const reference = withClicks(4000, [500, 1500, 2500]);
+    const heard = withClicks(4000, [620, 2610], { level: 0.05 });
+    expect(clickDelaysMs(reference, heard, RATE)).toEqual([120, 110]);
+  });
+});
+
+describe("summarizeDelays", () => {
+  it("gives the median, the spread and the count", () => {
+    expect(summarizeDelays([130, 110, 120, 190, 115])).toEqual({ count: 5, medianMs: 120, minMs: 110, maxMs: 190 });
+    expect(summarizeDelays([100, 110])).toEqual({ count: 2, medianMs: 105, minMs: 100, maxMs: 110 });
+  });
+
+  it("is null with nothing measured", () => {
+    expect(summarizeDelays([])).toBeNull();
+  });
+});
+
+describe("delaySummaryText", () => {
+  it("says the median and the spread, and what to make of it", () => {
+    expect(delaySummaryText({ count: 6, medianMs: 42, minMs: 38, maxMs: 47 })).toBe("42 ms (38–47 ms, 6 beeps). Singers won’t notice.");
+    expect(delaySummaryText({ count: 6, medianMs: 85, minMs: 80, maxMs: 95 })).toMatch(/^85 ms .*may notice/);
+    expect(delaySummaryText({ count: 6, medianMs: 160, minMs: 140, maxMs: 210 })).toMatch(/Too late/);
+  });
+
+  it("says why nothing was measured", () => {
+    expect(delaySummaryText(null)).toMatch(/didn’t hear the beeps/);
   });
 });

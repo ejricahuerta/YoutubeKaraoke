@@ -9,6 +9,8 @@
  *                                  └→ level meter
  */
 import {
+  CLICK_MAX_DELAY_MS,
+  clickDelaysMs,
   ECHO_DELAY_MAX_MS,
   echoFeedbackGain,
   MIC_GAIN_MAX,
@@ -26,6 +28,15 @@ import {
 const MS_PER_SECOND = 1000;
 const METER_FFT_SIZE = 1024;
 const REVERB_CHANNELS = 2;
+/** The delay measurement: a few short beeps, far enough apart that each one's echo has died. */
+const MEASURE_BEEPS = 6;
+const MEASURE_GAP_SECONDS = 0.8;
+const MEASURE_LEAD_IN_SECONDS = 0.3;
+const BEEP_SECONDS = 0.02;
+const BEEP_HZ = 1500;
+const BEEP_LEVEL = 0.9;
+/** Big blocks are fine: the recording is only read once it is over. */
+const RECORD_BLOCK = 4096;
 
 export type MicGraph = {
   /** Whether the browser is letting it play; "suspended" until someone presses something. */
@@ -40,6 +51,12 @@ export type MicGraph = {
   readDelayMs: () => number | null;
   /** The name of the mic in use, as the browser gives it. */
   label: string;
+  /**
+   * Plays a few beeps through the speakers and times how late each comes back through the mic:
+   * the whole mouth-to-speaker delay, including what the browser cannot see. The voice is muted
+   * meanwhile. Resolves with one delay per beep heard, in ms.
+   */
+  measureDelay: () => Promise<number[]>;
   close: () => void;
 };
 
@@ -80,9 +97,11 @@ export async function openMicGraph(settings: MicSettings): Promise<MicGraph> {
   micGain.connect(meter);
 
   let roomSize: number | null = null;
+  let latest = settings;
   const ramp = (param: AudioParam, value: number) => param.setTargetAtTime(value, context.currentTime, MIC_RAMP_SECONDS);
 
   const update = (next: MicSettings) => {
+    latest = next;
     ramp(micGain.gain, percentToGain(next.micVolume, MIC_GAIN_MAX));
     ramp(echoLevel.gain, percentToGain(next.echoLevel));
     ramp(repeats.gain, echoFeedbackGain(next.echoRepeats));
@@ -99,6 +118,46 @@ export async function openMicGraph(settings: MicSettings): Promise<MicGraph> {
   update(settings);
   // Created outside a press, the context starts suspended; one try costs nothing.
   if (context.state === "suspended") await context.resume().catch(() => {});
+
+  const measureDelay = async () => {
+    ramp(micGain.gain, 0);
+    // Side by side in one recording, so the two line up to the sample: the beep as it left for
+    // the speakers, and the mic. A ScriptProcessor is enough for a one-off recording read at the end.
+    const merger = context.createChannelMerger(2);
+    const recorder = context.createScriptProcessor(RECORD_BLOCK, 2, 1);
+    const silent = context.createGain();
+    silent.gain.value = 0;
+    const beeps = context.createGain();
+    beeps.connect(context.destination);
+    beeps.connect(merger, 0, 0);
+    source.connect(merger, 0, 1);
+    merger.connect(recorder).connect(silent).connect(context.destination);
+    const sent: Float32Array[] = [];
+    const heard: Float32Array[] = [];
+    recorder.onaudioprocess = (e) => {
+      sent.push(e.inputBuffer.getChannelData(0).slice());
+      heard.push(e.inputBuffer.getChannelData(1).slice());
+    };
+    const start = context.currentTime + MEASURE_LEAD_IN_SECONDS;
+    for (let i = 0; i < MEASURE_BEEPS; i++) {
+      const beep = context.createOscillator();
+      beep.frequency.value = BEEP_HZ;
+      const level = context.createGain();
+      level.gain.value = BEEP_LEVEL;
+      beep.connect(level).connect(beeps);
+      beep.start(start + i * MEASURE_GAP_SECONDS);
+      beep.stop(start + i * MEASURE_GAP_SECONDS + BEEP_SECONDS);
+    }
+    const seconds = MEASURE_LEAD_IN_SECONDS + MEASURE_BEEPS * MEASURE_GAP_SECONDS + CLICK_MAX_DELAY_MS / MS_PER_SECOND;
+    await new Promise((done) => setTimeout(done, seconds * MS_PER_SECOND));
+    recorder.onaudioprocess = null;
+    source.disconnect(merger);
+    merger.disconnect();
+    recorder.disconnect();
+    beeps.disconnect();
+    update(latest);
+    return clickDelaysMs(join(sent), join(heard), context.sampleRate);
+  };
 
   return {
     state: () => context.state,
@@ -117,11 +176,22 @@ export async function openMicGraph(settings: MicSettings): Promise<MicGraph> {
         outputSeconds: context.outputLatency,
       }),
     label: track?.label ?? "",
+    measureDelay,
     close: () => {
       for (const track of stream.getTracks()) track.stop();
       context.close().catch(() => {});
     },
   };
+}
+
+function join(blocks: Float32Array[]): Float32Array {
+  const all = new Float32Array(blocks.reduce((n, b) => n + b.length, 0));
+  let at = 0;
+  for (const block of blocks) {
+    all.set(block, at);
+    at += block.length;
+  }
+  return all;
 }
 
 export type MicDevice = { deviceId: string; label: string };

@@ -144,7 +144,7 @@ test("the panel shows how late the voice comes out", async ({ page }) => {
   await openMicrophone(page);
   await page.getByRole("switch", { name: /Use the microphone/ }).click();
 
-  await expect(page.getByText(/^Delay ≈ \d+ ms$/)).toBeVisible();
+  await expect(page.getByText(/^Delay at least \d+ ms$/)).toBeVisible();
 });
 
 test("a Bluetooth mic gets a warning that it lags, and what to use instead", async ({ page }) => {
@@ -162,7 +162,7 @@ test("a Bluetooth mic gets a warning that it lags, and what to use instead", asy
   await openMicrophone(page);
   await page.getByRole("switch", { name: /Use the microphone/ }).click();
 
-  await expect(page.getByText(/^Delay ≈ \d+ ms \+ Bluetooth$/)).toBeVisible();
+  await expect(page.getByText(/^Delay at least \d+ ms, plus Bluetooth$/)).toBeVisible();
   await expect(page.getByText(/This is a Bluetooth mic/)).toBeVisible();
 });
 
@@ -185,4 +185,18 @@ test("Low latency turns the clean-up off, and is kept on this screen", async ({ 
   // The host's own choices come back.
   await expect(echoCancellation).toBeChecked();
   await expect(echoCancellation).toBeEnabled();
+});
+
+test("Measure delay beeps through the speakers and says how late the mic heard them", async ({ page }) => {
+  await mockSession(page, hosting());
+  await page.goto(`/s/${CODE}`);
+  await openMicrophone(page);
+  await page.getByRole("switch", { name: /Use the microphone/ }).click();
+
+  await page.getByRole("button", { name: "Measure delay" }).click();
+  await expect(page.getByRole("button", { name: "Measuring…" })).toBeDisabled();
+  // Chromium's fake mic cannot hear the speakers, so either answer is right here; on a real
+  // device it is the delay.
+  await expect(page.getByText(/^\d+ ms \(\d+–\d+ ms, \d+ beeps?\)\.|didn’t hear the beeps/)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: "Measure delay" })).toBeEnabled();
 });

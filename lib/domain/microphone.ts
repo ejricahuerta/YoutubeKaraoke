@@ -238,3 +238,79 @@ export function micMenuStatus(status: MicStatus): string {
 export function micDeviceLabel(device: { deviceId: string; label: string }, index: number): string {
   return device.label || `Microphone ${index + 1}`;
 }
+
+/**
+ * The live readout: what the browser reports. It leaves out the device's own audio engine,
+ * Bluetooth and the mic's capture, and was about half the measured delay when tried
+ * (docs/adr/0024), so it is a floor.
+ */
+export function delayReadoutText(delayMs: number, isBluetooth: boolean): string {
+  return `Delay at least ${delayMs} ms${isBluetooth ? ", plus Bluetooth" : ""}`;
+}
+
+/** A sample counts as the start of a beep above this share of the loudest sample in the recording. */
+const ONSET_SHARE_OF_PEAK = 0.25;
+/** Quieter than this is silence, however quiet the rest is. */
+const ONSET_MIN_LEVEL = 0.005;
+/** After a beep starts, its ringing and the room's echo are not new beeps. */
+const ONSET_GAP_MS = 300;
+/** A beep heard later than this after it was played is a miss, not a delay. */
+export const CLICK_MAX_DELAY_MS = 500;
+
+/** Where each burst of sound starts in a recording, as sample indexes. */
+export function findOnsets(samples: ArrayLike<number>, sampleRate: number): number[] {
+  let peak = 0;
+  for (let i = 0; i < samples.length; i++) peak = Math.max(peak, Math.abs(samples[i]));
+  const threshold = Math.max(ONSET_MIN_LEVEL, peak * ONSET_SHARE_OF_PEAK);
+  if (peak < threshold) return [];
+  const gap = Math.round((ONSET_GAP_MS * sampleRate) / MS_PER_SECOND);
+  const onsets: number[] = [];
+  for (let i = 0; i < samples.length; i++) {
+    if (Math.abs(samples[i]) < threshold) continue;
+    onsets.push(i);
+    i += gap;
+  }
+  return onsets;
+}
+
+/**
+ * How long after each beep it reached the mic, in ms. `reference` is the beep as it was sent
+ * to the speakers, `heard` what the mic picked up, recorded side by side so their samples line
+ * up. A beep the mic missed is left out.
+ */
+export function clickDelaysMs(reference: ArrayLike<number>, heard: ArrayLike<number>, sampleRate: number): number[] {
+  const sent = findOnsets(reference, sampleRate);
+  const got = findOnsets(heard, sampleRate);
+  const maxLag = (CLICK_MAX_DELAY_MS * sampleRate) / MS_PER_SECOND;
+  const delays: number[] = [];
+  sent.forEach((at, n) => {
+    const before = sent[n + 1] ?? Infinity;
+    const match = got.find((g) => g > at && g - at <= maxLag && g < before);
+    if (match !== undefined) delays.push(Math.round(((match - at) / sampleRate) * MS_PER_SECOND));
+  });
+  return delays;
+}
+
+export type DelaySummary = { count: number; medianMs: number; minMs: number; maxMs: number };
+
+export function summarizeDelays(delays: number[]): DelaySummary | null {
+  if (!delays.length) return null;
+  const sorted = [...delays].sort((a, b) => a - b);
+  const mid = sorted.length / 2;
+  const median = sorted.length % 2 ? sorted[Math.floor(mid)] : (sorted[mid - 1] + sorted[mid]) / 2;
+  return { count: sorted.length, medianMs: Math.round(median), minMs: sorted[0], maxMs: sorted[sorted.length - 1] };
+}
+
+/** Past this, singers hear their voice come back as a separate echo and lose time. */
+export const DELAY_TOO_LATE_MS = 100;
+
+/** What the delay measurement found, in words for the host. */
+export function delaySummaryText(summary: DelaySummary | null): string {
+  if (!summary) {
+    return "The mic didn’t hear the beeps. Turn the speakers up, hold the mic near them, and turn on Low latency first: echo cancellation removes the beeps.";
+  }
+  const { medianMs, minMs, maxMs, count } = summary;
+  const verdict =
+    medianMs <= MIC_DELAY_NOTICEABLE_MS ? "Singers won’t notice." : medianMs <= DELAY_TOO_LATE_MS ? "Singers may notice." : "Too late to sing along comfortably.";
+  return `${medianMs} ms (${minMs}–${maxMs} ms, ${count} beeps). ${verdict}`;
+}
