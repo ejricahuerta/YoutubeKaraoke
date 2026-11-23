@@ -12,7 +12,7 @@ do $$
 declare
   v_state jsonb;
 begin
-  assert karaoke.create_session('HOUR11', 'host-hash');
+  assert karaoke.start_session('HOUR11', 'host-hash', 'starter-HOUR11', 'net-HOUR11')->>'result' = 'ok';
   v_state := karaoke.get_state('HOUR11', 'host-hash', null);
   assert (v_state->>'limitInSeconds')::int between 3595 and 3600, 'a new session has an hour left';
 
@@ -33,7 +33,7 @@ begin
     'so nothing more can be added';
 
   -- Sessions nobody touches end on the hour too.
-  assert karaoke.create_session('HOUR22', 'host-hash');
+  assert karaoke.start_session('HOUR22', 'host-hash', 'starter-HOUR22', 'net-HOUR22')->>'result' = 'ok';
   perform karaoke.add_item('HOUR22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A1', '', '', 200);
   perform pg_temp.started('HOUR22', interval '61 minutes');
   perform karaoke.cleanup();

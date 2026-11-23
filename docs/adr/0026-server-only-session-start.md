@@ -27,8 +27,9 @@ round it by tampering with cookies, and chose to close all three.
   that one call (`getSupabaseSecretClient`). Every other call still uses the publishable key,
   and every rule still lives in the database.
 - A Vercel production build stops before migrating if either secret is missing.
-- `create_session`, callable with the publishable key, stays only until this app is live
-  (migrations must work with the app that is live, 0015). A follow-up migration drops it.
+- `create_session`, callable with the publishable key, stayed only until this app was live
+  (migrations must work with the app that is live, 0015). Migration 0018 dropped it once the
+  app was live, on 2026-11-23.
 
 ## Why
 - Signing is the standard way to make a cookie tamper-evident; nothing in the browser can

@@ -10,7 +10,7 @@ begin
   delete from karaoke.sessions;
   assert karaoke.recently_played() = '{}'::text[], 'with nothing sung there is nothing to show';
 
-  assert karaoke.create_session('RCNT22', 'host-hash');
+  assert karaoke.start_session('RCNT22', 'host-hash', 'starter-RCNT22', 'net-RCNT22')->>'result' = 'ok';
   perform karaoke.add_item('RCNT22', 'ana', 'Ana', 'aaaaaaaaaaa', 'A', '', '', 200);
   perform karaoke.add_item('RCNT22', 'ben', 'Ben', 'bbbbbbbbbbb', 'B', '', '', 200);
   perform karaoke.add_item('RCNT22', 'cy', 'Cy', 'ccccccccccc', 'C', '', '', 200);
@@ -23,7 +23,7 @@ begin
   assert karaoke.recently_played() = array['bbbbbbbbbbb', 'aaaaaaaaaaa'], 'sung songs, newest first, as video ids only';
 
   -- Another session sings A again: it shows once, as the newest.
-  assert karaoke.create_session('RCNT33', 'other-hash');
+  assert karaoke.start_session('RCNT33', 'other-hash', 'starter-RCNT33', 'net-RCNT33')->>'result' = 'ok';
   perform karaoke.add_item('RCNT33', 'dee', 'Dee', 'aaaaaaaaaaa', 'A again', '', '', 200);
   perform karaoke.playback('RCNT33', 'other-hash', 'next', (select id from karaoke.queue_items where title = 'A again'));
   assert karaoke.recently_played() = array['aaaaaaaaaaa', 'bbbbbbbbbbb'], 'each video once, from every session';

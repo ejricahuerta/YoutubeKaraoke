@@ -6,7 +6,7 @@ do $$
 declare
   v_state jsonb;
 begin
-  assert karaoke.create_session('LIFE22', 'host-hash');
+  assert karaoke.start_session('LIFE22', 'host-hash', 'starter-LIFE22', 'net-LIFE22')->>'result' = 'ok';
   perform karaoke.add_item('LIFE22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
 
   -- Looking is not activity, for guests or the main screen; the main screen's poll is its
@@ -45,7 +45,7 @@ begin
   assert (karaoke.get_state('LIFE22', 'host-hash', null)->>'archived')::boolean, 'new activity does not reopen it';
 
   -- Cleanup archives stale sessions nobody touched and deletes day-old archives with their songs.
-  assert karaoke.create_session('IDLE22', 'h');
+  assert karaoke.start_session('IDLE22', 'h', 'starter-IDLE22', 'net-IDLE22')->>'result' = 'ok';
   update karaoke.sessions set host_seen_at = now() - interval '20 minutes' where code = 'IDLE22';
   update karaoke.sessions set archived_at = now() - interval '25 hours' where code = 'LIFE22';
   perform karaoke.cleanup();
@@ -54,9 +54,9 @@ begin
   assert not exists (select 1 from karaoke.queue_items where title in ('A', 'B')), 'along with their songs';
 
   -- Creating a session runs the cleanup, so it happens even without pg_cron.
-  assert karaoke.create_session('OLD222', 'h');
+  assert karaoke.start_session('OLD222', 'h', 'starter-OLD222', 'net-OLD222')->>'result' = 'ok';
   update karaoke.sessions set archived_at = now() - interval '25 hours' where code = 'OLD222';
-  assert karaoke.create_session('NEW222', 'h');
+  assert karaoke.start_session('NEW222', 'h', 'starter-NEW222', 'net-NEW222')->>'result' = 'ok';
   assert not exists (select 1 from karaoke.sessions where code = 'OLD222');
 end $$;
 
@@ -65,7 +65,7 @@ do $$
 declare
   v_state jsonb;
 begin
-  assert karaoke.create_session('AWAY22', 'host-hash');
+  assert karaoke.start_session('AWAY22', 'host-hash', 'starter-AWAY22', 'net-AWAY22')->>'result' = 'ok';
   v_state := karaoke.get_state('AWAY22', null, 'ana');
   assert (v_state->>'hostAwaySeconds')::int < 5, 'a new session counts its host as just seen';
   assert (v_state->>'closesInSeconds')::int between 895 and 900, 'and closes 15 minutes after the last activity';
@@ -108,7 +108,7 @@ do $$
 declare
   v_state jsonb;
 begin
-  assert karaoke.create_session('END222', 'host-hash');
+  assert karaoke.start_session('END222', 'host-hash', 'starter-END222', 'net-END222')->>'result' = 'ok';
   perform karaoke.add_item('END222', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A', '', '', 200);
   perform karaoke.add_item('END222', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B', '', '', 200);
 
@@ -130,6 +130,13 @@ begin
   assert not exists (select 1 from karaoke.sessions where code = 'END222');
 end $$;
 
+-- create_session is gone (migration 0018): only start_session, with the server's secret key,
+-- starts a session, so the publishable key cannot skip the wait after an hour (ADR 0026).
+do $$
+begin
+  assert to_regprocedure('karaoke.create_session(text, text)') is null, 'create_session no longer exists';
+end $$;
+
 -- Access: the API roles reach the data only through the public functions.
 do $$
 declare
@@ -145,7 +152,7 @@ begin
     assert not has_table_privilege(v_role, 'karaoke.queue_items', 'select, insert, update, delete'), v_role || ' cannot touch queue items';
 
     foreach v_fn in array array[
-      'karaoke.create_session(text, text)', 'karaoke.get_state(text, text, text)',
+      'karaoke.get_state(text, text, text)',
       'karaoke.add_item(text, text, text, text, text, text, text, integer, text)',
       'karaoke.remove_item(text, uuid, text, text)', 'karaoke.end_session(text, text)',
       'karaoke.playback(text, text, text, uuid, text)', 'karaoke.move_item(text, text, uuid, uuid, text)',
@@ -162,7 +169,7 @@ begin
     for v_fn in
       select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'karaoke'
-        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over', 'play_item')
+        and p.proname not in ('get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over', 'play_item')
     loop
       assert not has_function_privilege(v_role, v_fn, 'execute'), v_role || ' cannot call internal ' || v_fn;
     end loop;

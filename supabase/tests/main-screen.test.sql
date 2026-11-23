@@ -18,7 +18,7 @@ do $$
 declare
   v_state jsonb;
 begin
-  assert karaoke.create_session('GONE22', 'host-hash');
+  assert karaoke.start_session('GONE22', 'host-hash', 'starter-GONE22', 'net-GONE22')->>'result' = 'ok';
   perform karaoke.get_state('GONE22', null, 'ana'); -- Ana is the remote
   perform karaoke.add_item('GONE22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A1', '', '', 200);
   perform karaoke.add_item('GONE22', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B1', '', '', 200);
@@ -51,7 +51,7 @@ do $$
 declare
   v_state jsonb;
 begin
-  assert karaoke.create_session('ENDS22', 'host-hash');
+  assert karaoke.start_session('ENDS22', 'host-hash', 'starter-ENDS22', 'net-ENDS22')->>'result' = 'ok';
   perform karaoke.add_item('ENDS22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A1', '', '', 200);
   perform pg_temp.away('ENDS22', interval '14 minutes');
   perform karaoke.add_item('ENDS22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A2', '', '', 200);
@@ -66,7 +66,7 @@ do $$
 declare
   v_state jsonb;
 begin
-  assert karaoke.create_session('IDLE33', 'host-hash');
+  assert karaoke.start_session('IDLE33', 'host-hash', 'starter-IDLE33', 'net-IDLE33')->>'result' = 'ok';
   update karaoke.sessions set last_active_at = now() - interval '29 minutes' where code = 'IDLE33';
   v_state := karaoke.get_state('IDLE33', 'host-hash', null);
   assert not (v_state->>'archived')::boolean;
@@ -75,7 +75,7 @@ begin
   assert (karaoke.get_state('IDLE33', 'host-hash', null)->>'archived')::boolean, 'even with the main screen open';
 
   -- A song waiting or playing is not idle, however long ago anything happened.
-  assert karaoke.create_session('BUSY33', 'host-hash');
+  assert karaoke.start_session('BUSY33', 'host-hash', 'starter-BUSY33', 'net-BUSY33')->>'result' = 'ok';
   perform karaoke.add_item('BUSY33', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A1', '', '', 200);
   update karaoke.sessions set last_active_at = now() - interval '2 hours' where code = 'BUSY33';
   v_state := karaoke.get_state('BUSY33', 'host-hash', null);
@@ -83,7 +83,7 @@ begin
   assert (v_state->>'closesInSeconds')::int between 895 and 900, 'so only the main screen''s 15 minutes count';
 
   -- The cleanup follows the same rules.
-  assert karaoke.create_session('IDLE44', 'host-hash');
+  assert karaoke.start_session('IDLE44', 'host-hash', 'starter-IDLE44', 'net-IDLE44')->>'result' = 'ok';
   update karaoke.sessions set last_active_at = now() - interval '31 minutes' where code = 'IDLE44';
   perform pg_temp.away('BUSY33', interval '16 minutes');
   perform karaoke.cleanup();
@@ -94,7 +94,7 @@ end $$;
 -- Moving the main screen: the remote, while it is away, gets a one-time link for another device.
 do $$
 begin
-  assert karaoke.create_session('MOVE22', 'old-host');
+  assert karaoke.start_session('MOVE22', 'old-host', 'starter-MOVE22', 'net-MOVE22')->>'result' = 'ok';
   perform karaoke.get_state('MOVE22', null, 'ana'); -- Ana is the remote
 
   assert karaoke.start_handoff('MOVE22', 'ana', 'link-1') = 'main_screen_here', 'not while the main screen is there';
