@@ -148,3 +148,78 @@ body {
     animation: none;
   }
 }
+
+/*
+ * The animated logo (components/Logo.tsx, `animated`) on the splash (components/SplashScreen.tsx).
+ * Intro: the tile pops in, the singer stands up, the K's arm draws, the ball drops onto the singer.
+ * Then the ball hops on the beat and the singer bobs as it lands, until the screen is ready.
+ * Every delay subtracts --splash-ms, how long splashes have already been up, so a splash that
+ * takes over from another carries on instead of starting over.
+ */
+.logo-tile, .logo-ball, .logo-stem {
+  transform-box: fill-box;
+}
+.logo-tile {
+  transform-origin: center;
+  animation: logo-tile-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) calc(0s - var(--splash-ms, 0ms)) both;
+}
+.logo-stem {
+  transform-origin: bottom;
+  animation:
+    logo-stem-rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.25s - var(--splash-ms, 0ms)) both,
+    logo-stem-bob 1s ease-in-out calc(1.3s - var(--splash-ms, 0ms)) infinite;
+}
+.logo-arm {
+  stroke-dasharray: 1;
+  animation: logo-arm-draw 0.4s ease-out calc(0.45s - var(--splash-ms, 0ms)) both;
+}
+.logo-ball {
+  transform-origin: bottom;
+  animation:
+    logo-ball-drop 0.6s linear calc(0.7s - var(--splash-ms, 0ms)) both,
+    logo-ball-hop 1s linear calc(1.3s - var(--splash-ms, 0ms)) infinite;
+}
+.splash-name {
+  animation: rise 0.5s ease-out calc(0.9s - var(--splash-ms, 0ms)) both;
+}
+.splash-caption {
+  animation: rise 0.5s ease-out calc(1.2s - var(--splash-ms, 0ms)) both;
+}
+
+@keyframes logo-tile-pop {
+  from { opacity: 0; transform: scale(0.4) rotate(-8deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes logo-stem-rise {
+  from { transform: scaleY(0); }
+  to { transform: none; }
+}
+@keyframes logo-arm-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+/* Falls from above the tile, lands squashed, bounces once and settles: ends where the hop begins. */
+@keyframes logo-ball-drop {
+  0% { opacity: 0; transform: translateY(-40px); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5); }
+  15% { opacity: 1; }
+  55% { transform: translateY(0) scale(1.25, 0.75); animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+  75% { transform: translateY(-5px) scale(0.95, 1.05); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+  100% { opacity: 1; transform: translateY(0) scale(1.2, 0.8); }
+}
+/* One hop a second, like the ball over karaoke lyrics: squashed on landing, stretched on take-off. */
+@keyframes logo-ball-hop {
+  0%, 100% { transform: translateY(0) scale(1.2, 0.8); }
+  10% { transform: translateY(-1px) scale(0.92, 1.08); animation-timing-function: cubic-bezier(0.25, 0.6, 0.45, 1); }
+  50% { transform: translateY(-11px) scale(1); animation-timing-function: cubic-bezier(0.55, 0, 0.75, 0.4); }
+  92% { transform: translateY(0) scale(0.95, 1.05); }
+}
+@keyframes logo-stem-bob {
+  0%, 100% { transform: scaleY(0.92); }
+  18%, 90% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-tile, .logo-stem, .logo-arm, .logo-ball, .splash-name, .splash-caption {
+    animation: none;
+  }
+}
