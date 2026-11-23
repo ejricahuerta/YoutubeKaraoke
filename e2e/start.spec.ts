@@ -1,9 +1,14 @@
 import { expect, test } from "@playwright/test";
+import { OCCASION_EVERY_MS, OPENER_EVERY_MS } from "@/lib/domain/start-page";
 import { PHONE } from "./session";
+
+/** The headline as screen readers get it, however its first words are rolling. */
+const HEADLINE = "Not okay? Hit start. Kara-OK.";
+const GOOD_FOR = "Great for birthdays, game night, the office party, family get-togethers and roommates on a Friday.";
 
 test("a big screen can start a session or join one by code", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Not okay? Hit start. Kara-OK.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(HEADLINE);
   await expect(page.getByRole("button", { name: "Start a session" })).toBeVisible();
   // No small print under the button or in the join card: the heading and intro say it all.
   await expect(page.getByText(/Closes itself/)).toHaveCount(0);
@@ -12,6 +17,34 @@ test("a big screen can start a session or join one by code", async ({ page }) =>
   await page.getByLabel("Session code").fill("abc234");
   await page.getByRole("button", { name: "Join" }).click();
   await expect(page).toHaveURL("/join/ABC234");
+});
+
+test("the headline's question and the occasion beside the button roll over, while screen readers get steady words", async ({ page }) => {
+  await page.clock.install();
+  await page.goto("/");
+  const heading = page.getByRole("heading", { level: 1 });
+  await expect(heading.getByText("Not okay?").last()).toBeVisible();
+  await expect(page.getByText("birthdays", { exact: true })).toBeVisible();
+  await expect(page.getByText(GOOD_FOR)).toBeAttached();
+
+  await page.clock.runFor(OPENER_EVERY_MS);
+  await expect(heading.getByText("Bad day?")).toBeVisible();
+  await expect(heading).toHaveAccessibleName(HEADLINE);
+
+  await page.clock.runFor(OCCASION_EVERY_MS * 2 - OPENER_EVERY_MS);
+  await expect(page.getByText("the office party", { exact: true })).toBeVisible();
+});
+
+test("with less motion asked for, the start page's words hold still", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.clock.install();
+  await page.goto("/");
+  await page.clock.runFor(OPENER_EVERY_MS * 3);
+  const heading = page.getByRole("heading", { level: 1 });
+  await expect(heading.getByText("Not okay?").last()).toBeVisible();
+  await expect(heading.getByText("Bad day?")).toHaveCount(0);
+  await expect(page.getByText("birthdays", { exact: true })).toBeVisible();
+  await expect(page.getByText("game night", { exact: true })).toHaveCount(0);
 });
 
 test("songs sung lately in any session rise behind the cards, without getting in the way", async ({ page }) => {

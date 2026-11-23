@@ -79,6 +79,22 @@ body {
   animation: rise 0.3s ease-out both;
 }
 
+/* Words that roll on the start page (components/RotatingWords.tsx): the next comes up from below as the last one leaves upward. */
+@keyframes rotating-word-in {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rotating-word-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-100%); }
+}
+.rotating-word-in {
+  animation: rotating-word-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.rotating-word-out {
+  animation: rotating-word-out 0.45s ease-in both;
+}
+
 /*
  * The start page's songs sung lately (components/RecentSongs.tsx): each goes up from below
  * the cards like a rocket, a note and the song's name, and bursts into sparks
