@@ -135,12 +135,11 @@ Two tables in the `karaoke` schema:
   session's `take_turns` is off; `move_item` can still put a song anywhere.
 
 Neither table can be read or written directly: row level security is on with no
-policies. The fifteen public functions are the whole API of the database:
+policies. The fourteen public functions are the whole API of the database:
 
 | Function | Called by | Answers |
 | --- | --- | --- |
 | `start_session(code, host_hash, guest_id, network)` | `POST /api/sessions`, with the secret key: the only function the publishable key cannot call ([0026](adr/0026-server-only-session-start.md)) | `{ result }`: `ok`, `taken` (the code is in use), `invalid`, or `wait` with `waitSeconds` after an hour-long session from this browser or network ([0025](adr/0025-sessions-last-an-hour.md)) |
-| `create_session(code, host_hash)` | nothing since migration 0017; kept for the app live while it deploys, to be dropped | `true`, or `false` if the code is taken |
 | `get_state(code, host_hash, guest_id)` | `GET /api/sessions/[code]`, search, start page | The `SessionState` JSON (current song, queue, and the last 50 sung), or null |
 | `add_item(...)` | `POST .../queue` | a result code |
 | `remove_item(code, item_id, host_hash, guest_id)` | `DELETE .../queue/[id]` | a result code |

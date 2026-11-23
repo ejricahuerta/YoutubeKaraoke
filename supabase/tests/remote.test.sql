@@ -14,7 +14,7 @@ $$;
 
 do $$
 begin
-  assert karaoke.create_session('REMO22', 'host-hash');
+  assert karaoke.start_session('REMO22', 'host-hash', 'starter-REMO22', 'net-REMO22')->>'result' = 'ok';
 
   -- The main screen's own browser polls with a guest id too; it never becomes the remote.
   assert not (karaoke.get_state('REMO22', 'host-hash', 'tv')->>'isRemote')::boolean;
@@ -57,7 +57,7 @@ end $$;
 -- Whoever added the song that is playing may skip it, and only that.
 do $$
 begin
-  assert karaoke.create_session('OWNS22', 'host-hash');
+  assert karaoke.start_session('OWNS22', 'host-hash', 'starter-OWNS22', 'net-OWNS22')->>'result' = 'ok';
   perform karaoke.get_state('OWNS22', null, 'remote-phone');
   perform karaoke.add_item('OWNS22', 'ana', 'Ana', 'dQw4w9WgXcQ', 'A1', '', '', 200);
   perform karaoke.add_item('OWNS22', 'ben', 'Ben', 'dQw4w9WgXcQ', 'B1', '', '', 200);
@@ -74,7 +74,7 @@ end $$;
 -- Without a guest id (p_guest_id defaults to null since migration 0011), only the main screen controls.
 do $$
 begin
-  assert karaoke.create_session('OLDS22', 'host-hash');
+  assert karaoke.start_session('OLDS22', 'host-hash', 'starter-OLDS22', 'net-OLDS22')->>'result' = 'ok';
   perform karaoke.get_state('OLDS22', null, 'ana');
   perform karaoke.add_item('OLDS22', 'cy', 'Cy', 'dQw4w9WgXcQ', 'C1', '', '', 200);
   perform karaoke.add_item('OLDS22', 'cy', 'Cy', 'dQw4w9WgXcQ', 'C2', '', '', 200);
@@ -86,7 +86,7 @@ end $$;
 -- A session that has ended takes no new remote.
 do $$
 begin
-  assert karaoke.create_session('ENDR22', 'host-hash');
+  assert karaoke.start_session('ENDR22', 'host-hash', 'starter-ENDR22', 'net-ENDR22')->>'result' = 'ok';
   perform karaoke.end_session('ENDR22', 'host-hash');
   assert not coalesce((karaoke.get_state('ENDR22', null, 'ana')->>'isRemote')::boolean, false);
   assert (select remote_guest_id is null from karaoke.sessions where code = 'ENDR22');
@@ -98,7 +98,7 @@ do $$
 declare
   v_state jsonb;
 begin
-  assert karaoke.create_session('HAND22', 'host-hash');
+  assert karaoke.start_session('HAND22', 'host-hash', 'starter-HAND22', 'net-HAND22')->>'result' = 'ok';
   v_state := karaoke.get_state('HAND22', 'host-hash', 'tv');
   assert v_state->>'remote' = 'unclaimed' and v_state->'remoteName' = 'null'::jsonb, 'nobody has joined yet';
 
