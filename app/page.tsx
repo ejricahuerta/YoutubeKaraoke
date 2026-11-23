@@ -5,7 +5,9 @@ import { Credit } from "@/components/Credit";
 import { AgreementNotice, LegalLinks } from "@/components/LegalLinks";
 import { Logo } from "@/components/Logo";
 import { RecentSongs } from "@/components/RecentSongs";
+import { RotatingWords } from "@/components/RotatingWords";
 import { startErrorMessage } from "@/lib/domain/messages";
+import { goodForSentence, HEADLINE_OPENERS, OCCASION_EVERY_MS, OCCASIONS, OPENER_EVERY_MS } from "@/lib/domain/start-page";
 import { normalizeSessionCode, SESSION_CODE_LENGTH } from "@/lib/domain/session-code";
 import { getHostedSessionCodes, getHostTokenHash } from "@/lib/server/auth";
 import { isPhone } from "@/lib/server/device";
@@ -39,7 +41,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
       <div className="flex flex-1 flex-wrap items-center gap-x-16 gap-y-12">
         <div className="min-w-0 flex-[999_1_26rem]">
           <h1 className="font-display text-[clamp(3rem,7vw,6rem)] font-extrabold leading-[0.92] tracking-[-0.03em]">
-            {phone ? <>Find the code, <span className="text-encore">then sing.</span></> : <>Not okay? <span className="whitespace-nowrap">Hit start.</span> <span className="whitespace-nowrap text-encore">Kara-OK.</span></>}
+            {phone ? <>Find the code, <span className="text-encore">then sing.</span></> : (
+              <>
+                {/* The question rolls on its own line; screen readers get the first one, so the pun reads the same every time. */}
+                <span className="sr-only">{HEADLINE_OPENERS[0]}</span>{" "}
+                {/* Padded and pulled back so the clip keeps descenders at this tight line height. */}
+                <RotatingWords words={HEADLINE_OPENERS} everyMs={OPENER_EVERY_MS} className="-my-[0.08em] grid py-[0.08em]" />
+                <span className="whitespace-nowrap">Hit start.</span> <span className="whitespace-nowrap text-encore">Kara-OK.</span>
+              </>
+            )}
           </h1>
           <p className="mt-6 max-w-[34rem] text-xl leading-normal text-ink-muted">
             {phone
@@ -61,6 +71,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
               <button type="submit" className="h-16 rounded-full bg-encore px-10 text-xl font-bold text-on-encore transition hover:bg-encore-hover active:scale-[0.98]">
                 Start a session
               </button>
+              <p className="text-lg font-medium text-ink-muted">
+                <span className="sr-only">{goodForSentence()}</span>
+                <span aria-hidden>Great for </span>
+                <RotatingWords words={OCCASIONS} everyMs={OCCASION_EVERY_MS} className="inline-grid align-top font-bold text-ink" />
+              </p>
             </form>
             <AgreementNotice action="starting a session" className="mt-4" />
             </>

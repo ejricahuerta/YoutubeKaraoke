@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
+import { usePrefersReducedMotion } from "@/lib/client/browser-hooks";
 import { fetchRecentSongs } from "@/lib/client/session-api";
 import type { RecentSong } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
@@ -49,20 +50,15 @@ function launchStyle(n: number): CSSProperties {
 export function RecentSongs() {
   const [songs, setSongs] = useState<RecentSong[]>([]);
   const [launches, setLaunches] = useState<Launch[]>([]);
-  const [still, setStill] = useState(false);
+  const still = usePrefersReducedMotion();
 
   useEffect(() => {
     let cancelled = false;
     fetchRecentSongs().then((found) => {
       if (!cancelled) setSongs(found);
     });
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setStill(query.matches);
-    update();
-    query.addEventListener("change", update);
     return () => {
       cancelled = true;
-      query.removeEventListener("change", update);
     };
   }, []);
 

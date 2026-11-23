@@ -19,6 +19,19 @@ export function useFullscreen(): boolean {
   return useSyncExternalStore(subscribeFullscreen, () => document.fullscreenElement !== null, () => false);
 }
 
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/** Whether the person asked for less motion; false during server rendering. */
+export function usePrefersReducedMotion(): boolean {
+  return useSyncExternalStore(subscribeReducedMotion, () => window.matchMedia(REDUCED_MOTION_QUERY).matches, () => false);
+}
+
 /**
  * Keeps the screen from dimming or sleeping while `enabled`, where the browser can.
  * The host screen needs this: a sleeping laptop stops polling and its session is archived (docs/adr/0008).
