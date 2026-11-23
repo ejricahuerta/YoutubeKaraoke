@@ -221,6 +221,13 @@ test("guests are warned when the main screen has been closed for a while", async
   await expect(page.getByRole("status").filter({ hasText: "main screen is away, so nothing is playing" })).toContainText("about 10 min");
 });
 
+test("guests are warned before the session's hour is up", async ({ page }) => {
+  await mockSession(page, session({ limitInSeconds: 480, closesInSeconds: 480 }));
+  await setSingerName(page, "Leo");
+  await page.goto(`/join/${CODE}`);
+  await expect(page.getByRole("status").filter({ hasText: "Sessions last an hour at most" })).toContainText("about 8 min");
+});
+
 test("the guest screen breaks none of the Content-Security-Policy", async ({ page }) => {
   const api = await mockSession(page, session({ played: [song(7, "Zoë", "Wonderwall (Karaoke)")] }));
   await setSingerName(page, "Leo");

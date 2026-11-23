@@ -126,8 +126,8 @@ export default function PrivacyPage() {
       <h2>How long we keep it</h2>
       <ul>
         <li>
-          <strong>Sessions, singer names and songs</strong>: a session closes when the main screen ends it, 15 minutes after the
-          main screen was last open, or after 30 minutes with nothing playing or queued. It and everything in it are deleted
+          <strong>Sessions, singer names and songs</strong>: a session closes when the main screen ends it, an hour after it
+          started, 15 minutes after the main screen was last open, or after 30 minutes with nothing playing or queued. It and everything in it are deleted
           24 hours later.
         </li>
         <li><strong>IP addresses for rate limits</strong>: held in server memory for about a minute, never saved to the database.</li>

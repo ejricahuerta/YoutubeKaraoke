@@ -47,11 +47,17 @@ export function mainScreenGoneNotice(state: { mainScreenAway?: boolean; closesIn
   return `The main screen is away, so nothing is playing. If it doesn't come back, this session ends in ${timeLeft(state.closesInSeconds)}.`;
 }
 
-/** Warn the main screen this long before an idle session (nothing playing or queued) ends. */
-const IDLE_NOTICE_SECONDS = 10 * 60;
+/** Warn this long before a session ends for being idle or for reaching its hour. */
+const END_NOTICE_SECONDS = 10 * 60;
 
 /** For the main screen when nothing is playing or queued and the session ends soon; null otherwise. */
 export function idleNotice({ hasSongs, closesInSeconds }: { hasSongs: boolean; closesInSeconds: number | null }): string | null {
-  if (hasSongs || closesInSeconds == null || closesInSeconds > IDLE_NOTICE_SECONDS) return null;
+  if (hasSongs || closesInSeconds == null || closesInSeconds > END_NOTICE_SECONDS) return null;
   return `Nothing's queued. This session ends in ${timeLeft(closesInSeconds)} unless someone adds a song.`;
+}
+
+/** For every screen when the session's hour (the database decides, migration 0016) is nearly up; null otherwise. */
+export function timeLimitNotice({ limitInSeconds }: { limitInSeconds?: number | null }): string | null {
+  if (limitInSeconds == null || limitInSeconds > END_NOTICE_SECONDS) return null;
+  return `Sessions last an hour at most, so this one ends in ${timeLeft(limitInSeconds)}.`;
 }

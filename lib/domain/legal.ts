@@ -13,7 +13,7 @@ export const OPERATOR = {
 } as const;
 
 /** Shown at the top of each legal page. Change it whenever any of them changes. */
-export const LEGAL_UPDATED_ON = "22 November 2026";
+export const LEGAL_UPDATED_ON = "23 November 2026";
 
 export const LEGAL_PAGES = [
   { href: "/terms", label: "Terms", title: "Terms of Use" },

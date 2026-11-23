@@ -97,6 +97,7 @@ test("the terms say YouTube playback is not guaranteed", async ({ page }) => {
 test("the policies say when a session closes on its own", async ({ page }) => {
   for (const path of ["/terms", "/privacy"]) {
     await page.goto(path);
-    await expect(page.getByText(/15 minutes after the main screen was last open, or after 30 minutes with nothing playing/).first(), path).toBeVisible();
+    await expect(page.getByText(/an hour after it started/).first(), path).toBeVisible();
+    await expect(page.getByText(/15 minutes after the main screen was last\s+open, or after 30 minutes with nothing playing/).first(), path).toBeVisible();
   }
 });

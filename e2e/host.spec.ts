@@ -446,3 +446,16 @@ test("an idle session warns the main screen before it ends", async ({ page }) =>
   await expect(page.getByText("Nothing's queued. This session ends in about 5 min unless someone adds a song.")).toBeVisible();
 });
 
+test("the main screen is warned before the session's hour is up, instead of being told to add a song", async ({ page }) => {
+  await mockSession(page, hosting({ current: null, queue: [], closesInSeconds: 240, limitInSeconds: 240 }));
+  await page.goto(`/s/${CODE}`);
+  await expect(page.getByRole("status").filter({ hasText: "Sessions last an hour at most, so this one ends in about 4 min." })).toBeVisible();
+  await expect(page.getByText(/unless someone adds a song/)).toHaveCount(0);
+});
+
+test("an ended session says it may have reached its hour", async ({ page }) => {
+  await mockSession(page, hosting({ archived: true, current: null, queue: [], closesInSeconds: null, limitInSeconds: null }));
+  await page.goto(`/s/${CODE}`);
+  await expect(page.getByText(/or reached its one-hour limit/)).toBeVisible();
+});
+

@@ -19,7 +19,7 @@ export type RemoteStatus = "unclaimed" | "taken" | "free";
 /** Everything a screen needs to draw one session; returned by the get_state database function. */
 export type SessionState = {
   code: string;
-  /** Closed for good after 15 minutes without activity. */
+  /** Closed for good: ended by the main screen, by inactivity, or an hour after it started. */
   archived: boolean;
   isPlaying: boolean;
   /** The browser asking is the one that started the session. */
@@ -48,6 +48,8 @@ export type SessionState = {
   hostAwaySeconds: number | null;
   /** Seconds until the session closes if nothing happens; null when archived or not reported. */
   closesInSeconds: number | null;
+  /** Seconds left of the hour a session lasts at most (migration 0016); null when archived or not reported. */
+  limitInSeconds: number | null;
 };
 
 export type SearchResult = Pick<QueueItem, "videoId" | "title" | "channel" | "thumbnailUrl" | "durationSeconds">;

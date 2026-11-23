@@ -24,6 +24,12 @@ describe("a night of karaoke", () => {
     expect(state).toMatchObject({ isHost: true, isRemote: false, archived: false, takeTurns: true, current: null, queue: [] });
   });
 
+  it("gives the session an hour at most", async () => {
+    const { limitInSeconds } = await screen.state(code);
+    expect(limitInSeconds).toBeGreaterThan(3500);
+    expect(limitInSeconds).toBeLessThanOrEqual(3600);
+  });
+
   it("makes the first phone to join the remote, and nobody else", async () => {
     expect((await ana.state(code)).isRemote).toBe(true);
     expect((await ben.state(code)).isRemote).toBe(false);
