@@ -11,7 +11,7 @@ const DESKTOP = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
 const PHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 export const VIDEO_ID = "dQw4w9WgXcQ";
 
-type Answer = { status: number; body: { ok?: boolean; result?: string; error?: string; code?: string } };
+type Answer = { status: number; body: { ok?: boolean; result?: string; error?: string; code?: string; waitSeconds?: number } };
 
 export class Browser {
   private cookies = new Map<string, string>();
@@ -53,9 +53,14 @@ export class Browser {
     return { status: res.status, body: await res.json().catch(() => ({})) };
   }
 
+  /** Asks to start a session as its main screen. */
+  tryStartSession() {
+    return this.answer("POST", "/api/sessions");
+  }
+
   /** Starts a session as its main screen; returns its code. */
   async startSession(): Promise<string> {
-    const { status, body } = await this.answer("POST", "/api/sessions");
+    const { status, body } = await this.tryStartSession();
     if (status !== 200 || !body.code) throw new Error(`could not start a session: ${status} ${JSON.stringify(body)}`);
     return body.code;
   }
@@ -115,14 +120,20 @@ export const titles = (state: SessionState) => state.queue.map((item) => item.ti
 export const idOf = (state: SessionState, title: string) =>
   [state.current, ...state.queue].find((item) => item?.title === title)?.id ?? "";
 
-/** Moves a session's clock in the test database: makes its main screen last seen `seconds` ago. */
-export async function mainScreenSeen(code: string, secondsAgo: number) {
+/** Moves one of a session's clocks in the test database to `secondsAgo`. */
+async function setClock(code: string, column: "host_seen_at" | "created_at", secondsAgo: number) {
   const { default: pg } = await import("pg");
   const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
   try {
-    await client.query("update karaoke.sessions set host_seen_at = now() - make_interval(secs => $2) where code = $1", [code, secondsAgo]);
+    await client.query(`update karaoke.sessions set ${column} = now() - make_interval(secs => $2) where code = $1`, [code, secondsAgo]);
   } finally {
     await client.end();
   }
 }
+
+/** Makes a session's main screen last seen `secondsAgo`. */
+export const mainScreenSeen = (code: string, secondsAgo: number) => setClock(code, "host_seen_at", secondsAgo);
+
+/** Makes a session look as if it started `secondsAgo`. */
+export const sessionStarted = (code: string, secondsAgo: number) => setClock(code, "created_at", secondsAgo);

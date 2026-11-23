@@ -54,7 +54,8 @@ export default function PrivacyPage() {
           only a scrambled (hashed) form of the host token.
         </li>
         <li>
-          Session activity: the session code, when songs were added and played, which guest id added each song, which phone
+          Session activity: the session code, when it started and which guest id started it, when songs were added and
+          played, which guest id added each song, which phone
           is the session&apos;s remote, and when the main screen last checked in. If the remote moves the main screen to
           another device, the one-time link it creates is stored only as a hash and expires after 10 minutes.
         </li>

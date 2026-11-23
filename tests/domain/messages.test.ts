@@ -39,6 +39,16 @@ describe("startErrorMessage", () => {
     expect(startErrorMessage("slow_down")).toMatch(/wait/i);
   });
 
+  it("says when a browser can start again after its session ran its full hour", () => {
+    expect(startErrorMessage("too_soon", "13")).toBe(
+      "Your last session reached its one-hour limit. You can start a new one in about 13 min.",
+    );
+    expect(startErrorMessage("too_soon", "1")).toContain("in about 1 min");
+    expect(startErrorMessage("too_soon")).toBe("Your last session reached its one-hour limit. You can start a new one in a few minutes.");
+    expect(startErrorMessage("too_soon", "<b>")).toContain("in a few minutes");
+    expect(startErrorMessage("too_soon", "9999")).toContain("in a few minutes");
+  });
+
   it("is null for no error or one it does not know, so a crafted link shows nothing", () => {
     expect(startErrorMessage(undefined)).toBeNull();
     expect(startErrorMessage("<script>")).toBeNull();

@@ -76,4 +76,4 @@ export type MutationError =
   | "main_screen_here";
 
 /** Every error code the API can put in `{ ok: false, error }`. */
-export type ApiError = MutationError | "rate_limited" | "search_unavailable" | "server_error";
+export type ApiError = MutationError | "rate_limited" | "search_unavailable" | "server_error" | "too_soon";

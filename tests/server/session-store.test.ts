@@ -21,23 +21,35 @@ describe("generateSessionCode", () => {
 });
 
 describe("createSession", () => {
-  it("returns the new code", async () => {
-    rpc.mockResolvedValue(answer(true));
-    const code = await createSession("hash");
-    expect(rpc).toHaveBeenCalledWith("create_session", { p_code: code, p_host_hash: "hash" });
+  it("returns the new code, for the browser that started it", async () => {
+    rpc.mockResolvedValue(answer({ result: "ok" }));
+    const started = await createSession("hash", "guest");
+    expect(started).toEqual({ code: expect.any(String) });
+    expect(rpc).toHaveBeenCalledWith("start_session", { p_code: "code" in started && started.code, p_host_hash: "hash", p_guest_id: "guest" });
   });
 
   it("tries another code when one is taken", async () => {
-    rpc.mockResolvedValueOnce(answer(false)).mockResolvedValueOnce(answer(true));
-    const code = await createSession("hash");
+    rpc.mockResolvedValueOnce(answer({ result: "taken" })).mockResolvedValueOnce(answer({ result: "ok" }));
+    const started = await createSession("hash", "guest");
     expect(rpc).toHaveBeenCalledTimes(2);
-    expect(rpc.mock.calls[1][1].p_code).toBe(code);
+    expect(started).toEqual({ code: rpc.mock.calls[1][1].p_code });
+  });
+
+  it("says how long to wait after this browser's session ran its full hour", async () => {
+    rpc.mockResolvedValue(answer({ result: "wait", waitSeconds: 780 }));
+    expect(await createSession("hash", "guest")).toEqual({ waitSeconds: 780 });
+    expect(rpc).toHaveBeenCalledTimes(1);
   });
 
   it("gives up after a few collisions", async () => {
-    rpc.mockResolvedValue(answer(false));
-    await expect(createSession("hash")).rejects.toThrow("Could not allocate a session code");
+    rpc.mockResolvedValue(answer({ result: "taken" }));
+    await expect(createSession("hash", "guest")).rejects.toThrow("Could not allocate a session code");
     expect(rpc).toHaveBeenCalledTimes(5);
+  });
+
+  it("fails on any other answer", async () => {
+    rpc.mockResolvedValue(answer({ result: "invalid" }));
+    await expect(createSession("hash", "")).rejects.toThrow("start_session answered invalid");
   });
 });
 

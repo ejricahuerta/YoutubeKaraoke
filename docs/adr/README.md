@@ -35,7 +35,7 @@ at that point. Later records are written when the decision is made.
 | [0022](0022-when-the-main-screen-is-away.md) | When the main screen is away: pause, end after 15 minutes, move it | Accepted, amended by 0025 |
 | [0023](0023-main-screen-controls.md) | Main screen: four buttons, a Settings menu, confirmations | Accepted, extended by 0024 |
 | [0024](0024-main-screen-microphone.md) | The main screen's microphone: echo, reverb, test mic | Accepted |
-| [0025](0025-sessions-last-an-hour.md) | Sessions last an hour at most | Accepted |
+| [0025](0025-sessions-last-an-hour.md) | Sessions last an hour at most, then a 15-minute wait | Accepted |
 
 ## Template
 

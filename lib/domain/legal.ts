@@ -9,6 +9,8 @@ export const OPERATOR = {
   name: "edmel.dev",
   url: "https://edmel.dev",
   email: "me@edmel.dev",
+  /** Where tips go, by e-Transfer; shown when a session ends. */
+  tipEmail: "pay@edmel.dev",
   location: "Thornhill, Ontario, Canada",
 } as const;
 
@@ -40,7 +42,8 @@ export const BROWSER_STORAGE: readonly BrowserStorageEntry[] = [
   {
     name: "kg",
     kind: "cookie",
-    purpose: "A random guest id, so the app knows which songs in the queue you added and lets you remove them.",
+    purpose:
+      "A random guest id, so the app knows which songs in the queue you added and lets you remove them, and which sessions this browser started, so it waits 15 minutes after one runs its full hour before starting another.",
     lifetimeSeconds: SECONDS_PER_DAY * DAYS_PER_YEAR,
   },
   {

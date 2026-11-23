@@ -31,8 +31,19 @@ const START_ERRORS: Record<string, string> = {
   slow_down: "That's a lot of new sessions. Wait a minute, then try again.",
 };
 
-/** The notice for `/?error=…` after a failed "Start a session"; null for anything unknown. */
-export function startErrorMessage(code: string | undefined): string | null {
+/** The longest wait the start page names; anything else in the link is not ours, and gets vaguer words. */
+const MAX_WAIT_MINUTES = 60;
+
+/**
+ * The notice for `/?error=…` after a failed "Start a session"; null for anything unknown.
+ * `minutes` comes with "too_soon": how long until this browser may start another session.
+ */
+export function startErrorMessage(code: string | undefined, minutes?: string): string | null {
+  if (code === "too_soon") {
+    const wait = /^\d+$/.test(minutes ?? "") ? Number(minutes) : 0;
+    const when = wait >= 1 && wait <= MAX_WAIT_MINUTES ? `in about ${wait} min` : "in a few minutes";
+    return `Your last session reached its one-hour limit. You can start a new one ${when}.`;
+  }
   return (code && Object.hasOwn(START_ERRORS, code) ? START_ERRORS[code] : null) ?? null;
 }
 

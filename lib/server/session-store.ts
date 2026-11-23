@@ -23,11 +23,19 @@ export function generateSessionCode(): string {
   return code;
 }
 
-/** Creates a session with a fresh code; retries on the rare code collision. */
-export async function createSession(hostTokenHash: string): Promise<string> {
+/** A new session's code, or how long this browser must wait after its last session ran its full hour. */
+export type StartedSession = { code: string } | { waitSeconds: number };
+
+type StartAnswer = { result: "ok" | "taken" | "invalid" } | { result: "wait"; waitSeconds: number };
+
+/** Creates a session with a fresh code for the browser with `guestId`; retries on the rare code collision. */
+export async function createSession(hostTokenHash: string, guestId: string): Promise<StartedSession> {
   for (let attempt = 0; attempt < CREATE_ATTEMPTS; attempt++) {
     const code = generateSessionCode();
-    if (await rpc<boolean>("create_session", { p_code: code, p_host_hash: hostTokenHash })) return code;
+    const answer = await rpc<StartAnswer>("start_session", { p_code: code, p_host_hash: hostTokenHash, p_guest_id: guestId });
+    if (answer.result === "ok") return { code };
+    if (answer.result === "wait") return { waitSeconds: answer.waitSeconds };
+    if (answer.result !== "taken") throw new Error(`start_session answered ${answer.result}`);
   }
   throw new Error("Could not allocate a session code");
 }

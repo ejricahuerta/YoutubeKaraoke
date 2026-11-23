@@ -99,8 +99,8 @@ begin
   assert karaoke.idle_limit() = interval '15 minutes';
   assert not exists (
     select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'karaoke' and p.proname <> 'idle_limit' and p.prosrc like '%15 minutes%'
-  ), 'no other function writes 15 minutes itself';
+    where n.nspname = 'karaoke' and p.proname not in ('idle_limit', 'restart_after') and p.prosrc like '%15 minutes%'
+  ), 'no other function writes 15 minutes itself (restart_after is the wait after an hour-long session)';
 end $$;
 
 -- The host can end a session on purpose, at once, for everyone.
@@ -152,7 +152,7 @@ begin
       'karaoke.set_take_turns(text, text, boolean)',
       'karaoke.claim_remote(text, text)', 'karaoke.free_remote(text, text, text)', 'karaoke.recently_played()',
       'karaoke.start_handoff(text, text, text)', 'karaoke.take_over(text, text, text)',
-      'karaoke.play_item(text, text, uuid, uuid, text)'
+      'karaoke.play_item(text, text, uuid, uuid, text)', 'karaoke.start_session(text, text, text)'
     ] loop
       assert has_function_privilege(v_role, v_fn, 'execute'), v_role || ' can call ' || v_fn;
     end loop;
@@ -161,7 +161,7 @@ begin
     for v_fn in
       select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'karaoke'
-        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over', 'play_item')
+        and p.proname not in ('create_session', 'get_state', 'add_item', 'remove_item', 'move_item', 'playback', 'end_session', 'set_take_turns', 'claim_remote', 'free_remote', 'recently_played', 'start_handoff', 'take_over', 'play_item', 'start_session')
     loop
       assert not has_function_privilege(v_role, v_fn, 'execute'), v_role || ' cannot call internal ' || v_fn;
     end loop;

@@ -4,7 +4,7 @@
  * before, so they run in order on one session.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { Browser, idOf, mainScreenSeen, titles } from "./browser";
+import { Browser, idOf, mainScreenSeen, sessionStarted, titles } from "./browser";
 
 const screen = Browser.screen();
 const ana = Browser.phone();
@@ -137,5 +137,24 @@ describe("a night of karaoke", () => {
     expect((await newScreen.end(code)).status).toBe(200);
     expect((await ben.state(code)).archived).toBe(true);
     expect((await ben.add(code, "late", "Ben")).status).toBe(410);
+  });
+});
+
+describe("an hour at most", () => {
+  it("ends a session after its hour, and lets the screen that started it start another 15 minutes later", async () => {
+    const tv = Browser.screen();
+    const party = await tv.startSession();
+    await sessionStarted(party, 62 * 60);
+    expect((await tv.state(party)).archived).toBe(true);
+
+    const { status, body } = await tv.tryStartSession();
+    expect(status).toBe(429);
+    expect(body.error).toBe("too_soon");
+    expect(body.waitSeconds).toBeGreaterThan(770);
+    expect(body.waitSeconds).toBeLessThanOrEqual(780);
+    expect((await Browser.screen().tryStartSession()).status).toBe(200);
+
+    await sessionStarted(party, 76 * 60);
+    expect((await tv.tryStartSession()).status).toBe(200);
   });
 });

@@ -98,6 +98,7 @@ test("the policies say when a session closes on its own", async ({ page }) => {
   for (const path of ["/terms", "/privacy"]) {
     await page.goto(path);
     await expect(page.getByText(/an hour after it started/).first(), path).toBeVisible();
+    if (path === "/terms") await expect(page.getByText(/the browser that\s+started it can start a new one 15 minutes later/)).toBeVisible();
     await expect(page.getByText(/15 minutes after the main screen was last\s+open, or after 30 minutes with nothing playing/).first(), path).toBeVisible();
   }
 });
