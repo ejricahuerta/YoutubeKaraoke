@@ -102,6 +102,8 @@ export const STORAGE_KEYS = {
   queueHidden: "karaoke:queue-hidden",
   /** JSON { itemId, seconds }: where the main screen was in the current song. */
   position: "karaoke:position",
+  /** JSON MicSettings (lib/domain/microphone): the main screen's mic, echo and reverb. */
+  microphone: "karaoke:microphone",
 } as const;
 type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
 

@@ -65,6 +65,12 @@ export default function PrivacyPage() {
         <li>The <strong>songs you add</strong>: the YouTube video id, title, channel, thumbnail and length.</li>
         <li>What you <strong>search for</strong>. We pass the search to YouTube; we do not keep a record of it tied to you.</li>
       </ul>
+      <h3>The microphone</h3>
+      <p>
+        If you turn on the <strong>microphone</strong> on the main screen, your browser asks first. Your voice goes from the
+        microphone straight to that device&apos;s speakers, with the echo and reverb added on the device itself. It is never
+        recorded, never sent to us or anyone else, and stops when you turn the microphone off or close the page.
+      </p>
       <h3>Security reports</h3>
       <p>
         Browsers may send us a report when a page tries to load something our security policy would block. We keep the page

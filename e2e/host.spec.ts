@@ -184,6 +184,8 @@ test("the Settings menu works from a remote: arrows move through it and Escape c
   await expect(page.getByRole("slider", { name: "Volume" })).toBeFocused();
 
   await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("button", { name: /^Microphone/ })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("switch", { name: "Take turns" })).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("button", { name: "Free the remote" })).toBeFocused();
@@ -283,12 +285,13 @@ test("a remote with no songs yet is still shown", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Free the remote" })).toBeVisible();
 });
 
-test("another computer's Settings only hides the queue: no volume, turns or End session", async ({ page }) => {
+test("another computer's Settings only hides the queue: no volume, microphone, turns or End session", async ({ page }) => {
   await mockSession(page, session());
   await page.goto(`/s/${CODE}`);
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("button", { name: "Hide queue" })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Volume" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Microphone/ })).toHaveCount(0);
   await expect(page.getByRole("switch", { name: "Take turns" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "End session" })).toHaveCount(0);
 });

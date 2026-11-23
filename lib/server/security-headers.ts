@@ -48,8 +48,10 @@ export function securityHeaders(options: Options) {
     { key: "X-Content-Type-Options", value: "nosniff" },
     // Must keep sending the origin: YouTube's embedded player will not play without a referrer.
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-    // Features the app never uses. Fullscreen, autoplay, vibration and the wake lock are deliberately not listed.
-    { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+    // Features the app never uses are off. The microphone is the app's own, for singing on the main
+    // screen (docs/adr/0024); the YouTube frame never gets it. Fullscreen, autoplay, vibration and
+    // the wake lock are deliberately not listed.
+    { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=(), payment=(), usb=()" },
   ];
 }
 
