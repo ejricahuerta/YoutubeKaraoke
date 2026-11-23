@@ -5,21 +5,24 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { STORAGE_KEYS, useExpiringState, useFullscreen, useOrigin, useStoredString, useWakeLock } from "@/lib/client/browser-hooks";
 import { endSession, freeRemote, playSongNow, sendPlayback, setTakeTurns, takeOver, type MutationOutcome } from "@/lib/client/session-api";
+import { useMicrophone } from "@/lib/client/use-microphone";
 import { useSessionState } from "@/lib/client/use-session-state";
 import { formatDuration } from "@/lib/domain/format";
 import { failureMessage, idleNotice, isFailure } from "@/lib/domain/messages";
+import { micStatusMessage } from "@/lib/domain/microphone";
 import { clampVolume, playingLabel, SEEK_STEP_SECONDS, upNextBannerVisible, type HostKeyCommand } from "@/lib/domain/playback";
 import type { QueueItem } from "@/lib/domain/types";
 import { displayTitle } from "@/lib/domain/video";
 import { Avatar } from "../Avatar";
 import { CenteredMessage, SessionLoadingMessage } from "../CenteredMessage";
-import { BackIcon, CheckIcon, EditIcon, PlayIcon, PlusIcon, PowerIcon } from "../Icons";
+import { BackIcon, CheckIcon, EditIcon, MicIcon, PlayIcon, PlusIcon, PowerIcon } from "../Icons";
 import { Logo } from "../Logo";
 import { QueuePanel } from "../QueuePanel";
 import { SearchPanel } from "../SearchPanel";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { HostLobby } from "./HostLobby";
 import { JoinCard, JoinCorner } from "./JoinCard";
+import { MicrophonePanel } from "./MicrophonePanel";
 import { Player, savedPosition, type PlayerHandle, type Progress } from "./Player";
 import { SettingsMenu } from "./SettingsMenu";
 import { SingerIntro } from "./SingerIntro";
@@ -100,6 +103,9 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
   const fullscreen = useFullscreen();
   const showQueue = queueHidden !== "1";
   const volume = clampVolume(storedVolume);
+  // Only the screen that plays the video sings through its speakers (docs/adr/0024).
+  const mic = useMicrophone(!!state?.isHost);
+  const [showMic, setShowMic] = useState(false);
 
   // Each new song starts with a short "you're up" call-out, except when a reload resumes mid-song.
   const [seenId, setSeenId] = useState<string | null | undefined>(undefined);
@@ -240,6 +246,9 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
   const showJoinCorner = !!current && (!showQueue || fullscreen);
   // The picked song may be played or removed by someone else while the host decides.
   const picked = pickedId ? queue.find((item) => item.id === pickedId) : undefined;
+  // With the mic on, say so, or say what stops it; a test says so in its own panel.
+  const micNotice = isHost && mic.settings.isEnabled ? micStatusMessage(mic.status) : "";
+  const isMicLive = isHost && mic.settings.isEnabled && mic.status === "live";
 
   return (
     <div className="flex min-h-dvh flex-col gap-8 p-6 lg:h-dvh lg:flex-row lg:gap-12 lg:px-24 lg:py-[3.375rem]">
@@ -256,6 +265,12 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
             <span role="status" className="rounded-full bg-notice-ground px-5 py-2 text-[1.25rem] font-semibold text-notice">Reconnecting…</span>
           ) : null}
           <span className="ml-auto" />
+          {isMicLive ? (
+            <span className="flex items-center gap-2 rounded-full bg-stage-200 px-5 py-2 text-[1.25rem] font-semibold text-spotlight">
+              <MicIcon className="h-6 w-6" />
+              Mic on
+            </span>
+          ) : null}
           <SettingsMenu
             isHost={isHost}
             volume={volume}
@@ -263,6 +278,8 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
               setStoredVolume(String(next));
               playerRef.current?.setVolume(next);
             }}
+            micStatus={mic.status}
+            onMicrophone={() => setShowMic(true)}
             takeTurns={state.takeTurns}
             onTakeTurns={onTakeTurns}
             remote={state.remote}
@@ -277,6 +294,9 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
 
         {notice ? (
           <p role="status" className="animate-rise rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{notice}</p>
+        ) : null}
+        {micNotice && !showMic ? (
+          <p role="status" className="rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{micNotice}</p>
         ) : null}
         {isHost && idle ? (
           <p role="status" className="rounded-row bg-notice-ground px-6 py-3 text-[1.5rem] font-semibold text-notice">{idle}</p>
@@ -461,6 +481,16 @@ export function HostScreen({ code, takeover }: { code: string; takeover?: string
             “{displayTitle(current.title)}” stops now, and {picked.addedBy} is up.
           </p>
         </ConfirmDialog>
+      ) : null}
+
+      {showMic && isHost ? (
+        <MicrophonePanel
+          mic={mic}
+          onClose={() => {
+            setShowMic(false);
+            mic.setTesting(false);
+          }}
+        />
       ) : null}
 
       {askingEnd && isHost ? (

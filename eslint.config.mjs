@@ -11,7 +11,8 @@ const SERVER_ONLY = [["@/lib/server/*"], "Server code (cookies, database, YouTub
 const config = [
   ...nextVitals,
   ...nextTs,
-  { ignores: [".next/**", "node_modules/**", "next-env.d.ts"] },
+  // .claude holds Claude Code's own files, including whole worktrees with their own builds.
+  { ignores: [".next/**", "node_modules/**", "next-env.d.ts", ".claude/**"] },
   {
     rules: {
       // Thumbnails come straight from YouTube and the QR code is a data URL: next/image adds nothing.

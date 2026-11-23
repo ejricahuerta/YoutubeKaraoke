@@ -18,7 +18,8 @@ The owner reviewed a mockup in the YouOke design canvas and chose this layout.
   readers and tooltips): play or pause, forward 10 seconds, next song, full screen.
   Next song is the screen's one `encore` button; play or pause is `ink`; the other two
   are `stage-200`.
-- **A Settings menu** in the header holds everything else: volume, Take turns, who has the
+- **A Settings menu** in the header holds everything else: volume, the microphone (added by
+  [0024](0024-main-screen-microphone.md), which opens its own panel), Take turns, who has the
   remote with **Free the remote** (from [0020](0020-hand-over-the-remote.md), which had put
   these two in the Edit queue tab), hide or show the queue, and End session. It is a disclosure (a button and a panel), not an
   ARIA menu, because it holds a slider and a switch. Escape closes it; up and down move

@@ -184,6 +184,8 @@ test("the Settings menu works from a remote: arrows move through it and Escape c
   await expect(page.getByRole("slider", { name: "Volume" })).toBeFocused();
 
   await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("button", { name: /^Microphone/ })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("switch", { name: "Take turns" })).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("button", { name: "Free the remote" })).toBeFocused();
@@ -283,12 +285,13 @@ test("a remote with no songs yet is still shown", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Free the remote" })).toBeVisible();
 });
 
-test("another computer's Settings only hides the queue: no volume, turns or End session", async ({ page }) => {
+test("another computer's Settings only hides the queue: no volume, microphone, turns or End session", async ({ page }) => {
   await mockSession(page, session());
   await page.goto(`/s/${CODE}`);
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("button", { name: "Hide queue" })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Volume" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Microphone/ })).toHaveCount(0);
   await expect(page.getByRole("switch", { name: "Take turns" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "End session" })).toHaveCount(0);
 });
@@ -386,6 +389,39 @@ test("the main screen asks YouTube for its privacy-enhanced player, with YouTube
     host: "https://www.youtube-nocookie.com",
     playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0 },
   });
+});
+
+test("the main screen waits for YouTube's player to be ready before asking where the song is", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.clock.install();
+  await mockSession(page, hosting());
+  // Like YouTube's real IFrame API, this player has no methods until just before onReady.
+  await page.route("https://www.youtube.com/iframe_api", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: `window.YT = { Player: function (el, options) { const player = this; window.finishLoadingPlayer = () => {
+        Object.assign(player, {
+          loadVideoById() {}, cueVideoById() {}, playVideo() {}, pauseVideo() {}, seekTo() {}, setVolume() {},
+          getCurrentTime() { return 42; }, getDuration() { return 180; }, getPlayerState() { return 1; }, destroy() {},
+        });
+        options.events.onReady({ data: 0, target: player });
+      }; } }; window.onYouTubeIframeAPIReady();`,
+    }),
+  );
+  await page.goto(`/s/${CODE}`);
+  await page.getByRole("button", { name: "Start now" }).first().click();
+  await page.waitForFunction(() => "finishLoadingPlayer" in window);
+
+  // Still loading: several rounds of saving the position pass without an error.
+  await page.clock.fastForward(10_000);
+  expect(errors).toEqual([]);
+
+  // Once ready, the position is saved so a reload resumes the song.
+  await page.evaluate(() => (window as unknown as { finishLoadingPlayer(): void }).finishLoadingPlayer());
+  await page.clock.fastForward(4_000);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("karaoke:position"))).toContain('"seconds":42');
+  expect(errors).toEqual([]);
 });
 
 test("opening a move-the-main-screen link makes this screen the main screen", async ({ page }) => {

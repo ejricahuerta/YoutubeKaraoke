@@ -122,6 +122,10 @@ export function Player({
   ref?: Ref<PlayerHandle>;
 }) {
   const mountRef = useRef<HTMLDivElement>(null);
+  /**
+   * Set only once YouTube says the player is ready: before `onReady` the object exists but its
+   * methods do not, so anything that finds a player here can call them.
+   */
   const playerRef = useRef<YTPlayer | null>(null);
   const [ready, setReady] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -148,13 +152,14 @@ export function Player({
   useEffect(() => {
     let cancelled = false;
     let pauseTimer: ReturnType<typeof setTimeout> | undefined;
+    let player: YTPlayer | undefined;
     const el = document.createElement("div");
     mountRef.current?.appendChild(el);
 
     loadApi()
       .then((YT) => {
         if (cancelled) return;
-        playerRef.current = new YT.Player(el, {
+        player = new YT.Player(el, {
           // Privacy-enhanced mode: no YouTube cookies before a video plays (docs/adr/0018).
           host: YOUTUBE_PLAYER_HOST,
           width: "100%",
@@ -166,6 +171,8 @@ export function Player({
           },
           events: {
             onReady: (e) => {
+              if (cancelled) return;
+              playerRef.current = e.target;
               e.target.setVolume(latest.current.volume);
               setReady(true);
             },
@@ -198,8 +205,8 @@ export function Player({
     return () => {
       cancelled = true;
       clearTimeout(pauseTimer);
-      playerRef.current?.destroy();
       playerRef.current = null;
+      player?.destroy();
       el.remove();
     };
   }, []);

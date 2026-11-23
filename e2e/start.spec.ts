@@ -75,6 +75,7 @@ test("every response carries the security headers", async ({ page, request }) =>
     // YouTube's player refuses to play without a referrer, so the origin must still be sent.
     expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
     expect(headers["permissions-policy"]).toContain("camera=()");
+    expect(headers["permissions-policy"]).toContain("microphone=(self)"); // for singing on the main screen
     expect(headers["x-powered-by"]).toBeUndefined();
   }
 });

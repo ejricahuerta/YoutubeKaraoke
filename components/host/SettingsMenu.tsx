@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
+import { micMenuStatus, type MicStatus } from "@/lib/domain/microphone";
 import type { RemoteStatus } from "@/lib/domain/types";
-import { ChevronDownIcon, PowerIcon, QueueIcon, SettingsIcon, TurnsIcon, VolumeIcon } from "../Icons";
+import { ChevronDownIcon, MicIcon, PowerIcon, QueueIcon, SettingsIcon, TurnsIcon, VolumeIcon } from "../Icons";
 import { RemoteIndicator } from "./RemoteIndicator";
 
 /** Marks the controls that up and down move between. */
@@ -14,13 +15,15 @@ const ITEM_ROW = "flex h-[4.5rem] w-full items-center gap-4 rounded-row px-[1.12
  * than an ARIA menu, because it holds a slider and a switch. Up and down move between its
  * controls, as a TV remote expects; Escape or a press outside closes it.
  *
- * Volume, taking turns, the remote and ending the session are the host's; any screen can hide
- * the queue.
+ * Volume, the microphone, taking turns, the remote and ending the session are the host's; any
+ * screen can hide the queue.
  */
 export function SettingsMenu({
   isHost,
   volume,
   onVolume,
+  micStatus,
+  onMicrophone,
   takeTurns,
   onTakeTurns,
   remote,
@@ -34,6 +37,9 @@ export function SettingsMenu({
   isHost: boolean;
   volume: number;
   onVolume: (volume: number) => void;
+  /** The main screen's mic (docs/adr/0024); its settings open in their own panel. */
+  micStatus: MicStatus;
+  onMicrophone: () => void;
   takeTurns: boolean;
   onTakeTurns: (on: boolean) => void;
   /** Who has the phone remote, and a way to free it (migration 0012). */
@@ -124,6 +130,20 @@ export function SettingsMenu({
                   className="h-2.5 min-w-0 flex-1 cursor-pointer accent-ink"
                 />
               </label>
+            ) : null}
+            {isHost ? (
+              <MenuButton
+                {...item}
+                aria-haspopup="dialog"
+                onClick={() => {
+                  setOpen(false);
+                  onMicrophone();
+                }}
+                icon={<MicIcon className="h-[1.875rem] w-[1.875rem]" />}
+              >
+                <span className="flex-1">Microphone</span>
+                <span className="text-[1.375rem] font-medium text-ink-muted">{micMenuStatus(micStatus)}</span>
+              </MenuButton>
             ) : null}
             {isHost ? (
               <MenuButton

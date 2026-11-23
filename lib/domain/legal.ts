@@ -54,6 +54,11 @@ export const BROWSER_STORAGE: readonly BrowserStorageEntry[] = [
   { name: "karaoke:volume", kind: "local storage", purpose: "The main screen's volume." },
   { name: "karaoke:queue-hidden", kind: "local storage", purpose: "Whether the main screen's queue panel is hidden." },
   { name: "karaoke:position", kind: "local storage", purpose: "Where the main screen was in the current song, so a reload carries on from there." },
+  {
+    name: "karaoke:microphone",
+    kind: "local storage",
+    purpose: "The main screen's microphone settings: whether it is on, which microphone, and its volume, echo and reverb. Never any sound.",
+  },
 ];
 
 /** "30 days", "1 year", or how long an entry with no fixed lifetime lasts. */

@@ -61,4 +61,12 @@ describe("securityHeaders", () => {
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
   });
+
+  it("lets the app's own pages use the microphone, for singing on the main screen, and nothing else", () => {
+    const headers = Object.fromEntries(securityHeaders({ supabaseUrl: undefined, dev: false }).map((h) => [h.key, h.value]));
+    const policy = headers["Permissions-Policy"];
+    expect(policy).toContain("microphone=(self)");
+    expect(policy).toContain("camera=()");
+    expect(policy).toContain("geolocation=()");
+  });
 });
