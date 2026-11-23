@@ -30,7 +30,10 @@ export default function PrivacyPage() {
           session.
         </li>
         <li>A session&apos;s songs and names are deleted 24 hours after the session closes.</li>
-        <li>No ads, no analytics or tracking cookies, and we never sell or share your information for advertising.</li>
+        <li>
+          No ads and no tracking cookies. We count page views without cookies and without session codes, and we never sell
+          or share your information for advertising.
+        </li>
       </ul>
 
       <h2>What we collect</h2>
@@ -96,6 +99,13 @@ export default function PrivacyPage() {
           hour, the same network waits 15 minutes before starting another. This is in our legitimate interest in running a
           reliable, secure and fair service.
         </li>
+        <li>
+          <strong>To see how YouOke is used</strong>: Vercel Web Analytics counts page views: which pages are opened, from
+          which referring site, and the visitor&apos;s country, browser, operating system and device type. It sets no cookies
+          and stores nothing in your browser; it tells visits apart with a scrambled form of the request that is discarded
+          within a day. Session codes are removed from every address before it is sent. This is in our legitimate interest
+          in improving the service.
+        </li>
       </ul>
       <p>We do not use your information for advertising, profiling or automated decisions about you, and we do not sell it.</p>
 
@@ -112,7 +122,7 @@ export default function PrivacyPage() {
         <li>
           <strong>Our service providers</strong>, who process it for us to run YouOke:
           <ul>
-            <li><strong>Vercel</strong> hosts the app. It handles every request, including your IP address and device information, and keeps request logs.</li>
+            <li><strong>Vercel</strong> hosts the app. It handles every request, including your IP address and device information, keeps request logs and counts page views (Vercel Web Analytics).</li>
             <li><strong>Supabase</strong> runs our database and the live updates. Every screen connects to it directly, so it also receives your IP address.</li>
           </ul>
         </li>
@@ -140,6 +150,7 @@ export default function PrivacyPage() {
           deleted with it. The address itself is never stored.
         </li>
         <li><strong>Request logs and security reports</strong>: only for the limited time our hosting provider keeps them.</li>
+        <li><strong>Page-view counts</strong>: kept by Vercel for as long as our plan keeps them. They never hold session codes.</li>
         <li><strong>Cookies and local storage</strong>: for the times listed in the <Link href="/cookies">Cookie Policy</Link>, or until you clear them.</li>
       </ul>
 
